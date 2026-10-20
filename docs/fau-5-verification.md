@@ -33,3 +33,5 @@ The Domain test project currently checks architecture only: domain fault behavio
 ## CI portability correction
 
 The first remote macOS run exposed a WebApplicationFactory failure-path race: a disposed deferred service provider could hide the original startup validation exception. Invalid-startup tests now execute the actual API process with isolated configuration and assert its exit code and actionable, redacted diagnostics; WebApplicationFactory remains for successful HTTP/DI tests. This strengthens the observable startup test without accepting the disposal error as success.
+
+The first Windows run built and passed all tests, then caught Git's automatic CRLF checkout conflicting with the LF editor policy. `.gitattributes` now preserves LF across platforms; the formatting check remains enabled.
