@@ -47,6 +47,8 @@ q PUT '/collections/fau6_smoke/points?wait=true' '{"points":[{"id":1,"vector":[0
 assert_point() { q GET /collections/fau6_smoke/points/1 | grep -q 'synthetic EPS'; }
 dc restart qdrant api
 dc up -d --wait --wait-timeout 180
+# Docker may reassign an ephemeral published port when the API restarts.
+api="http://$(port api 8080)"
 assert_point
 dc stop qdrant
 test "$(curl -s -o /dev/null -w '%{http_code}' "$api/health/ready")" = 503
