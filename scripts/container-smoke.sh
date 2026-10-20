@@ -11,6 +11,7 @@ cleanup() {
   dc down --volumes --remove-orphans >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
+trap 'echo "Container smoke failed at line $LINENO" >&2; dc ps; dc logs --tail=40 api qdrant proxy' ERR
 python3 scripts/check-build-inputs.py
 docker info >/dev/null
 if env -u FAULTCODE_QDRANT_API_KEY docker compose --env-file /dev/null config --quiet 2>/dev/null; then

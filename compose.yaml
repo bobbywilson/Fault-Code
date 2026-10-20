@@ -1,7 +1,7 @@
 name: faultcode
 services:
   api:
-    image: faultcode-api:local
+    image: ${COMPOSE_PROJECT_NAME:-faultcode}-api:local
     build:
       context: .
       dockerfile: Dockerfile
@@ -23,7 +23,7 @@ services:
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
   qdrant:
-    image: faultcode-qdrant:local
+    image: ${COMPOSE_PROJECT_NAME:-faultcode}-qdrant:local
     build:
       context: .
       dockerfile: docker/Qdrant.Dockerfile
