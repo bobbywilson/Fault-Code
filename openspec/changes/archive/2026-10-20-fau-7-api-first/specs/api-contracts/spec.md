@@ -1,0 +1,41 @@
+## ADDED Requirements
+
+### Requirement: Version one foundation operations
+The API SHALL expose public GET /api/v1/health and read-only synthetic examples at /api/v1/examples with camelCase DTOs, stable IDs and deterministic ordering. Unknown versions and resources SHALL return 404 without exposing business data.
+
+#### Scenario: Public foundation responses
+- **GIVEN** a running API without provider credentials
+- **WHEN** a client requests version one health or examples
+- **THEN** health returns 200 and examples return only synthetic steering fixtures in stable ID order
+
+### Requirement: Bounded collection queries
+Collections SHALL validate one-based page and pageSize from 1 through 100, defaulting to page 1 and size 20; examples SHALL support an optional exact system filter of EPS, steer-by-wire or steering-ADAS. Invalid queries SHALL return 400; empty pages SHALL return an empty items array and accurate totalCount.
+
+#### Scenario: Query boundaries
+- **GIVEN** the synthetic examples collection
+- **WHEN** a client filters, requests an empty page or supplies invalid pagination
+- **THEN** valid results include page, pageSize and totalCount while invalid queries return correlated validation Problem Details
+
+### Requirement: Correlated safe errors
+HTTP errors SHALL use RFC 9457 application/problem+json with status, title, type, instance and server-generated correlationId also sent in X-Correlation-ID. Validation, identity, permission, resource, conflict, throttling and unexpected failures SHALL retain 400, 401, 403, 404, 409, 429 and 500 semantics without exception details or supplied secrets.
+
+#### Scenario: Failure contract
+- **GIVEN** an invalid request, denied request, missing resource, conflict, throttling or unhandled exception
+- **WHEN** the API responds
+- **THEN** the correct status and correlated Problem Details are returned without internal exception text
+
+### Requirement: Generated compatible contracts
+Builds SHALL generate OpenAPI describing operation IDs, schemas, examples, error responses and security conventions without Swagger UI. CI SHALL validate the document and reject breaking changes against the versioned baseline, including removed operations, narrowed inputs and weakened security. Public foundation operations SHALL declare no authentication requirement.
+
+#### Scenario: Contract validation
+- **GIVEN** a generated document and baseline
+- **WHEN** CI validates a compatible document or a deliberately breaking fixture
+- **THEN** the compatible document passes and the breaking fixture fails
+
+### Requirement: Mutation conventions
+Future mutations SHALL document strong ETag and If-Match concurrency with 409 for version conflicts and an Idempotency-Key for retryable creation, scoped to actor, operation and payload with durable replay. Reusing a key for a different payload SHALL return 409. Consumers SHALL use API contracts exclusively.
+
+#### Scenario: Future mutation design
+- **GIVEN** a ticket adding a persistent mutation
+- **WHEN** its API contract is designed
+- **THEN** it specifies concurrency, durable replay and authorization without direct UI storage access

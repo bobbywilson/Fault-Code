@@ -18,7 +18,10 @@ public sealed class ArchitectureTests
                 .Replace("FaultCode.", "", StringComparison.Ordinal))
             .Order().ToArray();
         Assert.Equal(allowed.Order(), references);
-        Assert.Empty(project.Descendants("PackageReference"));
+        var packages = project.Descendants("PackageReference").Select(x => x.Attribute("Include")!.Value).Order();
+        Assert.Equal(component == "Api"
+            ? new[] { "Microsoft.AspNetCore.OpenApi", "Microsoft.Extensions.ApiDescription.Server" }
+            : [], packages);
         if (component is "Domain" or "Application")
         {
             Assert.Empty(project.Descendants("FrameworkReference"));

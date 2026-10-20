@@ -25,3 +25,7 @@
 !docker/HealthProbe/HealthProbe.csproj
 !docker/HealthProbe/Program.cs
 !docker/qdrant-health.sh
+!src/FaultCode.Api/Contracts/ApiContracts.cs
+!src/FaultCode.Api/Controllers/ExamplesController.cs
+!src/FaultCode.Api/Controllers/HealthController.cs
+!src/FaultCode.Api/Contracts/ApiDocumentTransformer.cs
