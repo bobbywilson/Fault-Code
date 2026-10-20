@@ -1,0 +1,27 @@
+# Explicit build-input allowlist; add new source files deliberately.
+**
+!global.json
+!Directory.Build.props
+!src/FaultCode.Api/Configuration/FoundationOptions.cs
+!src/FaultCode.Api/Configuration/QdrantOptions.cs
+!src/FaultCode.Api/FaultCode.Api.csproj
+!src/FaultCode.Api/Health/QdrantReadinessCheck.cs
+!src/FaultCode.Api/Program.cs
+!src/FaultCode.Api/appsettings.json
+!src/FaultCode.Api/packages.lock.json
+!src/FaultCode.Application/FaultCode.Application.csproj
+!src/FaultCode.Application/FoundationStatus.cs
+!src/FaultCode.Application/FoundationStatusService.cs
+!src/FaultCode.Application/IRuntimeEnvironment.cs
+!src/FaultCode.Application/Persistence/IRepository.cs
+!src/FaultCode.Application/Persistence/IUnitOfWork.cs
+!src/FaultCode.Application/packages.lock.json
+!src/FaultCode.Domain/FaultCode.Domain.csproj
+!src/FaultCode.Domain/IAggregateRoot.cs
+!src/FaultCode.Domain/packages.lock.json
+!src/FaultCode.Infrastructure/FaultCode.Infrastructure.csproj
+!src/FaultCode.Infrastructure/RuntimeEnvironment.cs
+!src/FaultCode.Infrastructure/packages.lock.json
+!docker/HealthProbe/HealthProbe.csproj
+!docker/HealthProbe/Program.cs
+!docker/qdrant-health.sh

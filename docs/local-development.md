@@ -1,6 +1,6 @@
 # Backend development
 
-Part of FAU-5. Requires stable .NET SDK 10.0.402 (C# 14, .NET 10 LTS). `global.json` allows later patches in the same SDK feature band and rejects previews. Install from https://dotnet.microsoft.com/download/dotnet/10.0. Native macOS (Apple Silicon/Intel), Windows and Linux SDKs are available. Docker Compose belongs to FAU-6.
+Part of FAU-5. Requires stable .NET SDK 10.0.402 (C# 14, .NET 10 LTS). `global.json` allows later patches in the same SDK feature band and rejects previews. Install from https://dotnet.microsoft.com/download/dotnet/10.0. Native macOS (Apple Silicon/Intel), Windows and Linux SDKs are available. Docker Compose instructions are in [docker-development.md](docker-development.md).
 
 This Mac has a checksum-verified SDK installed at `/Users/bobbywilson/Documents/Codex/.toolchains/dotnet`. In a fresh terminal:
 
@@ -40,4 +40,4 @@ dotnet format FaultCode.slnx --verify-no-changes --no-restore
 
 ## Requested local hostname
 
-The user selected `faultcode.test` on 2026-10-20. The host allowlist includes it, and Rider can execute `src/FaultCode.Api/FaultCode.Api.http` for quick HTTP checks. The native API currently runs at http://localhost:5080. A loopback hosts entry and a port-80 reverse proxy are still required for the port-free http://faultcode.test address; neither is installed by FAU-5. Administrative access was unavailable during setup, so do not treat the hostname as active. Keep existing Homestead/Lalai mappings untouched. The reverse proxy belongs with the local environment work in FAU-6.
+The user selected `faultcode.test` on 2026-10-20. The host allowlist includes it, and Rider can execute `src/FaultCode.Api/FaultCode.Api.http` for quick HTTP checks. The native API currently runs at http://localhost:5080. A loopback hosts entry and a port-80 reverse proxy are still required for the port-free http://faultcode.test address; neither is installed by FAU-5. Administrative access was unavailable during setup, so do not treat the hostname as active. Keep existing Homestead/Lalai mappings untouched. FAU-6 supplies the Compose reverse proxy; see [Docker development](docker-development.md) for startup and separate resolver activation.
