@@ -1,0 +1,17 @@
+# Allowlist only build inputs. Never send env files, user secrets, IDE state or git.
+**
+!global.json
+!Directory.Build.props
+!src/
+!src/**/
+!src/**/*.cs
+!src/**/*.csproj
+!src/**/packages.lock.json
+!src/**/appsettings.json
+!docker/
+!docker/HealthProbe/
+!docker/HealthProbe/*.cs
+!docker/HealthProbe/*.csproj
+**/bin/**
+**/obj/**
+!docker/qdrant-health.sh
