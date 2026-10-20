@@ -12,6 +12,8 @@
 !docker/HealthProbe/
 !docker/HealthProbe/*.cs
 !docker/HealthProbe/*.csproj
+**/bin
 **/bin/**
+**/obj
 **/obj/**
 !docker/qdrant-health.sh

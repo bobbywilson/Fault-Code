@@ -18,7 +18,7 @@ curl --fail --resolve faultcode.test:80:127.0.0.1 http://faultcode.test/health/l
 
 Do not paste real credentials into logs or commit .env. No OpenAI/Entra secrets are needed. An empty key stops Compose before service creation. Wrong API/Qdrant keys or an unavailable Qdrant return readiness HTTP 503 with generic output; API liveness remains HTTP 200. Native API readiness is provider-free unless Qdrant__Enabled=true. Readiness uses authenticated /collections via qdrant:6333 with a two-second timeout; it does not implement RAG.
 
-API defaults to loopback 5081, preserving native 5080. Proxy defaults to loopback port 80. Change FAULTCODE_API_PORT / FAULTCODE_PROXY_PORT in .env for conflicts; use that port in URLs. Qdrant has no host port, even for health checks. The internal backend network denies outbound access; future external provider access needs a deliberate change.
+API defaults to loopback 5081, preserving native 5080. Proxy defaults to loopback port 80. Change FAULTCODE_API_PORT / FAULTCODE_PROXY_PORT in .env for conflicts; use that port in URLs. Qdrant has no host port, even for health checks. Qdrant stays on the internal backend network. API and proxy also use a project-scoped edge network for loopback port publishing. No provider credentials are configured.
 
 ## faultcode.test
 
