@@ -1,6 +1,5 @@
 using FaultCode.Api.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Options;
 
@@ -83,14 +82,6 @@ public static class EntraAuthentication
                     return Task.CompletedTask;
                 }
             };
-        });
-        services.AddAuthorization(options =>
-        {
-            options.DefaultPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
-            options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAssertion(context =>
-                // Keep unknown routes at 404; every mapped endpoint is protected by default.
-                context.Resource is HttpContext http && http.GetEndpoint() is null
-                || context.User.Identity?.IsAuthenticated == true).Build();
         });
         return services;
     }

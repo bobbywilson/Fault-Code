@@ -31,3 +31,6 @@
 !src/FaultCode.Api/Controllers/ExamplesController.cs
 !src/FaultCode.Api/Controllers/HealthController.cs
 !src/FaultCode.Api/Contracts/ApiDocumentTransformer.cs
+!src/FaultCode.Api/Authorization/DriverResourceHandler.cs
+!src/FaultCode.Api/Authorization/Permissions.cs
+!src/FaultCode.Api/Controllers/AuthorizationController.cs

@@ -125,7 +125,7 @@ public sealed class ApiContractTests
         using var client = factory.CreateClient();
         using var json = JsonDocument.Parse(await client.GetStringAsync("/openapi/v1.json"));
         var paths = json.RootElement.GetProperty("paths");
-        Assert.Equal(3, paths.EnumerateObject().Count());
+        Assert.Equal(4, paths.EnumerateObject().Count());
         Assert.True(paths.TryGetProperty("/api/v1/examples", out _));
         Assert.False(paths.TryGetProperty("/contract-fixture/{status}", out _));
         Assert.True(json.RootElement.GetProperty("components").GetProperty("schemas").EnumerateObject().Any());

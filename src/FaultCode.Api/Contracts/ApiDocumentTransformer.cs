@@ -1,6 +1,8 @@
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
+using FaultCode.Api.Authorization;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FaultCode.Api.Contracts;
 
@@ -10,7 +12,7 @@ public sealed class ApiDocumentTransformer : IOpenApiDocumentTransformer
     {
         document.Info.Title = "Fault Code API";
         document.Info.Version = "v1";
-        document.Info.Description = "Public synthetic foundation operations. Dedicated Entra v2 bearer validation is available when configured; protected operations require delegated scopes or application roles under FAU-9. Browser clients use authorization code + PKCE; machines use client credentials. No tenant has been provisioned and no placeholder OAuth URLs are executable.";
+        document.Info.Description = "Versioned Fault Code API with public synthetic foundation operations and protected caller permissions. Dedicated Entra v2 bearer validation is available when configured; protected operations require delegated scopes or application roles under FAU-9. Browser clients use authorization code + PKCE; machines use client credentials. No tenant has been provisioned and no placeholder OAuth URLs are executable.";
         document.Components!.SecuritySchemes = new Dictionary<string, IOpenApiSecurityScheme>
         {
             ["EntraBearer"] = new OpenApiSecurityScheme
@@ -21,6 +23,46 @@ public sealed class ApiDocumentTransformer : IOpenApiDocumentTransformer
                 Description = "Dedicated Entra v2 access token. Protected operations require exact delegated scopes or machine application roles. These public fixtures require neither."
             }
         };
+        foreach (var description in context.DocumentName == "v1" ? context.DescriptionGroups.SelectMany(g => g.Items) : [])
+        {
+            var policies = description.ActionDescriptor.EndpointMetadata.OfType<IAuthorizeData>()
+                .Select(a => a.Policy).Where(p => p is not null).ToArray();
+            if (policies.Length == 0) continue;
+            var path = "/" + description.RelativePath;
+            if (!document.Paths.TryGetValue(path, out var item)) continue;
+            var method = new System.Net.Http.HttpMethod(description.HttpMethod!);
+            if (!item.Operations!.TryGetValue(method, out var operation)) continue;
+            {
+                operation.Security = [new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecuritySchemeReference("EntraBearer", document)] = []
+                }];
+                foreach (var (status, response) in operation.OperationId == "GetCallerPermissions" ? operation.Responses! : new OpenApiResponses())
+                {
+                    if (response is not OpenApiResponse concrete || concrete.Content is null) continue;
+                    concrete.Headers ??= new Dictionary<string, IOpenApiHeader>();
+                    concrete.Headers["X-Correlation-ID"] = new OpenApiHeader { Schema = new OpenApiSchema { Type = JsonSchemaType.String } };
+                    foreach (var media in concrete.Content.Keys.ToArray())
+                        if (media != (status == "200" ? "application/json" : "application/problem+json")) concrete.Content.Remove(media);
+                    foreach (var media in concrete.Content.Values)
+                    {
+                        media.Example = status == "200" ? JsonNode.Parse("""{"callerKind":"delegated","permissions":["authorization.read"]}""")
+                            : JsonNode.Parse("""{"type":"about:blank","title":"Request failed","status":401,"instance":"/api/v1/authorization/me","correlationId":"5ce0d2ac05434c56980a058cfd2e8fa7"}""");
+                        if (status != "200") media.Example!["status"] = int.Parse(status, System.Globalization.CultureInfo.InvariantCulture);
+                    }
+                }
+                foreach (var policy in policies)
+                {
+                    if (!Permissions.TryPolicy(policy!, out var permission, out var kind)) continue;
+                    operation.Description = $"Requires {permission!.Name}. Delegated: exact scope {permission.Scope} AND one of roles {string.Join(", ", permission.HumanRoles)}. Application: exact role {permission.ApplicationRole ?? "not permitted"}. Caller kind: {kind}.";
+                    operation.Extensions ??= new Dictionary<string, IOpenApiExtension>();
+                    operation.Extensions["x-faultcode-permission"] = new JsonNodeExtension(JsonValue.Create(permission.Name)!);
+                    operation.Extensions["x-delegated-scopes"] = new JsonNodeExtension(new JsonArray(JsonValue.Create(permission.Scope)));
+                    operation.Extensions["x-human-roles"] = new JsonNodeExtension(new JsonArray(permission.HumanRoles.Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()));
+                    operation.Extensions["x-application-roles"] = new JsonNodeExtension(permission.ApplicationRole is null ? new JsonArray() : new JsonArray(JsonValue.Create(permission.ApplicationRole)));
+                }
+            }
+        }
         foreach (var (path, item) in document.Paths)
         {
             // Only these intentionally public fixtures belong to FAU-7. Future protected

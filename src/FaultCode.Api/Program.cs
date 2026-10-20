@@ -5,9 +5,11 @@ using FaultCode.Application;
 using FaultCode.Infrastructure;
 using Microsoft.Extensions.Options;
 using FaultCode.Api.Identity;
+using FaultCode.Api.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEntraAuthentication(builder.Configuration);
+builder.Services.AddFaultCodeAuthorization();
 
 builder.Services.AddOptions<FoundationOptions>()
     .Bind(builder.Configuration.GetSection(FoundationOptions.SectionName))

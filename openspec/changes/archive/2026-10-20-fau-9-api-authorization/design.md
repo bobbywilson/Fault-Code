@@ -1,0 +1,14 @@
+# Design
+## Context
+Part of FAU-9. See proposal.md. FAU-8 authenticates via real JWT middleware; no business persistence exists. Reviewed authorization, identity, API, vehicle ownership and MCP specifications.
+## Goals / Non-Goals
+Provide reusable named policies, trusted resource checks and a protected read-only permission endpoint. No invented vehicle records or fake mutation routes; no provider selection, provisioning, browser client or MCP server.
+## Decisions
+Use ASP.NET authorization requirements/handlers and a fixed immutable permission catalog. Delegated access requires exact scope AND an allowed user role; app-only access requires a distinct granular app role. Explicit .Delegated and .Application variants support caller-kind-only operations. No blanket Administrator/Engineer hierarchy: publication requires Engineer; administration requires Administrator. Reader, Operator, Engineer and Administrator can read; Operator alone operates; Engineer alone publishes/escalates; Administrator alone manages integrations/users. Assignment must be explicit.
+DriverResource carries trusted tenant/owner IDs, loaded by future persistence adapters. Own-read requires Reader plus drivers.read.own or vehicles.read.own; all-read policies accept allowed staff scopes/app roles. Never take owner from route/query/body to authorize records. Validate identifiers and tenant for both access paths. No service account impersonation. Future MCP must pass original validated caller; no service identity union.
+Fail closed on fallback/default policies; explicit named authentication-only policy remains test-only for FAU-8 fixtures. Route inventory test prevents protected routes without catalog policy. OpenAPI transformer reads policy metadata and derives exact security documentation from catalog, avoiding parallel permission lists. Add read-only caller permission endpoint as useful real policy consumer.
+Log policy decision context only: oid, azp, permission, outcome, correlation. Durable business audit remains each future mutation's transactional responsibility after DEC-001; logs are not durable audit. No publication or integration mutation ships here.
+## Risks / Trade-offs
+Tenant provisioning remains pending; real consent and live tokens cannot be verified. Deterministic ephemeral signed-token tests cover middleware and policies. Resource tests use trusted synthetic objects and test-only routes, not a production database. JWT role assignment changes take effect with new tokens; no instant revocation guarantee. Current host hardening/reboot/source allowlist is separate and unchanged.
+## Migration Plan
+No existing public operation changes. Register exact permission values in dedicated tenant only when separately authorized. Future routes opt into named policies and trusted ownership checks. Roll back code as a single commit before any domain consumers rely on catalog.

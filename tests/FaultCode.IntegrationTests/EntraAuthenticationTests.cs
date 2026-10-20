@@ -16,11 +16,11 @@ namespace FaultCode.IntegrationTests;
 
 public sealed class EntraAuthenticationTests
 {
-    private const string Tenant = "11111111-1111-4111-8111-111111111111";
-    private const string Audience = "22222222-2222-4222-8222-222222222222";
-    private const string Actor = "33333333-3333-4333-8333-333333333333";
-    private const string Client = "44444444-4444-4444-8444-444444444444";
-    private const string Issuer = "https://login.microsoftonline.com/" + Tenant + "/v2.0";
+    internal const string Tenant = "11111111-1111-4111-8111-111111111111";
+    internal const string Audience = "22222222-2222-4222-8222-222222222222";
+    internal const string Actor = "33333333-3333-4333-8333-333333333333";
+    internal const string Client = "44444444-4444-4444-8444-444444444444";
+    internal const string Issuer = "https://login.microsoftonline.com/" + Tenant + "/v2.0";
 
     [Theory]
     [InlineData(false)]
@@ -126,7 +126,7 @@ public sealed class EntraAuthenticationTests
         Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/identity-fixture")).StatusCode);
     }
 
-    private static WebApplicationFactory<Program> CreateFactory(Discovery discovery, bool enabled = true) =>
+    internal static WebApplicationFactory<Program> CreateFactory(Discovery discovery, bool enabled = true) =>
         new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(new Dictionary<string, string?>
@@ -137,13 +137,14 @@ public sealed class EntraAuthenticationTests
             }));
             builder.ConfigureServices(services =>
             {
+                services.AddAuthorization(options => options.AddPolicy("IdentityFixture", policy => policy.RequireAuthenticatedUser()));
                 services.AddControllers().AddApplicationPart(typeof(IdentityFixtureController).Assembly);
                 services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
                     options.Backchannel = new HttpClient(discovery, disposeHandler: false));
             });
         });
 
-    private static string Token(SecurityKey key, string failure = "", bool machine = false)
+    internal static string Token(SecurityKey key, string failure = "", bool machine = false)
     {
         var claims = new List<Claim>
         {
@@ -184,7 +185,7 @@ public sealed class EntraAuthenticationTests
         Assert.False(json.RootElement.TryGetProperty("detail", out _));
     }
 
-    private sealed class Discovery : HttpMessageHandler
+    internal sealed class Discovery : HttpMessageHandler
     {
         private readonly RSA rsa = RSA.Create(2048);
         private readonly bool outage;
@@ -222,7 +223,7 @@ public sealed class EntraAuthenticationTests
 [Route("identity-fixture")]
 public sealed class IdentityFixtureController : ControllerBase
 {
-    // No Authorize attribute: exercises deny-by-default fallback for future endpoints.
+    [Microsoft.AspNetCore.Authorization.Authorize(Policy = "IdentityFixture")]
     [HttpGet]
     public object Get() => new { actor = User.FindFirst("oid")?.Value, scopes = User.FindFirst("scp")?.Value, roles = User.FindAll("roles").Select(x => x.Value) };
 
