@@ -37,3 +37,7 @@ Separate Domain.Tests and Application.Tests projects enforce project references 
 ```sh
 dotnet format FaultCode.slnx --verify-no-changes --no-restore
 ```
+
+## Requested local hostname
+
+The user selected `faultcode.test` on 2026-10-20. The host allowlist includes it, and Rider can execute `src/FaultCode.Api/FaultCode.Api.http` for quick HTTP checks. The native API currently runs at http://localhost:5080. A loopback hosts entry and a port-80 reverse proxy are still required for the port-free http://faultcode.test address; neither is installed by FAU-5. Administrative access was unavailable during setup, so do not treat the hostname as active. Keep existing Homestead/Lalai mappings untouched. The reverse proxy belongs with the local environment work in FAU-6.

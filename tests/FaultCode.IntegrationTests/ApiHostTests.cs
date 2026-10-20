@@ -22,6 +22,9 @@ public sealed class ApiHostTests
         var response = await client.GetAsync("/health/live");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("Healthy", await response.Content.ReadAsStringAsync());
+        using var domainRequest = new HttpRequestMessage(HttpMethod.Get, "/health/live");
+        domainRequest.Headers.Host = "faultcode.test";
+        Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(domainRequest)).StatusCode);
         Assert.Equal("Fault Code", factory.Services.GetRequiredService<FoundationStatusService>().GetStatus().ApplicationName);
     }
 
