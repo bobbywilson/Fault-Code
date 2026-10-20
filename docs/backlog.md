@@ -1,6 +1,6 @@
 # Fault Code backlog traceability
 
-The 22 stable Linear IDs are preserved. Numbered titles express approved sequence; do not recreate issues to renumber IDs. No application features are implemented.
+The 22 stable Linear IDs are preserved. Numbered titles express approved sequence; do not recreate issues to renumber IDs. FAU-5 adds the initial backend foundation; business features remain unimplemented.
 
 | Order | Linear | Title | Main specification capabilities | Dependencies |
 |---|---|---|---|---|

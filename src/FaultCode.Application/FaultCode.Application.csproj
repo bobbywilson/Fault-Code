@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../FaultCode.Domain/FaultCode.Domain.csproj" />
+  </ItemGroup>
+</Project>

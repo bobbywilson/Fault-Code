@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <ProjectReference Include="../FaultCode.Application/FaultCode.Application.csproj" />
+    <ProjectReference Include="../FaultCode.Infrastructure/FaultCode.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

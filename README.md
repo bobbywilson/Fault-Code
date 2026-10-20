@@ -1,8 +1,9 @@
 # Fault Code
 
-Independent API-first agentic automotive fault investigation proof of concept. Current repository contains project specifications and development instructions only; application development has not begun.
+Independent API-first agentic automotive fault investigation proof of concept. The initial ASP.NET Core backend foundation is implemented; business workflows remain specified for later tickets.
 
 ## Start here
+- [Run and test the backend](docs/local-development.md)
 - [Architectural decisions](docs/decisions.md)
 - [Development workflow](docs/development-workflow.md)
 - [22-ticket traceability](docs/backlog.md)

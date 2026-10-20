@@ -1,0 +1,23 @@
+name: Backend foundation
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - run: dotnet restore FaultCode.slnx --locked-mode
+      - run: dotnet build FaultCode.slnx --configuration Release --no-restore
+      - run: dotnet test FaultCode.slnx --configuration Release --no-build --logger trx
+      - run: dotnet format FaultCode.slnx --verify-no-changes --no-restore
