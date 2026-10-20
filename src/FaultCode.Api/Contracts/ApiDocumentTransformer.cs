@@ -10,7 +10,7 @@ public sealed class ApiDocumentTransformer : IOpenApiDocumentTransformer
     {
         document.Info.Title = "Fault Code API";
         document.Info.Version = "v1";
-        document.Info.Description = "Public synthetic foundation operations. Future protected operations use dedicated Entra OAuth2 authorization code + PKCE with delegated scopes, or client credentials with app roles. Tenant, audience, scope and role values will be configured in FAU-8/9; no placeholder OAuth URLs are executable.";
+        document.Info.Description = "Public synthetic foundation operations. Dedicated Entra v2 bearer validation is available when configured; protected operations require delegated scopes or application roles under FAU-9. Browser clients use authorization code + PKCE; machines use client credentials. No tenant has been provisioned and no placeholder OAuth URLs are executable.";
         document.Components!.SecuritySchemes = new Dictionary<string, IOpenApiSecurityScheme>
         {
             ["EntraBearer"] = new OpenApiSecurityScheme
@@ -18,7 +18,7 @@ public sealed class ApiDocumentTransformer : IOpenApiDocumentTransformer
                 Type = SecuritySchemeType.Http,
                 Scheme = "bearer",
                 BearerFormat = "JWT",
-                Description = "Reserved for FAU-8/9. Delegated tokens require operation scopes; machine tokens require application roles. These public fixtures require neither."
+                Description = "Dedicated Entra v2 access token. Protected operations require exact delegated scopes or machine application roles. These public fixtures require neither."
             }
         };
         foreach (var (path, item) in document.Paths)
