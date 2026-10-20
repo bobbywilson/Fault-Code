@@ -1,0 +1,8 @@
+@baseUrl = http://localhost:5080
+
+### Process liveness
+GET {{baseUrl}}/health/live
+Accept: text/plain
+
+### Business routes remain unimplemented
+GET {{baseUrl}}/api/v1/vehicles

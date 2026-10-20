@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net10.0": {
+      "faultcode.application": {
+        "type": "Project",
+        "dependencies": {
+          "FaultCode.Domain": "[1.0.0, )"
+        }
+      },
+      "faultcode.domain": {
+        "type": "Project"
+      },
+      "faultcode.infrastructure": {
+        "type": "Project",
+        "dependencies": {
+          "FaultCode.Application": "[1.0.0, )"
+        }
+      }
+    }
+  }
+}

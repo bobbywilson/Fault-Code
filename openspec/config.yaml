@@ -6,7 +6,7 @@ context: |
   Never implement GraphRAG or vehicle software deployment. Angular uses the API exclusively.
   Relational database, notification delivery provider and deployment target remain undecided pending approval.
   OpenSpec defines requirements; Linear tracks status; GitHub persists specs/code; Codex executes authorized tasks.
-  Current authorization is project setup and specifications only, not application implementation.
+  User authorized FAU-5 backend foundation implementation and latest stable .NET on 2026-10-20; later tickets remain separate scopes.
 rules:
   proposal:
     - Reference the Linear issue and existing capability paths; do not duplicate specifications.

@@ -4,7 +4,7 @@ Read README.md, docs/decisions.md, docs/development-workflow.md, docs/backlog.md
 
 Follow all 15 user-required OpenSpec lifecycle responsibilities documented in docs/development-workflow.md. Each ticket names exact relevant specs, ADRs, scenarios, tests, dependencies and deliverables. Validate before implementation, keep approved specs/code synchronized, commit to GitHub, reference the stable FAU ID and complete the official archive workflow. Mark tasks complete only from observed evidence.
 
-Application implementation is not authorized by this setup. No Entra tenant/cloud provisioning, purchases, invitations, relational database selection, GraphRAG or vehicle software deployment. Synthetic EPS, steer-by-wire and steering ADAS data only. Never change other project resources. Do not silently replace approved stack; request approval for unresolved architecture.
+FAU-5 application foundation implementation was explicitly authorized on 2026-10-20; later tickets require their own user instruction. No Entra tenant/cloud provisioning, purchases, invitations, relational database selection, GraphRAG or vehicle software deployment. Synthetic EPS, steer-by-wire and steering ADAS data only. Never change other project resources. Do not silently replace approved stack; request approval for unresolved architecture.
 
 Use ASP.NET Core/C# API-first, Angular/TypeScript with Spartan UI/Tailwind, dedicated Entra Free identity (PKCE/browser and client credentials/machine), Microsoft Agent Framework/OpenAI, Qdrant traditional RAG, permission-aware MCP, provider-independent OpenTelemetry/Datadog with optional Sentry, generated OpenAPI/Mintlify and Docker Compose/Linux. Every UI operation needs an API operation; public docs need no login but protected API requests do.
 
