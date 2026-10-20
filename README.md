@@ -4,6 +4,7 @@ Independent API-first agentic automotive fault investigation proof of concept. T
 
 ## Start here
 - [Run and test the backend](docs/local-development.md)
+- [API conventions and contracts](docs/api-conventions.md)
 - [Docker development and reset](docs/docker-development.md)
 - [Architectural decisions](docs/decisions.md)
 - [Development workflow](docs/development-workflow.md)

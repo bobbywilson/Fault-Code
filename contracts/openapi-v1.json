@@ -1,0 +1,456 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Fault Code API",
+    "description": "Public synthetic foundation operations. Future protected operations use dedicated Entra OAuth2 authorization code + PKCE with delegated scopes, or client credentials with app roles. Tenant, audience, scope and role values will be configured in FAU-8/9; no placeholder OAuth URLs are executable.",
+    "version": "v1"
+  },
+  "paths": {
+    "/api/v1/examples": {
+      "get": {
+        "tags": [
+          "Examples"
+        ],
+        "operationId": "ListExamples",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 20
+            }
+          },
+          {
+            "name": "system",
+            "in": "query",
+            "schema": {
+              "pattern": "^(EPS|steer-by-wire|steering-ADAS)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "Server-generated request correlation ID, also returned in Problem Details.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 400,
+                  "instance": "/api/v1/examples",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "Server-generated request correlation ID, also returned in Problem Details.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 500,
+                  "instance": "/api/v1/examples",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "Server-generated request correlation ID, also returned in Problem Details.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseOfExampleResponse"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": "synthetic-001",
+                      "system": "EPS",
+                      "description": "Synthetic electric power steering example"
+                    }
+                  ],
+                  "page": 1,
+                  "pageSize": 1,
+                  "totalCount": 3
+                }
+              }
+            }
+          }
+        },
+        "security": [ ]
+      }
+    },
+    "/api/v1/examples/{id}": {
+      "get": {
+        "tags": [
+          "Examples"
+        ],
+        "operationId": "GetExample",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "Server-generated request correlation ID, also returned in Problem Details.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 400,
+                  "instance": "/api/v1/examples",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "Server-generated request correlation ID, also returned in Problem Details.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 500,
+                  "instance": "/api/v1/examples",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "Server-generated request correlation ID, also returned in Problem Details.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExampleResponse"
+                },
+                "example": {
+                  "id": "synthetic-001",
+                  "system": "EPS",
+                  "description": "Synthetic electric power steering example"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "Server-generated request correlation ID, also returned in Problem Details.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 404,
+                  "instance": "/api/v1/examples",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
+          }
+        },
+        "security": [ ]
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "operationId": "GetApiHealth",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "Server-generated request correlation ID, also returned in Problem Details.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                },
+                "example": {
+                  "status": "Healthy"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "Server-generated request correlation ID, also returned in Problem Details.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 500,
+                  "instance": "/api/v1/examples",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
+          }
+        },
+        "security": [ ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ExampleResponse": {
+        "required": [
+          "id",
+          "system",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "system": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "HealthResponse": {
+        "required": [
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "PageResponseOfExampleResponse": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "totalCount"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExampleResponse"
+            }
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "totalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "ProblemDetails": {
+        "required": [
+          "type",
+          "title",
+          "status",
+          "instance",
+          "correlationId"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "correlationId": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "EntraBearer": {
+        "type": "http",
+        "description": "Reserved for FAU-8/9. Delegated tokens require operation scopes; machine tokens require application roles. These public fixtures require neither.",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Examples"
+    },
+    {
+      "name": "Health"
+    }
+  ]
+}
