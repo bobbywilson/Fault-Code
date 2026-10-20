@@ -1,14 +1,12 @@
 using System.Net;
-using FaultCode.Api.Configuration;
+using System.Diagnostics;
 using FaultCode.Application;
 using FaultCode.Application.Persistence;
 using FaultCode.Domain;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
@@ -39,21 +37,22 @@ public sealed class ApiHostTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Missing_or_blank_configuration_prevents_host_startup(string? name)
+    public async Task Missing_or_blank_configuration_prevents_host_startup(string? name)
     {
-        using var factory = WithName(name);
-        var error = Assert.Throws<OptionsValidationException>(() => factory.CreateClient());
-        Assert.Contains("FaultCode:ApplicationName", error.Message);
-        Assert.Contains("set FaultCode__ApplicationName", error.Message);
+        var (exitCode, output) = await StartWithInvalidName(name);
+        Assert.NotEqual(0, exitCode);
+        Assert.Contains("FaultCode:ApplicationName", output);
+        Assert.Contains("set FaultCode__ApplicationName", output);
     }
 
     [Fact]
-    public void Invalid_configuration_diagnostics_do_not_disclose_the_value()
+    public async Task Invalid_configuration_diagnostics_do_not_disclose_the_value()
     {
         var suppliedValue = new string('s', 101);
-        using var factory = WithName(suppliedValue);
-        var error = Assert.Throws<OptionsValidationException>(() => factory.CreateClient());
-        Assert.DoesNotContain(suppliedValue, error.ToString());
+        var (exitCode, output) = await StartWithInvalidName(suppliedValue);
+        Assert.NotEqual(0, exitCode);
+        Assert.Contains("FaultCode:ApplicationName", output);
+        Assert.DoesNotContain(suppliedValue, output);
     }
 
     [Fact]
@@ -95,12 +94,49 @@ public sealed class ApiHostTests
 
     private sealed record SyntheticAggregate(Guid Id) : IAggregateRoot;
 
-    private static WebApplicationFactory<Program> WithName(string? name) =>
-        new WebApplicationFactory<Program>().WithWebHostBuilder(builder => builder.ConfigureAppConfiguration((_, configuration) =>
-            configuration.AddInMemoryCollection(new Dictionary<string, string?>
+    // Run invalid startup out of process: WebApplicationFactory can dispose its deferred
+    // service provider before surfacing the original validation exception on fast failures.
+    private static async Task<(int ExitCode, string Output)> StartWithInvalidName(string? name)
+    {
+        var directory = Directory.CreateTempSubdirectory("faultcode-startup-");
+        using var process = new Process
+        {
+            StartInfo = new ProcessStartInfo
             {
-                [$"{FoundationOptions.SectionName}:ApplicationName"] = name
-            })));
+                FileName = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
+                WorkingDirectory = directory.FullName,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false
+            }
+        };
+        process.StartInfo.ArgumentList.Add(typeof(Program).Assembly.Location);
+        process.StartInfo.Environment.Remove("FaultCode__ApplicationName");
+        process.StartInfo.Environment["ASPNETCORE_ENVIRONMENT"] = "Production";
+        process.StartInfo.Environment["ASPNETCORE_URLS"] = "http://127.0.0.1:0";
+        if (name is not null)
+        {
+            process.StartInfo.Environment["FaultCode__ApplicationName"] = name;
+        }
+        try
+        {
+            Assert.True(process.Start());
+            var stdout = process.StandardOutput.ReadToEndAsync();
+            var stderr = process.StandardError.ReadToEndAsync();
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            await process.WaitForExitAsync(timeout.Token);
+            return (process.ExitCode, await stdout + await stderr);
+        }
+        finally
+        {
+            if (process.Id != 0 && !process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+                await process.WaitForExitAsync();
+            }
+            directory.Delete(recursive: true);
+        }
+    }
 
     private sealed class TestEnvironment : IRuntimeEnvironment
     {

@@ -20,8 +20,8 @@ Commands above use the SDK on PATH as described in local-development.md. The ver
 |---|---|
 | Component separation | Domain.Tests ArchitectureTests enforce each project's inward references and forbid provider packages/framework references in inner layers |
 | Adapter replacement without credentials | Application.Tests CompositionTests and real-host Host_composition_accepts_a_replacement_adapter |
-| Missing/blank configuration | Three real-host startup failure cases plus actionable key/environment-variable guidance assertions |
-| Invalid values omit supplied contents | Real-host overlength option rejection and exception-value redaction assertion |
+| Missing/blank configuration | Three real-process startup failure cases plus actionable key/environment-variable guidance assertions |
+| Invalid values omit supplied contents | Real-process overlength option rejection and captured-output redaction assertion |
 | Environment precedence and DI resolution | Real environment variable overrides appsettings and reaches resolved application service |
 | Runnable host and liveness | WebApplicationFactory smoke test plus live Kestrel HTTP check |
 | No unsecured business data | HTTP 404 for unimplemented vehicle route |
@@ -29,3 +29,7 @@ Commands above use the SDK on PATH as described in local-development.md. The ver
 | Three business workflows remain specified | Existing fault-investigation spec covers A/B; engineering-escalation spec covers C. No claim of implementing those workflows in FAU-5 |
 
 The Domain test project currently checks architecture only: domain fault behavior belongs to later tickets. Persistence contracts have no production implementation. Liveness does not test downstream readiness. Windows/Linux execution is provided by the CI matrix and must be reported from actual CI results, not inferred from macOS tests. No deployment, tenant/cloud provisioning or Linear closure is performed.
+
+## CI portability correction
+
+The first remote macOS run exposed a WebApplicationFactory failure-path race: a disposed deferred service provider could hide the original startup validation exception. Invalid-startup tests now execute the actual API process with isolated configuration and assert its exit code and actionable, redacted diagnostics; WebApplicationFactory remains for successful HTTP/DI tests. This strengthens the observable startup test without accepting the disposal error as success.
