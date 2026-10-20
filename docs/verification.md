@@ -12,7 +12,7 @@
 - Linear Code installed with access restricted to bobbywilson/Fault-Code; Linear reports Connected and Code access enabled.
 - Commit linking enabled with a repository-scoped push webhook using JSON and SSL verification.
 - GitHub auto-close and Linear merge-to-Done automation disabled; parent, sub-issue and stale auto-close disabled.
-- Pull-request association is being verified through this documentation-only change, using a contributing reference to FAU-25. No issue-closing keywords or application changes are included.
+- Native pull-request association verified: https://github.com/bobbywilson/Fault-Code/pull/1 received an automatic linear-code linkback to FAU-25 and a Review in Linear link. No issue-closing keywords or application changes are included. The verification PR remains open for review.
 
 - Official `openspec archive establish-project-specifications --yes`: completed, synchronized 20 main specs and archived all 42 requirements. Non-blocking recommendation: split changes with more than 10 deltas; this one-time baseline is intentionally comprehensive.
 - `openspec validate --all --strict`: 20 passed, 0 failed.
