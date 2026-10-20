@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using FaultCode.Api.Configuration;
 using FaultCode.Api.Health;
@@ -81,19 +82,55 @@ public sealed class ReadinessTests
     [InlineData("", "http://qdrant:6333", "Qdrant:ApiKey")]
     [InlineData("synthetic-key", "not-a-url", "Qdrant:Endpoint")]
     [InlineData("synthetic-key", "http://user:secret@qdrant:6333", "Qdrant:Endpoint")]
-    public void Enabled_configuration_rejects_missing_key_and_invalid_endpoint(string? key, string endpoint, string setting)
+    public async Task Enabled_configuration_rejects_missing_key_and_invalid_endpoint(string? key, string endpoint, string setting)
     {
-        using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
-            builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
+        var directory = Directory.CreateTempSubdirectory("faultcode-qdrant-startup-");
+        using var process = new Process
+        {
+            StartInfo = new ProcessStartInfo
             {
-                ["Qdrant:Enabled"] = "true",
-                ["Qdrant:ApiKey"] = key,
-                ["Qdrant:Endpoint"] = endpoint
-            })));
-        var exception = Assert.Throws<OptionsValidationException>(() => factory.CreateClient());
-        Assert.Contains(setting, exception.Message);
-        Assert.DoesNotContain("synthetic-key", exception.Message);
-        Assert.DoesNotContain("user:secret", exception.Message);
+                FileName = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
+                WorkingDirectory = directory.FullName,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false
+            }
+        };
+        process.StartInfo.ArgumentList.Add(typeof(Program).Assembly.Location);
+        process.StartInfo.Environment["FaultCode__ApplicationName"] = "Synthetic startup test";
+        process.StartInfo.Environment["ASPNETCORE_ENVIRONMENT"] = "Production";
+        process.StartInfo.Environment["ASPNETCORE_URLS"] = "http://127.0.0.1:0";
+        process.StartInfo.Environment["Qdrant__Enabled"] = "true";
+        process.StartInfo.Environment["Qdrant__Endpoint"] = endpoint;
+        process.StartInfo.Environment.Remove("Qdrant__ApiKey");
+        if (key is not null)
+        {
+            process.StartInfo.Environment["Qdrant__ApiKey"] = key;
+        }
+        try
+        {
+            // An actual process avoids WebApplicationFactory's deferred-host disposal race
+            // when startup validation fails before the test server is fully created.
+            Assert.True(process.Start());
+            var stdout = process.StandardOutput.ReadToEndAsync();
+            var stderr = process.StandardError.ReadToEndAsync();
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            await process.WaitForExitAsync(timeout.Token);
+            var output = await stdout + await stderr;
+            Assert.NotEqual(0, process.ExitCode);
+            Assert.Contains(setting, output);
+            Assert.DoesNotContain("synthetic-key", output);
+            Assert.DoesNotContain("user:secret", output);
+        }
+        finally
+        {
+            if (process.Id != 0 && !process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+                await process.WaitForExitAsync();
+            }
+            directory.Delete(recursive: true);
+        }
     }
 
     private sealed class ProbeHandler(HttpStatusCode code) : HttpMessageHandler
