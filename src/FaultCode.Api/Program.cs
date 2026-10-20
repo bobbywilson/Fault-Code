@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using FaultCode.Application;
 using FaultCode.Infrastructure;
 using Microsoft.Extensions.Options;
+using FaultCode.Api.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddEntraAuthentication(builder.Configuration);
 
 builder.Services.AddOptions<FoundationOptions>()
     .Bind(builder.Configuration.GetSection(FoundationOptions.SectionName))
@@ -71,10 +73,12 @@ app.Use(async (context, next) =>
 });
 app.UseExceptionHandler(handler => handler.Run(context => WriteProblem(context, 500)));
 app.UseStatusCodePages(context => WriteProblem(context.HttpContext, context.HttpContext.Response.StatusCode));
-app.MapOpenApi();
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapOpenApi().AllowAnonymous();
 app.MapControllers();
-app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
-app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") });
+app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false }).AllowAnonymous();
+app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") }).AllowAnonymous();
 app.Run();
 
 static Task WriteProblem(HttpContext context, int status) => Results.Problem(

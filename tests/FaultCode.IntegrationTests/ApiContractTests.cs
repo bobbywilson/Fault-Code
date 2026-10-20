@@ -148,6 +148,7 @@ public sealed class ApiContractTests
 
 // Loaded explicitly by the test factory, never included in the production API assembly.
 [ApiController]
+[Microsoft.AspNetCore.Authorization.AllowAnonymous]
 [Route("contract-fixture/{status:int}")]
 public sealed class FailureFixtureController : ControllerBase
 {

@@ -3,6 +3,8 @@
 !global.json
 !Directory.Build.props
 !src/FaultCode.Api/Configuration/FoundationOptions.cs
+!src/FaultCode.Api/Configuration/EntraOptions.cs
+!src/FaultCode.Api/Identity/EntraAuthentication.cs
 !src/FaultCode.Api/Configuration/QdrantOptions.cs
 !src/FaultCode.Api/FaultCode.Api.csproj
 !src/FaultCode.Api/Health/QdrantReadinessCheck.cs
