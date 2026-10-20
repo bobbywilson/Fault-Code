@@ -8,9 +8,12 @@
 - Initial capability inventory: 20 capabilities and 42 normative requirement/scenario pairs.
 - GitHub existing repository verified empty before changes; private visibility applied; automatic issue closure disabled.
 - Application implementation, tenant/cloud provisioning and database selection: not performed.
-- GitHub integration authorization and live event verification remain pending; do not treat an installation request as success.
-- Remote specification persistence must be confirmed separately after publication.
+- GitHub CLI authenticated as bobbywilson; baseline commit 23c382e published to origin/main.
+- Linear Code installed with access restricted to bobbywilson/Fault-Code; Linear reports Connected and Code access enabled.
+- Commit linking enabled with a repository-scoped push webhook using JSON and SSL verification.
+- GitHub auto-close and Linear merge-to-Done automation disabled; parent, sub-issue and stale auto-close disabled.
+- Pull-request association is being verified through this documentation-only change, using a contributing reference to FAU-25. No issue-closing keywords or application changes are included.
 
 - Official `openspec archive establish-project-specifications --yes`: completed, synchronized 20 main specs and archived all 42 requirements. Non-blocking recommendation: split changes with more than 10 deltas; this one-time baseline is intentionally comprehensive.
 - `openspec validate --all --strict`: 20 passed, 0 failed.
-- Browser-only directory upload was attempted before commit and rejected by GitHub; no files were committed by that attempt. Correct-account CLI authorization remains requested for durable publication.
+- Browser-only directory upload was rejected before commit; the successful publication used the explicitly authorized correct-account CLI flow.
