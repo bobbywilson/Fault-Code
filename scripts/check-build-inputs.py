@@ -10,7 +10,10 @@ for path in (root / "src").rglob("*"):
         inputs.append(path)
 inputs.extend((root / "docker" / "HealthProbe").glob("*.cs"))
 inputs.extend((root / "docker" / "HealthProbe").glob("*.csproj"))
+allowed = {line[1:] for line in (root / ".dockerignore").read_text().splitlines() if line.startswith("!")}
 for path in inputs:
+    if str(path.relative_to(root)) not in allowed:
+        raise SystemExit(f"Source missing from explicit Docker allowlist: {path.relative_to(root)}")
     data = path.read_bytes()
     if any(re.search(pattern, data) for pattern in patterns):
         raise SystemExit(f"Potential credential in build input: {path.relative_to(root)}")
