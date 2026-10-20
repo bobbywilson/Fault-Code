@@ -1,0 +1,25 @@
+{
+  "capabilities": [
+    "project-governance",
+    "development-lifecycle",
+    "solution-architecture",
+    "development-infrastructure",
+    "api-contracts",
+    "identity",
+    "authorization",
+    "vehicle-driver-management",
+    "fault-knowledge",
+    "incident-lifecycle",
+    "automotive-ontology",
+    "knowledge-retrieval",
+    "agent-runtime",
+    "mcp-tools",
+    "fault-investigation",
+    "engineering-escalation",
+    "driver-notifications",
+    "observability",
+    "administration",
+    "documentation-delivery"
+  ],
+  "requirements": 42
+}

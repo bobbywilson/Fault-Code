@@ -1,0 +1,18 @@
+schema: spec-driven
+context: |
+  Fault Code is an independent API-first automotive fault investigation proof of concept.
+  Use synthetic EPS, steer-by-wire and steering ADAS data; no proprietary information.
+  Approved stack: ASP.NET Core/C#, Angular/TypeScript, Spartan UI/Tailwind, Microsoft Agent Framework/OpenAI, dedicated Entra ID Free tenant with PKCE/client credentials, Qdrant traditional RAG, MCP, OpenTelemetry/Datadog and optional Sentry, OpenAPI/Mintlify, Docker Compose/Linux.
+  Never implement GraphRAG or vehicle software deployment. Angular uses the API exclusively.
+  Relational database, notification delivery provider and deployment target remain undecided pending approval.
+  OpenSpec defines requirements; Linear tracks status; GitHub persists specs/code; Codex executes authorized tasks.
+  Current authorization is project setup and specifications only, not application implementation.
+rules:
+  proposal:
+    - Reference the Linear issue and existing capability paths; do not duplicate specifications.
+  specs:
+    - Use normative SHALL requirements and GIVEN/WHEN/THEN scenarios, including failures and authorization.
+  design:
+    - Preserve approved architecture and identify unresolved decisions requiring user approval.
+  tasks:
+    - Include tests throughout implementation, spec validation, GitHub persistence and archive evidence.

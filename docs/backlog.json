@@ -1,0 +1,303 @@
+[
+  {
+    "order": 1,
+    "id": "FAU-25",
+    "title": "Configure Fault Code Linear Workspace and GitHub Integration",
+    "capabilities": [
+      "project-governance"
+    ],
+    "decisions": "ADR-011, ADR-013, ADR-014",
+    "dependencies": []
+  },
+  {
+    "order": 2,
+    "id": "FAU-26",
+    "title": "Initialize OpenSpec and Capture Project Architecture",
+    "capabilities": [
+      "solution-architecture",
+      "development-lifecycle"
+    ],
+    "decisions": "ADR-001 through ADR-014",
+    "dependencies": [
+      "FAU-25"
+    ]
+  },
+  {
+    "order": 3,
+    "id": "FAU-24",
+    "title": "Establish OpenSpec, GitHub, Linear, and Codex Workflow",
+    "capabilities": [
+      "development-lifecycle",
+      "project-governance"
+    ],
+    "decisions": "ADR-011, ADR-013",
+    "dependencies": [
+      "FAU-26"
+    ]
+  },
+  {
+    "order": 4,
+    "id": "FAU-5",
+    "title": "Initialize ASP.NET Core Solution",
+    "capabilities": [
+      "solution-architecture"
+    ],
+    "decisions": "ADR-001",
+    "dependencies": [
+      "FAU-24"
+    ]
+  },
+  {
+    "order": 5,
+    "id": "FAU-6",
+    "title": "Configure Docker Development Environment",
+    "capabilities": [
+      "development-infrastructure"
+    ],
+    "decisions": "ADR-008",
+    "dependencies": [
+      "FAU-5"
+    ]
+  },
+  {
+    "order": 6,
+    "id": "FAU-7",
+    "title": "Establish API-First Architecture",
+    "capabilities": [
+      "api-contracts"
+    ],
+    "decisions": "ADR-001, ADR-007",
+    "dependencies": [
+      "FAU-5"
+    ]
+  },
+  {
+    "order": 7,
+    "id": "FAU-8",
+    "title": "Configure Microsoft Entra ID Authentication",
+    "capabilities": [
+      "identity"
+    ],
+    "decisions": "ADR-003",
+    "dependencies": [
+      "FAU-5"
+    ]
+  },
+  {
+    "order": 8,
+    "id": "FAU-9",
+    "title": "Implement API Authorization and Permissions",
+    "capabilities": [
+      "authorization",
+      "identity"
+    ],
+    "decisions": "ADR-001, ADR-003, ADR-012",
+    "dependencies": [
+      "FAU-7",
+      "FAU-8"
+    ]
+  },
+  {
+    "order": 9,
+    "id": "FAU-10",
+    "title": "Implement Vehicle and Driver Management",
+    "capabilities": [
+      "vehicle-driver-management",
+      "authorization"
+    ],
+    "decisions": "ADR-001, ADR-003",
+    "dependencies": [
+      "FAU-9"
+    ]
+  },
+  {
+    "order": 10,
+    "id": "FAU-11",
+    "title": "Implement Fault Code Management",
+    "capabilities": [
+      "fault-knowledge",
+      "automotive-ontology"
+    ],
+    "decisions": "ADR-009, ADR-010, ADR-012",
+    "dependencies": [
+      "FAU-9"
+    ]
+  },
+  {
+    "order": 11,
+    "id": "FAU-12",
+    "title": "Implement Fault Incident Processing",
+    "capabilities": [
+      "incident-lifecycle",
+      "vehicle-driver-management"
+    ],
+    "decisions": "ADR-001, ADR-009",
+    "dependencies": [
+      "FAU-10",
+      "FAU-11"
+    ]
+  },
+  {
+    "order": 12,
+    "id": "FAU-13",
+    "title": "Implement Automotive Ontology Management",
+    "capabilities": [
+      "automotive-ontology"
+    ],
+    "decisions": "ADR-005, ADR-009",
+    "dependencies": [
+      "FAU-5",
+      "FAU-9"
+    ]
+  },
+  {
+    "order": 13,
+    "id": "FAU-14",
+    "title": "Configure Qdrant and Traditional RAG",
+    "capabilities": [
+      "knowledge-retrieval"
+    ],
+    "decisions": "ADR-004, ADR-005",
+    "dependencies": [
+      "FAU-6",
+      "FAU-7",
+      "FAU-9"
+    ]
+  },
+  {
+    "order": 14,
+    "id": "FAU-15",
+    "title": "Integrate Microsoft Agent Framework",
+    "capabilities": [
+      "agent-runtime"
+    ],
+    "decisions": "ADR-004",
+    "dependencies": [
+      "FAU-5"
+    ]
+  },
+  {
+    "order": 15,
+    "id": "FAU-16",
+    "title": "Implement MCP Tools",
+    "capabilities": [
+      "mcp-tools",
+      "authorization"
+    ],
+    "decisions": "ADR-003, ADR-004",
+    "dependencies": [
+      "FAU-9",
+      "FAU-11",
+      "FAU-12",
+      "FAU-14",
+      "FAU-15"
+    ]
+  },
+  {
+    "order": 16,
+    "id": "FAU-17",
+    "title": "Implement Agent Fault Investigation",
+    "capabilities": [
+      "fault-investigation",
+      "agent-runtime"
+    ],
+    "decisions": "ADR-004, ADR-005, ADR-010, ADR-012",
+    "dependencies": [
+      "FAU-12",
+      "FAU-13",
+      "FAU-14",
+      "FAU-15",
+      "FAU-16"
+    ]
+  },
+  {
+    "order": 17,
+    "id": "FAU-18",
+    "title": "Implement Engineering Escalation",
+    "capabilities": [
+      "engineering-escalation",
+      "fault-knowledge"
+    ],
+    "decisions": "ADR-009, ADR-012",
+    "dependencies": [
+      "FAU-11",
+      "FAU-12",
+      "FAU-14",
+      "FAU-17"
+    ]
+  },
+  {
+    "order": 18,
+    "id": "FAU-19",
+    "title": "Implement Driver Notifications and Dealership Referrals",
+    "capabilities": [
+      "driver-notifications",
+      "fault-investigation"
+    ],
+    "decisions": "ADR-010, ADR-012",
+    "dependencies": [
+      "FAU-10",
+      "FAU-11",
+      "FAU-17",
+      "FAU-18"
+    ]
+  },
+  {
+    "order": 19,
+    "id": "FAU-20",
+    "title": "Implement Observability Provider Abstraction",
+    "capabilities": [
+      "observability"
+    ],
+    "decisions": "ADR-006",
+    "dependencies": [
+      "FAU-5"
+    ]
+  },
+  {
+    "order": 20,
+    "id": "FAU-21",
+    "title": "Integrate OpenTelemetry and Datadog",
+    "capabilities": [
+      "observability"
+    ],
+    "decisions": "ADR-006",
+    "dependencies": [
+      "FAU-15",
+      "FAU-20"
+    ]
+  },
+  {
+    "order": 21,
+    "id": "FAU-22",
+    "title": "Build Angular Administration Dashboard",
+    "capabilities": [
+      "administration",
+      "api-contracts",
+      "identity",
+      "authorization"
+    ],
+    "decisions": "ADR-001, ADR-002, ADR-003",
+    "dependencies": [
+      "FAU-18",
+      "FAU-19",
+      "FAU-21"
+    ]
+  },
+  {
+    "order": 22,
+    "id": "FAU-23",
+    "title": "Implement Mintlify Documentation, Automated Testing, and Deployment",
+    "capabilities": [
+      "documentation-delivery",
+      "fault-investigation"
+    ],
+    "decisions": "ADR-007, ADR-008, ADR-009, ADR-010",
+    "dependencies": [
+      "FAU-6",
+      "FAU-19",
+      "FAU-21",
+      "FAU-22"
+    ]
+  }
+]
