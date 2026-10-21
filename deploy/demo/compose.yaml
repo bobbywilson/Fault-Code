@@ -23,6 +23,7 @@ services:
       retries: 12
     environment:
       ASPNETCORE_ENVIRONMENT: Production
+      AllowedHosts: "faultcodeai.com;localhost;127.0.0.1;[::1]"
       FaultCode__ApplicationName: Fault Code
       Entra__Enabled: "true"
       Entra__TenantId: c0ff26e9-dd24-4e59-b395-1e9b48354aad
