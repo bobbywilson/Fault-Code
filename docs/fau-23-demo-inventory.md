@@ -14,6 +14,9 @@ Observed2026-10-21. Investigation is not a deployed environment.
 | Existing runner | lalai-runner.service,User=lalai-runner,active/running,NRestarts=0,ExecMainStatus=0 |
 | Listening ports | SSH22,local DNS53,loopback containerd44693; no80/443 listener |
 | Firewall | UFW active,default deny incoming; only SSH explicitly allowed plus existing Fail2Ban reject |
+| Provider firewall | DigitalOcean Networking page confirms no Cloud Firewall assigned |
+| SSH identity | Provider-console ED25519 fingerprint SHA256:S9RfouWPOr1Q6uKxHwP4lA1nFpShPpc4MnzVfHVOr5A matches local known_hosts |
+| Runner dependency | systemd Requires includes docker.service; Docker must remain running during bootstrap |
 | Proxy | No existing running HTTP reverse proxy identified on this host |
 | Other environment | Local Homestead development VM192.168.1.56 is separate; do not deploy there accidentally |
 | Planned directory/project | /opt/faultcode-demo / faultcode-demo; not created |
