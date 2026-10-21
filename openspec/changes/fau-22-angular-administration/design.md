@@ -17,3 +17,5 @@ Deliver the complete API-backed workspace and explicit safe adapter contracts. N
 Additive API, static SPA and optional Compose frontend service; no DB migration. Roll back image/source, leave existing APIs unchanged. Preserve all five MCP schemas and model isolation.
 
 MSAL primary caching documentation explicitly marks memoryStorage redirect unsupported. Use sessionStorage for redirect PKCE, cleared on tab close; no localStorage. Redirect handling uses the MSAL5 options object with navigateToLoginRequestUrl false. Source: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/caching.md .
+
+Linux CI exposed an existing SDK cancellation race: after explicit client cancellation and downstream cancellation, stateless Streamable HTTP may surface the SDK's exact no-reply transport exception instead of OperationCanceledException/HTTP499. The test must retain bounded downstream cancellation and exact call-count assertions and accept only that specifically observed cancelled-transport outcome; no production MCP code/schema, timeout or retry behavior changes.

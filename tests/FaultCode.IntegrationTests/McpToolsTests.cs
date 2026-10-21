@@ -234,8 +234,15 @@ public sealed class McpToolsTests
         using var cancel = new CancellationTokenSource(); var call = mcp.CallToolAsync("incident_get", args, cancellationToken: cancel.Token).AsTask();
         await store.SecondStarted.Task.WaitAsync(TimeSpan.FromSeconds(5)); cancel.Cancel();
         var error = await Record.ExceptionAsync(async () => await call);
-        Assert.True(error is OperationCanceledException || error is HttpRequestException { StatusCode: (HttpStatusCode)499 }, error?.ToString());
-        await store.SecondCancelled.Task.WaitAsync(TimeSpan.FromSeconds(5)); Assert.Equal(2, store.Calls);
+        await store.SecondCancelled.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True(cancel.IsCancellationRequested);
+        // The stateless SDK can observe the cancelled server response before the
+        // client token callback: it then reports this exact no-reply transport outcome.
+        var cancelledTransport = error is ModelContextProtocol.McpException && error.Message.StartsWith(
+            "Streamable HTTP POST response completed without a reply to request with ID:", StringComparison.Ordinal);
+        Assert.True(error is OperationCanceledException || error is HttpRequestException { StatusCode: (HttpStatusCode)499 }
+            || cancelledTransport, error?.ToString());
+        Assert.Equal(2, store.Calls);
     }
     [Fact]
     public async Task Escalation_REST_and_MCP_share_transaction_replay_policy_and_safe_errors()
