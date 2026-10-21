@@ -62,4 +62,4 @@ Test-only copy-on-write adapter proves one-process behavior; it is not durable p
 
 ## FAU-16 lifecycle escalation adapter
 
-POST /api/v1/incidents/{id}/escalations requires exact escalations.write (Engineer or Escalations.Write application role), strong If-Match and Idempotency-Key. It shares one service operation/replay namespace with the MCP incident_escalate tool and records the existing legal Investigating -> Escalated transition, history and safe audit. This lifecycle marker is not FAU-18 engineering case management. Production storage remains503. See mcp-tools.md for separate MCP consumer intent and model isolation.
+POST /api/v1/incidents/{id}/escalations requires exact escalations.write (Engineer or Escalations.Write.Application application role), strong If-Match and Idempotency-Key. It shares one service operation/replay namespace with the MCP incident_escalate tool and records the existing legal Investigating -> Escalated transition, history and safe audit. This lifecycle marker is not FAU-18 engineering case management. Production storage remains503. See mcp-tools.md for separate MCP consumer intent and model isolation.

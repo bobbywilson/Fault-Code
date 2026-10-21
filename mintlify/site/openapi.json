@@ -225,7 +225,7 @@
           "Administrator"
         ],
         "x-application-roles": [
-          "Users.Manage"
+          "Users.Manage.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -236,7 +236,7 @@
                 "humanRoles": [
                   "Administrator"
                 ],
-                "applicationRole": "Users.Manage"
+                "applicationRole": "Users.Manage.Application"
               }
             ]
           }
@@ -499,7 +499,7 @@
           "Administrator"
         ],
         "x-application-roles": [
-          "Users.Manage"
+          "Users.Manage.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -510,7 +510,7 @@
                 "humanRoles": [
                   "Administrator"
                 ],
-                "applicationRole": "Users.Manage"
+                "applicationRole": "Users.Manage.Application"
               }
             ]
           }
@@ -752,7 +752,7 @@
           "Administrator"
         ],
         "x-application-roles": [
-          "Users.Manage"
+          "Users.Manage.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -763,7 +763,7 @@
                 "humanRoles": [
                   "Administrator"
                 ],
-                "applicationRole": "Users.Manage"
+                "applicationRole": "Users.Manage.Application"
               }
             ]
           }
@@ -1056,7 +1056,7 @@
           "Administrator"
         ],
         "x-application-roles": [
-          "Users.Manage"
+          "Users.Manage.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -1067,7 +1067,7 @@
                 "humanRoles": [
                   "Administrator"
                 ],
-                "applicationRole": "Users.Manage"
+                "applicationRole": "Users.Manage.Application"
               }
             ]
           }
@@ -1329,7 +1329,7 @@
           "Administrator"
         ],
         "x-application-roles": [
-          "Integrations.Manage"
+          "Integrations.Manage.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -1340,7 +1340,7 @@
                 "humanRoles": [
                   "Administrator"
                 ],
-                "applicationRole": "Integrations.Manage"
+                "applicationRole": "Integrations.Manage.Application"
               }
             ]
           }
@@ -1581,7 +1581,7 @@
           "Administrator"
         ],
         "x-application-roles": [
-          "Integrations.Manage"
+          "Integrations.Manage.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -1592,7 +1592,7 @@
                 "humanRoles": [
                   "Administrator"
                 ],
-                "applicationRole": "Integrations.Manage"
+                "applicationRole": "Integrations.Manage.Application"
               }
             ]
           }
@@ -1876,7 +1876,7 @@
           "Administrator"
         ],
         "x-application-roles": [
-          "Integrations.Manage"
+          "Integrations.Manage.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -1887,7 +1887,7 @@
                 "humanRoles": [
                   "Administrator"
                 ],
-                "applicationRole": "Integrations.Manage"
+                "applicationRole": "Integrations.Manage.Application"
               }
             ]
           }
@@ -2424,7 +2424,7 @@
           "Administrator"
         ],
         "x-application-roles": [
-          "Authorization.Read"
+          "Authorization.Read.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -2438,7 +2438,7 @@
                   "Engineer",
                   "Administrator"
                 ],
-                "applicationRole": "Authorization.Read"
+                "applicationRole": "Authorization.Read.Application"
               }
             ]
           }
@@ -2752,7 +2752,7 @@
           "Engineer"
         ],
         "x-application-roles": [
-          "Knowledge.Publish"
+          "Knowledge.Publish.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -2763,7 +2763,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Knowledge.Publish"
+                "applicationRole": "Knowledge.Publish.Application"
               }
             ]
           }
@@ -3018,7 +3018,7 @@
           "Engineer"
         ],
         "x-application-roles": [
-          "Knowledge.Publish"
+          "Knowledge.Publish.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -3029,7 +3029,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Knowledge.Publish"
+                "applicationRole": "Knowledge.Publish.Application"
               }
             ]
           }
@@ -3336,7 +3336,7 @@
           "Engineer"
         ],
         "x-application-roles": [
-          "Knowledge.Publish"
+          "Knowledge.Publish.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -3347,7 +3347,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Knowledge.Publish"
+                "applicationRole": "Knowledge.Publish.Application"
               }
             ]
           }
@@ -3601,7 +3601,7 @@
           "Engineer"
         ],
         "x-application-roles": [
-          "Knowledge.Publish"
+          "Knowledge.Publish.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -3612,7 +3612,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Knowledge.Publish"
+                "applicationRole": "Knowledge.Publish.Application"
               }
             ]
           }
@@ -3868,7 +3868,7 @@
           "Engineer"
         ],
         "x-application-roles": [
-          "Knowledge.Publish"
+          "Knowledge.Publish.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -3879,7 +3879,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Knowledge.Publish"
+                "applicationRole": "Knowledge.Publish.Application"
               }
             ]
           }
@@ -4135,7 +4135,7 @@
           "Engineer"
         ],
         "x-application-roles": [
-          "Knowledge.Publish"
+          "Knowledge.Publish.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -4146,7 +4146,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Knowledge.Publish"
+                "applicationRole": "Knowledge.Publish.Application"
               }
             ]
           }
@@ -4379,7 +4379,7 @@
           "Engineer"
         ],
         "x-application-roles": [
-          "Knowledge.Publish"
+          "Knowledge.Publish.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -4390,7 +4390,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Knowledge.Publish"
+                "applicationRole": "Knowledge.Publish.Application"
               }
             ]
           }
@@ -6742,7 +6742,7 @@
           "Faults.Read.All",
           "Vehicles.Read.All",
           "Knowledge.Read.All",
-          "Escalations.Write"
+          "Escalations.Write.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -6805,7 +6805,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Escalations.Write"
+                "applicationRole": "Escalations.Write.Application"
               }
             ]
           }
@@ -8138,7 +8138,7 @@
           "Faults.Read.All",
           "Vehicles.Read.All",
           "Knowledge.Read.All",
-          "Escalations.Write"
+          "Escalations.Write.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -8201,7 +8201,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Escalations.Write"
+                "applicationRole": "Escalations.Write.Application"
               }
             ]
           }
@@ -8496,7 +8496,7 @@
           "Faults.Read.All",
           "Vehicles.Read.All",
           "Knowledge.Read.All",
-          "Escalations.Write"
+          "Escalations.Write.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -8559,7 +8559,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Escalations.Write"
+                "applicationRole": "Escalations.Write.Application"
               }
             ]
           }
@@ -8854,7 +8854,7 @@
           "Faults.Read.All",
           "Vehicles.Read.All",
           "Knowledge.Read.All",
-          "Escalations.Write"
+          "Escalations.Write.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -8917,7 +8917,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Escalations.Write"
+                "applicationRole": "Escalations.Write.Application"
               }
             ]
           }
@@ -9287,7 +9287,7 @@
           "Faults.Read.All",
           "Vehicles.Read.All",
           "Knowledge.Read.All",
-          "Escalations.Write"
+          "Escalations.Write.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -9350,7 +9350,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Escalations.Write"
+                "applicationRole": "Escalations.Write.Application"
               }
             ]
           }
@@ -9638,8 +9638,8 @@
           "Faults.Read.All",
           "Vehicles.Read.All",
           "Knowledge.Read.All",
-          "Escalations.Write",
-          "Knowledge.Publish"
+          "Escalations.Write.Application",
+          "Knowledge.Publish.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -9702,7 +9702,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Escalations.Write"
+                "applicationRole": "Escalations.Write.Application"
               }
             ]
           },
@@ -9714,7 +9714,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Knowledge.Publish"
+                "applicationRole": "Knowledge.Publish.Application"
               }
             ]
           }
@@ -12136,7 +12136,7 @@
           "Engineer"
         ],
         "x-application-roles": [
-          "Knowledge.Publish"
+          "Knowledge.Publish.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -12147,7 +12147,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Knowledge.Publish"
+                "applicationRole": "Knowledge.Publish.Application"
               }
             ]
           }
@@ -14981,7 +14981,7 @@
           "Engineer"
         ],
         "x-application-roles": [
-          "Escalations.Write"
+          "Escalations.Write.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -14992,7 +14992,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Escalations.Write"
+                "applicationRole": "Escalations.Write.Application"
               }
             ]
           }
@@ -18882,7 +18882,7 @@
           "Engineer"
         ],
         "x-application-roles": [
-          "Knowledge.Publish"
+          "Knowledge.Publish.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -18893,7 +18893,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Knowledge.Publish"
+                "applicationRole": "Knowledge.Publish.Application"
               }
             ]
           }
@@ -19289,7 +19289,7 @@
           "Engineer"
         ],
         "x-application-roles": [
-          "Knowledge.Publish"
+          "Knowledge.Publish.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -19300,7 +19300,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Knowledge.Publish"
+                "applicationRole": "Knowledge.Publish.Application"
               }
             ]
           }
@@ -19691,7 +19691,7 @@
           "Engineer"
         ],
         "x-application-roles": [
-          "Knowledge.Publish"
+          "Knowledge.Publish.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -19702,7 +19702,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Knowledge.Publish"
+                "applicationRole": "Knowledge.Publish.Application"
               }
             ]
           }
@@ -20008,7 +20008,7 @@
           "Engineer"
         ],
         "x-application-roles": [
-          "Knowledge.Publish"
+          "Knowledge.Publish.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -20019,7 +20019,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Knowledge.Publish"
+                "applicationRole": "Knowledge.Publish.Application"
               }
             ]
           }
@@ -20266,7 +20266,7 @@
           "Engineer"
         ],
         "x-application-roles": [
-          "Knowledge.Publish"
+          "Knowledge.Publish.Application"
         ],
         "x-faultcode-policy-requirements": [
           {
@@ -20277,7 +20277,7 @@
                 "humanRoles": [
                   "Engineer"
                 ],
-                "applicationRole": "Knowledge.Publish"
+                "applicationRole": "Knowledge.Publish.Application"
               }
             ]
           }

@@ -11,7 +11,7 @@ Part of FAU-14. Approved synthetic technical page ingestion, explicit OpenAI emb
 | reindex | POST rebuild tenant index | knowledge.publish |
 | search | POST approved evidence | knowledge.read |
 
-Exact Engineer+knowledge.publish or Knowledge.Publish manages; all four human roles need exact knowledge.read or machine Knowledge.Read.All to search. No Administrator bypass or new Entra values. Token supplies tenant/actor/client; server supplies GUID, correlation, approval/time. Unknown input members400; DTOs omit tenant IDs. GET is management-only; search never includes drafts/history.
+Exact Engineer+knowledge.publish or Knowledge.Publish.Application manages; all four human roles need exact knowledge.read or machine Knowledge.Read.All to search. No Administrator bypass or new Entra values. Token supplies tenant/actor/client; server supplies GUID, correlation, approval/time. Unknown input members400; DTOs omit tenant IDs. GET is management-only; search never includes drafts/history.
 
 Create accepts sourceId SYN- plus ASCII alnum/underscore/hyphen (max100) and content: title1..200, sourceVersion1..40 token, system EPS/steer-by-wire/steering-ADAS, exact synthetic model/software, access tenant or publisher, pages[{number,text}]. Max100 reserved documents/tenant (deleted IDs remain reserved),1..20 distinct positive page numbers<=10000,1..10000 UTF-16 units/page and total<=40000. No URL fetch, binary/PDF parsing, real vehicle data or arbitrary grants. Text retains line endings/whitespace and may include untrusted malicious instructions. Only control characters tab/CR/LF are allowed and surrogate pairs must be valid.
 

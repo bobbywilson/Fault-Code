@@ -16,16 +16,16 @@ public static class Permissions
 
     public static IReadOnlyList<Permission> All { get; } = Array.AsReadOnly(new[]
     {
-        Read("authorization.read", "Authorization.Read"),
+        Read("authorization.read", "Authorization.Read.Application"),
         new Permission("drivers.read.own", "drivers.read.own", null, Array.AsReadOnly(new[] { "Reader" })),
         new Permission("vehicles.read.own", "vehicles.read.own", null, Array.AsReadOnly(new[] { "Reader" })),
         Read("drivers.read", "Drivers.Read.All"), Read("vehicles.read", "Vehicles.Read.All"),
         Write("drivers.write", "Drivers.Write.All", "Operator"), Write("vehicles.write", "Vehicles.Write.All", "Operator"),
         Read("faults.read", "Faults.Read.All"), Write("faults.write", "Faults.Write.All", "Operator"),
-        Read("knowledge.read", "Knowledge.Read.All"), Write("knowledge.publish", "Knowledge.Publish", "Engineer"),
-        Read("escalations.read", "Escalations.Read.All"), Write("escalations.write", "Escalations.Write", "Engineer"),
-        Write("integrations.manage", "Integrations.Manage", "Administrator"),
-        Write("users.manage", "Users.Manage", "Administrator")
+        Read("knowledge.read", "Knowledge.Read.All"), Write("knowledge.publish", "Knowledge.Publish.Application", "Engineer"),
+        Read("escalations.read", "Escalations.Read.All"), Write("escalations.write", "Escalations.Write.Application", "Engineer"),
+        Write("integrations.manage", "Integrations.Manage.Application", "Administrator"),
+        Write("users.manage", "Users.Manage.Application", "Administrator")
     });
 
     public static Permission? Find(string name) => All.SingleOrDefault(p => p.Name == name);
