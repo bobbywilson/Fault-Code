@@ -1,13 +1,13 @@
 namespace FaultCode.Application.Telemetry;
 
-public enum TelemetryOperation { Api, Mcp, Incident, Retrieval, Investigation, Model }
+public enum TelemetryOperation { Api, Mcp, Incident, Retrieval, Investigation, Model, Agent, Engineering, Notification, Http, Delivery }
 public enum TelemetryOutcome { Success, Rejected, Failed, Cancelled }
 public enum TelemetryError { Dependency, InvalidInput, Unexpected, Cancelled }
 public sealed record TelemetryContext(string CorrelationId, string TraceId, string SpanId, string? ParentSpanId);
 public sealed record TelemetryRecord(TelemetryOperation Operation, TelemetryOutcome Outcome, TelemetryContext Context,
     double DurationMilliseconds, long? InputTokens = null, long? OutputTokens = null, TelemetryError? Error = null);
 
-// Adapters must be bounded in-process notifications: no blocking I/O, queues or retries.
+// Adapters must be bounded in-process notifications: no blocking I/O or retries; exporters may enqueue into bounded SDK buffers.
 // Only sanitized records reach this boundary. No raw exceptions or arbitrary property bags.
 public interface ITelemetryAdapter { void Record(TelemetryRecord record); }
 public interface ITelemetry

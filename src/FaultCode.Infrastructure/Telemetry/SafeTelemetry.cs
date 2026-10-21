@@ -22,7 +22,7 @@ public sealed class SafeTelemetry(ITelemetryAdapter adapter) : ITelemetry
             // Do not inherit an untrusted incoming HTTP trace as application correlation.
             Activity.Current = null;
             var pc = parent is null ? default : new ActivityContext(ActivityTraceId.CreateFromString(parent.TraceId),
-                ActivitySpanId.CreateFromString(parent.SpanId), ActivityTraceFlags.Recorded);
+                ActivitySpanId.CreateFromString(parent.SpanId), priorActivity?.ActivityTraceFlags ?? ActivityTraceFlags.None);
             activity = Source.StartActivity(Enum.IsDefined(operation) ? operation.ToString() : "Invalid", ActivityKind.Internal, pc);
         }
         catch (Exception)

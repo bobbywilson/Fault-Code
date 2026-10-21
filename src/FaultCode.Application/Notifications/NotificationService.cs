@@ -1,3 +1,4 @@
+using FaultCode.Application.Telemetry;
 using System.Collections.Immutable;
 using System.Text.Json;
 using FaultCode.Application.Fleet;
@@ -6,7 +7,7 @@ using FaultCode.Domain;
 
 namespace FaultCode.Application.Notifications;
 
-public sealed class NotificationService(INotificationStore store, INotificationDelivery delivery, TimeProvider clock)
+public sealed class NotificationService(INotificationStore store, INotificationDelivery delivery, TimeProvider clock, ITelemetry? telemetry = null)
 {
     private static void Caller(FleetCaller c)
     {
@@ -31,16 +32,24 @@ public sealed class NotificationService(INotificationStore store, INotificationD
         var offset = ((long)page - 1) * size;
         return new(offset >= items.Length ? [] : items.Skip((int)offset).Take(size).ToArray(), page, size, items.Length);
     }
-    public Task<FleetPage<DriverNotification>> List(FleetCaller c, Guid incidentId, int page, int size, CancellationToken ct)
+    public Task<FleetPage<DriverNotification>> List(FleetCaller c, Guid incidentId, int page, int size, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Notification, c.CorrelationId, () => ListCore(c, incidentId, page, size, ct));
+    private Task<FleetPage<DriverNotification>> ListCore(FleetCaller c, Guid incidentId, int page, int size, CancellationToken ct)
     {
         Caller(c); return store.Execute(c.TenantId, tx =>
         { Incident(tx, c, incidentId); return Page(tx.Notifications.Messages.Where(n => n.TenantId == c.TenantId && n.IncidentId == incidentId).OrderBy(n => n.CreatedAt).ThenBy(n => n.Id).ToArray(), page, size); }, ct);
     }
-    public Task<DriverNotification> Get(FleetCaller c, Guid id, CancellationToken ct)
+    public Task<DriverNotification> Get(FleetCaller c, Guid id, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Notification, c.CorrelationId, () => GetCore(c, id, ct));
+    private Task<DriverNotification> GetCore(FleetCaller c, Guid id, CancellationToken ct)
     { Caller(c); return store.Execute(c.TenantId, tx => Message(tx, c, id), ct); }
-    public Task<FleetPage<NotificationHistory>> History(FleetCaller c, Guid id, int page, int size, CancellationToken ct)
+    public Task<FleetPage<NotificationHistory>> History(FleetCaller c, Guid id, int page, int size, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Notification, c.CorrelationId, () => HistoryCore(c, id, page, size, ct));
+    private Task<FleetPage<NotificationHistory>> HistoryCore(FleetCaller c, Guid id, int page, int size, CancellationToken ct)
     { Caller(c); return store.Execute(c.TenantId, tx => Page(Message(tx, c, id).History.ToArray(), page, size), ct); }
-    public Task<LocalNotificationPreference> Preference(FleetCaller c, Guid driverId, CancellationToken ct)
+    public Task<LocalNotificationPreference> Preference(FleetCaller c, Guid driverId, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Notification, c.CorrelationId, () => PreferenceCore(c, driverId, ct));
+    private Task<LocalNotificationPreference> PreferenceCore(FleetCaller c, Guid driverId, CancellationToken ct)
     {
         Caller(c); return store.Execute(c.TenantId, tx =>
         { var d = Driver(tx, c, driverId); var p = tx.Notifications.Preferences.SingleOrDefault(p => p.DriverId == d.Id); return p is null ? new(d.Id, false, null, d.Version) : p with { Enabled = p.Enabled && p.DriverVersion == d.Version, DriverVersion = d.Version }; }, ct);
@@ -57,7 +66,9 @@ public sealed class NotificationService(INotificationStore store, INotificationD
         s.Replays.Add(Scope(c, op, key), new(JsonSerializer.Serialize(payload), result));
         s.Audit.Add(new(c.ActorId, c.ClientId, c.CorrelationId, op, result.Id, result.Version, clock.GetUtcNow()));
     }
-    public Task<MutationResult> Preferences(FleetCaller c, Guid driverId, long version, string key, bool enabled, string? contact, CancellationToken ct)
+    public Task<MutationResult> Preferences(FleetCaller c, Guid driverId, long version, string key, bool enabled, string? contact, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Notification, c.CorrelationId, () => PreferencesCore(c, driverId, version, key, enabled, contact, ct));
+    private Task<MutationResult> PreferencesCore(FleetCaller c, Guid driverId, long version, string key, bool enabled, string? contact, CancellationToken ct)
     {
         Caller(c); if (version < 1 || contact is not null && !NotificationRules.Contact(contact) || enabled && contact is null) throw new IncidentException(400);
         return store.Execute(c.TenantId, tx =>
@@ -164,7 +175,9 @@ public sealed class NotificationService(INotificationStore store, INotificationD
     { History = n.History.Add(new(n.Version, n.State, action, clock.GetUtcNow(), c.ActorId, c.ClientId, c.CorrelationId)) };
     private static void Save(NotificationTransaction tx, DriverNotification old, DriverNotification changed) =>
         tx.Notifications.Messages[tx.Notifications.Messages.IndexOf(old)] = changed;
-    public Task<MutationResult> Enqueue(FleetCaller c, Guid incidentId, string kind, Guid sourceId, long version, string key, CancellationToken ct)
+    public Task<MutationResult> Enqueue(FleetCaller c, Guid incidentId, string kind, Guid sourceId, long version, string key, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Notification, c.CorrelationId, () => EnqueueCore(c, incidentId, kind, sourceId, version, key, ct));
+    private Task<MutationResult> EnqueueCore(FleetCaller c, Guid incidentId, string kind, Guid sourceId, long version, string key, CancellationToken ct)
     {
         Caller(c); if (version < 1 || sourceId == Guid.Empty || kind is not ("investigation" or "engineering")) throw new IncidentException(400);
         return store.Execute(c.TenantId, tx =>
@@ -198,7 +211,9 @@ public sealed class NotificationService(INotificationStore store, INotificationD
             Remember(tx.Notifications, c, op, key, payload, resultMutation); return resultMutation;
         }, ct);
     }
-    public Task<MutationResult> Cancel(FleetCaller c, Guid id, long version, string key, CancellationToken ct)
+    public Task<MutationResult> Cancel(FleetCaller c, Guid id, long version, string key, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Notification, c.CorrelationId, () => CancelCore(c, id, version, key, ct));
+    private Task<MutationResult> CancelCore(FleetCaller c, Guid id, long version, string key, CancellationToken ct)
     {
         Caller(c); if (version < 1) throw new IncidentException(400);
         return store.Execute(c.TenantId, tx =>
@@ -214,7 +229,9 @@ public sealed class NotificationService(INotificationStore store, INotificationD
         }, ct);
     }
     private sealed record Claim(DriverNotification? Message, MutationResult? Replay, Guid Lease);
-    public async Task<MutationResult> Dispatch(FleetCaller c, Guid id, long version, string key, CancellationToken ct)
+    public Task<MutationResult> Dispatch(FleetCaller c, Guid id, long version, string key, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Notification, c.CorrelationId, () => DispatchCore(c, id, version, key, ct));
+    private async Task<MutationResult> DispatchCore(FleetCaller c, Guid id, long version, string key, CancellationToken ct)
     {
         Caller(c); if (version < 1) throw new IncidentException(400);
         var op = "dispatch/" + id; var payload = new { version };
@@ -259,14 +276,23 @@ public sealed class NotificationService(INotificationStore store, INotificationD
         if (claim.Replay is { } replay) return replay;
         var message = claim.Message!; string? receipt = null; string? failure = null;
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(ct); deadline.CancelAfter(TimeSpan.FromSeconds(5));
-        try
+        using (var attempt = (telemetry ?? NullTelemetry.Instance).Begin(TelemetryOperation.Delivery, c.CorrelationId))
         {
-            var acknowledgement = await delivery.Send(new(id, message.Contact, message.Message), deadline.Token).WaitAsync(deadline.Token);
-            if (!FaultRules.Text(acknowledgement?.Receipt, 100)) failure = "invalid-acknowledgement";
-            else receipt = acknowledgement!.Receipt;
+            try
+            {
+                var acknowledgement = await delivery.Send(new(id, message.Contact, message.Message), deadline.Token).WaitAsync(deadline.Token);
+                if (!FaultRules.Text(acknowledgement?.Receipt, 100)) failure = "invalid-acknowledgement";
+                else receipt = acknowledgement!.Receipt;
+            }
+            catch (OperationCanceledException) { failure = "acceptance-unknown"; }
+            catch (Exception) { failure = "delivery-unavailable"; }
+            if (receipt is null)
+            {
+                attempt.Report(failure == "acceptance-unknown" ? TelemetryError.Cancelled : TelemetryError.Dependency);
+                attempt.Complete(failure == "acceptance-unknown" ? TelemetryOutcome.Cancelled : TelemetryOutcome.Failed);
+            }
+            else attempt.Complete(TelemetryOutcome.Success);
         }
-        catch (OperationCanceledException) { failure = "acceptance-unknown"; }
-        catch (Exception) { failure = "delivery-unavailable"; }
         // A cancelled request leaves the committed lease recoverable; never abandon an in-flight store callback.
         ct.ThrowIfCancellationRequested();
         return await store.Execute(c.TenantId, tx =>

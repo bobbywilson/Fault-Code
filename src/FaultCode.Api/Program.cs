@@ -11,17 +11,34 @@ using FaultCode.Api.Identity;
 using FaultCode.Api.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddOptions<TelemetryOptions>().Bind(builder.Configuration.GetSection("Telemetry"))
-    .Validate(o => o.Valid, "Telemetry:Provider must be None or Local.").ValidateOnStart();
-builder.Services.AddSingleton<ITelemetryAdapter>(s => s.GetRequiredService<IOptions<TelemetryOptions>>().Value.Provider == "Local"
-    ? new LocalTelemetryAdapter(s.GetRequiredService<ILogger<LocalTelemetryAdapter>>()) : new NoOpTelemetryAdapter());
+builder.Services.AddOptions<TelemetryOptions>().Configure<IConfiguration>((o, configuration) =>
+{
+    var section = configuration.GetSection("Telemetry");
+    o.Provider = section["Provider"] ?? "None"; o.Endpoint = section["Endpoint"] ?? "";
+    var ratio = section["TraceSampleRatio"];
+    o.TraceSampleRatio = ratio is null ? 0.1 : double.TryParse(ratio, System.Globalization.NumberStyles.Float,
+        System.Globalization.CultureInfo.InvariantCulture, out var value) ? value : double.NaN;
+})
+    .Validate(o => o.Valid, "Telemetry:Provider, Endpoint or TraceSampleRatio is invalid.").ValidateOnStart();
+builder.Services.AddSingleton<ITelemetryAdapter>(s =>
+{
+    var o = s.GetRequiredService<IOptions<TelemetryOptions>>().Value;
+    return o.Provider switch
+    {
+        "Local" => new LocalTelemetryAdapter(s.GetRequiredService<ILogger<LocalTelemetryAdapter>>()),
+        "Otlp" or "Datadog" => new OtlpTelemetryAdapter(new(o.Endpoint, o.TraceSampleRatio,
+            s.GetRequiredService<IOptions<AgentOptions>>().Value is { Enabled: true } agent ? agent.Model : null)),
+        _ => new NoOpTelemetryAdapter()
+    };
+});
 builder.Services.AddSingleton<ITelemetry, SafeTelemetry>();
 builder.Services.AddEntraAuthentication(builder.Configuration);
 builder.Services.AddFaultCodeAuthorization();
 builder.Services.AddFaultCodeMcp(builder.Configuration);
 builder.Services.AddOptions<AgentOptions>().Bind(builder.Configuration.GetSection("Agents"))
     .Validate(o => o.Valid, "Agents configuration requires bounded limits and, when enabled, an explicit model snapshot and ApiKey.").ValidateOnStart();
-builder.Services.AddHttpClient("agent-runtime").RemoveAllLoggers()
+builder.Services.AddTransient<SanitizedHttpTelemetryHandler>();
+builder.Services.AddHttpClient("agent-runtime").RemoveAllLoggers().AddHttpMessageHandler<SanitizedHttpTelemetryHandler>()
     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 builder.Services.AddTransient<FaultCode.Application.Agents.IAgentProvider>(s =>
 {
@@ -57,8 +74,8 @@ builder.Services.AddOptions<EmbeddingOptions>().Bind(builder.Configuration.GetSe
         && !string.IsNullOrWhiteSpace(o.Model) && o.Model.Length <= 100
         && o.Model.All(x => char.IsAsciiLetterOrDigit(x) || x is '-' or '_' or '.') && o.Dimensions is >= 1 and <= 4096),
         "Embeddings:Model, Dimensions and ApiKey must be explicitly configured when enabled.").ValidateOnStart();
-builder.Services.AddHttpClient("embeddings").RemoveAllLoggers().ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
-builder.Services.AddHttpClient("document-index").RemoveAllLoggers().ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+builder.Services.AddHttpClient("embeddings").RemoveAllLoggers().AddHttpMessageHandler<SanitizedHttpTelemetryHandler>().ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+builder.Services.AddHttpClient("document-index").RemoveAllLoggers().AddHttpMessageHandler<SanitizedHttpTelemetryHandler>().ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 builder.Services.AddTransient<FaultCode.Application.Retrieval.IEmbeddingProvider>(s =>
 {
     var o = s.GetRequiredService<IOptions<EmbeddingOptions>>().Value;

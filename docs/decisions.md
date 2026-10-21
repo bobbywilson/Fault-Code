@@ -39,3 +39,7 @@ Pin Microsoft.Agents.AI.OpenAI1.25.0 / OpenAI2.14.0 / System.ClientModel1.15.0 i
 ## FAU-16 MCP compatibility (2026-10-21)
 
 Official ModelContextProtocol.AspNetCore2.3.0 provides stateless Streamable HTTP at /api/v1/mcp. Its API/test process resolves Microsoft.Extensions.AI.Abstractions10.11.0; actual existing Agent Framework/OpenAI HTTP tests are retained to verify compatibility. Application/Domain remain vendor-free. SDK discovery schemas and actual invocation examples are validated separately from generated REST OpenAPI. No model tools, new Entra grants, credential/provider/hosting selection or outbound activation. See mcp-tools.md.
+
+## FAU-21 OTLP compatibility (2026-10-21)
+
+Pin official OpenTelemetry.Exporter.OpenTelemetryProtocol1.20.1 with locked SDK/API dependencies in Infrastructure, verified against net10.0. Datadog uses standard OTLP HTTP/protobuf to an explicitly configured same-host Agent; no Datadog SDK/API key is coupled into Domain/Application. Dedicated sanitized trace/metric/log pipeline excludes automatic framework/auth/HTTP/GenAI capture; bounded explicit configuration and defaults remain disabled. Optional Sentry retains the interchangeable adapter boundary and is not enabled by this change. This implements ADR-006 without resolving DEC-003/005 or authorizing remote ingestion/network/cost changes. See observability.md and fau-21-verification.md.

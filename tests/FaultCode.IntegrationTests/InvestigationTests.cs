@@ -122,6 +122,30 @@ public sealed class InvestigationTests
         if (scenario == "very-low") f.Index.Score = 0.5;
         return f;
     }
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Actual_investigation_exports_OTLP_and_replay_preserves_one_model_call_during_outage(bool outage)
+    {
+        var f = await Setup(); await using var receiver = await OtlpTelemetryTests.Receiver.Start(); receiver.Fail = outage;
+        using var adapter = new OtlpTelemetryAdapter(new(receiver.Endpoint, 1, Model));
+        var telemetry = new SafeTelemetry(adapter); f.Telemetry = telemetry;
+        using (var api = telemetry.Begin(TelemetryOperation.Api))
+        {
+            var result = await f.Service().Run(Caller, Id, 1, "otlp", default);
+            Assert.Equal(result, await f.Service().Run(Caller, Id, 1, "otlp", default)); api.Complete(TelemetryOutcome.Success);
+        }
+        Assert.Single(f.Store.Snapshot(Tenant).Results); Assert.Single(f.Store.Snapshot(Tenant).Audit); Assert.Equal(1, f.Provider.Calls);
+        adapter.ForceFlush();
+        var spans = receiver.Items("traces"); Assert.Single(spans, x => x.Text(5) == "Model");
+        Assert.Contains(spans, x => x.Text(5) == "Retrieval"); Assert.Contains(spans, x => x.Text(5) == "Investigation");
+        var trace = Assert.Single(spans.Select(x => x.Hex(1)).Distinct());
+        Assert.All(receiver.Items("logs"), log => Assert.Equal(trace, log.Hex(9)));
+        foreach (var message in receiver.Messages)
+            foreach (var secret in new[] { Tenant, Actor, Client, Id.ToString(), Guidance, "SYN-DOC", "SECRET" })
+                Assert.DoesNotContain(secret, System.Text.Encoding.UTF8.GetString(message.Body));
+    }
+
     private sealed class TelemetryCollector(bool fail) : ITelemetryAdapter
     {
         public List<TelemetryRecord> Records { get; } = [];
