@@ -13,6 +13,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Validate scoped deployment and certificate script syntax
+        run: bash -n deploy/demo/deploy.sh deploy/demo/ssh-receiver.sh deploy/demo/tls-install.sh deploy/demo/tls-renew.sh scripts/demo-stack-smoke.sh
       - name: Validate isolated demo configuration without starting services
         env:
           API_IMAGE: ghcr.io/bobbywilson/fault-code-api@sha256:0000000000000000000000000000000000000000000000000000000000000000

@@ -38,7 +38,16 @@ available under the provider's observed entitlement; no purchase/visibility chan
    the CA agreement. Establish webroot renewal using `acme`; deploy certificate
    replacement atomically, validate only Fault Code proxy configuration and reload
    only that container. No unrelated certificate or shared proxy is touched.
-   ACME issuance/renewal is not implemented or verified by these files yet.
+   Install `tls-install.sh` and `tls-renew.sh` root-owned0755 under
+   `/usr/local/sbin/faultcode-tls-install` and `faultcode-tls-renew`. The installer
+   checks names, expiry and matching key, changes an atomic generation symlink,
+   reloads only this project's proxy and checks the served fingerprint. Install
+   the dedicated service/timer and run a webroot staging renewal dry-run after
+   the initial deployment. Certbot state is isolated under this deployment's
+   `letsencrypt`, `certbot-work` and `certbot-logs` directories; its global timer
+   does not cover these paths. The dedicated timer checks twice daily; failures
+   and expiry within14days fail the service and appear in the journal. External
+   alert delivery is not configured. Retain previous TLS generations for recovery.
 8. Register exact HTTPS callback `https://faultcodeai.com/auth/callback` and logout
    `https://faultcodeai.com/` on the existing Fault Code SPA, retaining local entries.
    Same-origin `/api/v1` needs no broad cross-origin CORS. Verify real sign-in,
@@ -72,6 +81,16 @@ retained while a candidate starts. Failure restores its containers and verifies
 health without touching LALAI; a failed first candidate has no prior release and
 is torn down without volumes. Root-only manifests record actual accepted source.
 Candidate/rollback deadlines are bounded. Live rollback remains unverified.
+
+Initial HTTPS issuance may use standalone port80 only after confirming it is free;
+ongoing renewal always uses the existing proxy's `/var/www/acme` webroot and never
+stops a service. Use Certbot's official `--config-dir`, `--work-dir`, `--logs-dir`
+and `--deploy-hook` options as described in
+https://eff-certbot.readthedocs.io/en/stable/using.html#renewing-certificates.
+Verify renewal with `certbot renew --dry-run --cert-name faultcode-demo` using the
+same isolated paths, `--webroot --webroot-path /opt/faultcode-demo/acme` and
+`--run-deploy-hooks --deploy-hook /usr/local/sbin/faultcode-tls-install`. The hook
+reads the active production lineage; a staging certificate must never replace it.
 
 Machine-client credentials differ from TLS certificates. API JWT validation and
 Angular PKCE do not require a private machine-client certificate. If a production
