@@ -11,7 +11,8 @@
         "tags": [
           "Administration"
         ],
-        "description": " Requires users.manage. Delegated: exact scope users.manage AND one of roles Administrator. Application: exact role Users.Manage. Caller kind: Either. Local administration metadata only; no Entra grant or external provider activation. Production adapter unavailable503 pending approved persistence and identity/provider integration. Mutations atomically store trusted tenant/actor/client/correlation audit and scoped replay; strong If-Match and Idempotency-Key required.",
+        "summary": "List Administration Roles",
+        "description": " Requires users.manage. Delegated: exact scope users.manage AND one of roles Administrator. Application: exact role Users.Manage.Application. Caller kind: Either. Local administration metadata only; no Entra grant or external provider activation. Production adapter unavailable503 pending approved persistence and identity/provider integration. Mutations atomically store trusted tenant/actor/client/correlation audit and scoped replay; strong If-Match and Idempotency-Key required.",
         "operationId": "ListAdministrationRoles",
         "responses": {
           "400": {
@@ -247,7 +248,8 @@
         "tags": [
           "Administration"
         ],
-        "description": " Requires users.manage. Delegated: exact scope users.manage AND one of roles Administrator. Application: exact role Users.Manage. Caller kind: Either. Local administration metadata only; no Entra grant or external provider activation. Production adapter unavailable503 pending approved persistence and identity/provider integration. Mutations atomically store trusted tenant/actor/client/correlation audit and scoped replay; strong If-Match and Idempotency-Key required.",
+        "summary": "List Managed Users",
+        "description": " Requires users.manage. Delegated: exact scope users.manage AND one of roles Administrator. Application: exact role Users.Manage.Application. Caller kind: Either. Local administration metadata only; no Entra grant or external provider activation. Production adapter unavailable503 pending approved persistence and identity/provider integration. Mutations atomically store trusted tenant/actor/client/correlation audit and scoped replay; strong If-Match and Idempotency-Key required.",
         "operationId": "ListManagedUsers",
         "parameters": [
           {
@@ -520,7 +522,8 @@
         "tags": [
           "Administration"
         ],
-        "description": " Requires users.manage. Delegated: exact scope users.manage AND one of roles Administrator. Application: exact role Users.Manage. Caller kind: Either. Local administration metadata only; no Entra grant or external provider activation. Production adapter unavailable503 pending approved persistence and identity/provider integration. Mutations atomically store trusted tenant/actor/client/correlation audit and scoped replay; strong If-Match and Idempotency-Key required.",
+        "summary": "Get Managed User",
+        "description": " Requires users.manage. Delegated: exact scope users.manage AND one of roles Administrator. Application: exact role Users.Manage.Application. Caller kind: Either. Local administration metadata only; no Entra grant or external provider activation. Production adapter unavailable503 pending approved persistence and identity/provider integration. Mutations atomically store trusted tenant/actor/client/correlation audit and scoped replay; strong If-Match and Idempotency-Key required.",
         "operationId": "GetManagedUser",
         "parameters": [
           {
@@ -772,7 +775,8 @@
         "tags": [
           "Administration"
         ],
-        "description": " Requires users.manage. Delegated: exact scope users.manage AND one of roles Administrator. Application: exact role Users.Manage. Caller kind: Either. Local administration metadata only; no Entra grant or external provider activation. Production adapter unavailable503 pending approved persistence and identity/provider integration. Mutations atomically store trusted tenant/actor/client/correlation audit and scoped replay; strong If-Match and Idempotency-Key required.",
+        "summary": "Replace Managed User Roles",
+        "description": " Requires users.manage. Delegated: exact scope users.manage AND one of roles Administrator. Application: exact role Users.Manage.Application. Caller kind: Either. Local administration metadata only; no Entra grant or external provider activation. Production adapter unavailable503 pending approved persistence and identity/provider integration. Mutations atomically store trusted tenant/actor/client/correlation audit and scoped replay; strong If-Match and Idempotency-Key required.",
         "operationId": "ReplaceManagedUserRoles",
         "parameters": [
           {
@@ -1075,7 +1079,8 @@
         "tags": [
           "Administration"
         ],
-        "description": " Requires integrations.manage. Delegated: exact scope integrations.manage AND one of roles Administrator. Application: exact role Integrations.Manage. Caller kind: Either. Local administration metadata only; no Entra grant or external provider activation. Production adapter unavailable503 pending approved persistence and identity/provider integration. Mutations atomically store trusted tenant/actor/client/correlation audit and scoped replay; strong If-Match and Idempotency-Key required.",
+        "summary": "List Managed Integrations",
+        "description": " Requires integrations.manage. Delegated: exact scope integrations.manage AND one of roles Administrator. Application: exact role Integrations.Manage.Application. Caller kind: Either. Local administration metadata only; no Entra grant or external provider activation. Production adapter unavailable503 pending approved persistence and identity/provider integration. Mutations atomically store trusted tenant/actor/client/correlation audit and scoped replay; strong If-Match and Idempotency-Key required.",
         "operationId": "ListManagedIntegrations",
         "parameters": [
           {
@@ -1347,7 +1352,8 @@
         "tags": [
           "Administration"
         ],
-        "description": " Requires integrations.manage. Delegated: exact scope integrations.manage AND one of roles Administrator. Application: exact role Integrations.Manage. Caller kind: Either. Local administration metadata only; no Entra grant or external provider activation. Production adapter unavailable503 pending approved persistence and identity/provider integration. Mutations atomically store trusted tenant/actor/client/correlation audit and scoped replay; strong If-Match and Idempotency-Key required.",
+        "summary": "Get Managed Integration",
+        "description": " Requires integrations.manage. Delegated: exact scope integrations.manage AND one of roles Administrator. Application: exact role Integrations.Manage.Application. Caller kind: Either. Local administration metadata only; no Entra grant or external provider activation. Production adapter unavailable503 pending approved persistence and identity/provider integration. Mutations atomically store trusted tenant/actor/client/correlation audit and scoped replay; strong If-Match and Idempotency-Key required.",
         "operationId": "GetManagedIntegration",
         "parameters": [
           {
@@ -1596,7 +1602,8 @@
         "tags": [
           "Administration"
         ],
-        "description": " Requires integrations.manage. Delegated: exact scope integrations.manage AND one of roles Administrator. Application: exact role Integrations.Manage. Caller kind: Either. Local administration metadata only; no Entra grant or external provider activation. Production adapter unavailable503 pending approved persistence and identity/provider integration. Mutations atomically store trusted tenant/actor/client/correlation audit and scoped replay; strong If-Match and Idempotency-Key required.",
+        "summary": "Replace Managed Integration",
+        "description": " Requires integrations.manage. Delegated: exact scope integrations.manage AND one of roles Administrator. Application: exact role Integrations.Manage.Application. Caller kind: Either. Local administration metadata only; no Entra grant or external provider activation. Production adapter unavailable503 pending approved persistence and identity/provider integration. Mutations atomically store trusted tenant/actor/client/correlation audit and scoped replay; strong If-Match and Idempotency-Key required.",
         "operationId": "ReplaceManagedIntegration",
         "parameters": [
           {
@@ -1892,6 +1899,7 @@
         "tags": [
           "AgentRuns"
         ],
+        "summary": "Run Incident Agent",
         "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Ephemeral bounded advisory runtime; no incident mutation or durable run history. Exact faults.read, vehicles.access.read and knowledge.read plus trusted intake ownership. Empty request only; no supplied identity/prompt/tools. Disabled503 until explicit snapshot/secret; production incident storage503 pending DEC-001. Engineering review required; output is not approved guidance or completed investigation. Each call incurs a new run; no idempotent/billing replay is claimed.",
         "operationId": "RunIncidentAgent",
         "parameters": [
@@ -2321,7 +2329,8 @@
         "tags": [
           "Authorization"
         ],
-        "description": " Requires authorization.read. Delegated: exact scope authorization.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Authorization.Read. Caller kind: Either.",
+        "summary": "Get Caller Permissions",
+        "description": " Requires authorization.read. Delegated: exact scope authorization.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Authorization.Read.Application. Caller kind: Either.",
         "operationId": "GetCallerPermissions",
         "responses": {
           "200": {
@@ -2441,7 +2450,8 @@
         "tags": [
           "Documents"
         ],
-        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish. Caller kind: Either. Bounded synthetic extracted pages, not URL/binary ingestion. knowledge.publish manages documents, immutable approvals, deletion and explicit indexing; knowledge.read searches only current approved tenant/publisher-visible exact applicability. Draft edits never replace approved evidence. Index/search503 if canonical storage, explicitly pinned embeddings or compatible Qdrant are unavailable. Production canonical store503 pending DEC-001/003. Reindex rebuilds only this tenant; retry key scopes actor/client/operation/profile. Returned source text is untrusted, conflicts unadjudicated; no generation, repair guidance, GraphRAG or tool execution.",
+        "summary": "Create Document",
+        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish.Application. Caller kind: Either. Bounded synthetic extracted pages, not URL/binary ingestion. knowledge.publish manages documents, immutable approvals, deletion and explicit indexing; knowledge.read searches only current approved tenant/publisher-visible exact applicability. Draft edits never replace approved evidence. Index/search503 if canonical storage, explicitly pinned embeddings or compatible Qdrant are unavailable. Production canonical store503 pending DEC-001/003. Reindex rebuilds only this tenant; retry key scopes actor/client/operation/profile. Returned source text is untrusted, conflicts unadjudicated; no generation, repair guidance, GraphRAG or tool execution.",
         "operationId": "CreateDocument",
         "parameters": [
           {
@@ -2765,7 +2775,8 @@
         "tags": [
           "Documents"
         ],
-        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish. Caller kind: Either. Bounded synthetic extracted pages, not URL/binary ingestion. knowledge.publish manages documents, immutable approvals, deletion and explicit indexing; knowledge.read searches only current approved tenant/publisher-visible exact applicability. Draft edits never replace approved evidence. Index/search503 if canonical storage, explicitly pinned embeddings or compatible Qdrant are unavailable. Production canonical store503 pending DEC-001/003. Reindex rebuilds only this tenant; retry key scopes actor/client/operation/profile. Returned source text is untrusted, conflicts unadjudicated; no generation, repair guidance, GraphRAG or tool execution.",
+        "summary": "Get Document",
+        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish.Application. Caller kind: Either. Bounded synthetic extracted pages, not URL/binary ingestion. knowledge.publish manages documents, immutable approvals, deletion and explicit indexing; knowledge.read searches only current approved tenant/publisher-visible exact applicability. Draft edits never replace approved evidence. Index/search503 if canonical storage, explicitly pinned embeddings or compatible Qdrant are unavailable. Production canonical store503 pending DEC-001/003. Reindex rebuilds only this tenant; retry key scopes actor/client/operation/profile. Returned source text is untrusted, conflicts unadjudicated; no generation, repair guidance, GraphRAG or tool execution.",
         "operationId": "GetDocument",
         "parameters": [
           {
@@ -3028,7 +3039,8 @@
         "tags": [
           "Documents"
         ],
-        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish. Caller kind: Either. Bounded synthetic extracted pages, not URL/binary ingestion. knowledge.publish manages documents, immutable approvals, deletion and explicit indexing; knowledge.read searches only current approved tenant/publisher-visible exact applicability. Draft edits never replace approved evidence. Index/search503 if canonical storage, explicitly pinned embeddings or compatible Qdrant are unavailable. Production canonical store503 pending DEC-001/003. Reindex rebuilds only this tenant; retry key scopes actor/client/operation/profile. Returned source text is untrusted, conflicts unadjudicated; no generation, repair guidance, GraphRAG or tool execution.",
+        "summary": "Update Document",
+        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish.Application. Caller kind: Either. Bounded synthetic extracted pages, not URL/binary ingestion. knowledge.publish manages documents, immutable approvals, deletion and explicit indexing; knowledge.read searches only current approved tenant/publisher-visible exact applicability. Draft edits never replace approved evidence. Index/search503 if canonical storage, explicitly pinned embeddings or compatible Qdrant are unavailable. Production canonical store503 pending DEC-001/003. Reindex rebuilds only this tenant; retry key scopes actor/client/operation/profile. Returned source text is untrusted, conflicts unadjudicated; no generation, repair guidance, GraphRAG or tool execution.",
         "operationId": "UpdateDocument",
         "parameters": [
           {
@@ -3345,7 +3357,8 @@
         "tags": [
           "Documents"
         ],
-        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish. Caller kind: Either. Bounded synthetic extracted pages, not URL/binary ingestion. knowledge.publish manages documents, immutable approvals, deletion and explicit indexing; knowledge.read searches only current approved tenant/publisher-visible exact applicability. Draft edits never replace approved evidence. Index/search503 if canonical storage, explicitly pinned embeddings or compatible Qdrant are unavailable. Production canonical store503 pending DEC-001/003. Reindex rebuilds only this tenant; retry key scopes actor/client/operation/profile. Returned source text is untrusted, conflicts unadjudicated; no generation, repair guidance, GraphRAG or tool execution.",
+        "summary": "Delete Document",
+        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish.Application. Caller kind: Either. Bounded synthetic extracted pages, not URL/binary ingestion. knowledge.publish manages documents, immutable approvals, deletion and explicit indexing; knowledge.read searches only current approved tenant/publisher-visible exact applicability. Draft edits never replace approved evidence. Index/search503 if canonical storage, explicitly pinned embeddings or compatible Qdrant are unavailable. Production canonical store503 pending DEC-001/003. Reindex rebuilds only this tenant; retry key scopes actor/client/operation/profile. Returned source text is untrusted, conflicts unadjudicated; no generation, repair guidance, GraphRAG or tool execution.",
         "operationId": "DeleteDocument",
         "parameters": [
           {
@@ -3611,7 +3624,8 @@
         "tags": [
           "Documents"
         ],
-        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish. Caller kind: Either. Bounded synthetic extracted pages, not URL/binary ingestion. knowledge.publish manages documents, immutable approvals, deletion and explicit indexing; knowledge.read searches only current approved tenant/publisher-visible exact applicability. Draft edits never replace approved evidence. Index/search503 if canonical storage, explicitly pinned embeddings or compatible Qdrant are unavailable. Production canonical store503 pending DEC-001/003. Reindex rebuilds only this tenant; retry key scopes actor/client/operation/profile. Returned source text is untrusted, conflicts unadjudicated; no generation, repair guidance, GraphRAG or tool execution.",
+        "summary": "Publish Document",
+        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish.Application. Caller kind: Either. Bounded synthetic extracted pages, not URL/binary ingestion. knowledge.publish manages documents, immutable approvals, deletion and explicit indexing; knowledge.read searches only current approved tenant/publisher-visible exact applicability. Draft edits never replace approved evidence. Index/search503 if canonical storage, explicitly pinned embeddings or compatible Qdrant are unavailable. Production canonical store503 pending DEC-001/003. Reindex rebuilds only this tenant; retry key scopes actor/client/operation/profile. Returned source text is untrusted, conflicts unadjudicated; no generation, repair guidance, GraphRAG or tool execution.",
         "operationId": "PublishDocument",
         "parameters": [
           {
@@ -3877,7 +3891,8 @@
         "tags": [
           "Documents"
         ],
-        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish. Caller kind: Either. Bounded synthetic extracted pages, not URL/binary ingestion. knowledge.publish manages documents, immutable approvals, deletion and explicit indexing; knowledge.read searches only current approved tenant/publisher-visible exact applicability. Draft edits never replace approved evidence. Index/search503 if canonical storage, explicitly pinned embeddings or compatible Qdrant are unavailable. Production canonical store503 pending DEC-001/003. Reindex rebuilds only this tenant; retry key scopes actor/client/operation/profile. Returned source text is untrusted, conflicts unadjudicated; no generation, repair guidance, GraphRAG or tool execution.",
+        "summary": "Index Document",
+        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish.Application. Caller kind: Either. Bounded synthetic extracted pages, not URL/binary ingestion. knowledge.publish manages documents, immutable approvals, deletion and explicit indexing; knowledge.read searches only current approved tenant/publisher-visible exact applicability. Draft edits never replace approved evidence. Index/search503 if canonical storage, explicitly pinned embeddings or compatible Qdrant are unavailable. Production canonical store503 pending DEC-001/003. Reindex rebuilds only this tenant; retry key scopes actor/client/operation/profile. Returned source text is untrusted, conflicts unadjudicated; no generation, repair guidance, GraphRAG or tool execution.",
         "operationId": "IndexDocument",
         "parameters": [
           {
@@ -4143,7 +4158,8 @@
         "tags": [
           "Documents"
         ],
-        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish. Caller kind: Either. Bounded synthetic extracted pages, not URL/binary ingestion. knowledge.publish manages documents, immutable approvals, deletion and explicit indexing; knowledge.read searches only current approved tenant/publisher-visible exact applicability. Draft edits never replace approved evidence. Index/search503 if canonical storage, explicitly pinned embeddings or compatible Qdrant are unavailable. Production canonical store503 pending DEC-001/003. Reindex rebuilds only this tenant; retry key scopes actor/client/operation/profile. Returned source text is untrusted, conflicts unadjudicated; no generation, repair guidance, GraphRAG or tool execution.",
+        "summary": "Reindex Documents",
+        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish.Application. Caller kind: Either. Bounded synthetic extracted pages, not URL/binary ingestion. knowledge.publish manages documents, immutable approvals, deletion and explicit indexing; knowledge.read searches only current approved tenant/publisher-visible exact applicability. Draft edits never replace approved evidence. Index/search503 if canonical storage, explicitly pinned embeddings or compatible Qdrant are unavailable. Production canonical store503 pending DEC-001/003. Reindex rebuilds only this tenant; retry key scopes actor/client/operation/profile. Returned source text is untrusted, conflicts unadjudicated; no generation, repair guidance, GraphRAG or tool execution.",
         "operationId": "ReindexDocuments",
         "parameters": [
           {
@@ -4386,6 +4402,7 @@
         "tags": [
           "Documents"
         ],
+        "summary": "Search Evidence",
         "description": " Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Bounded synthetic extracted pages, not URL/binary ingestion. knowledge.publish manages documents, immutable approvals, deletion and explicit indexing; knowledge.read searches only current approved tenant/publisher-visible exact applicability. Draft edits never replace approved evidence. Index/search503 if canonical storage, explicitly pinned embeddings or compatible Qdrant are unavailable. Production canonical store503 pending DEC-001/003. Reindex rebuilds only this tenant; retry key scopes actor/client/operation/profile. Returned source text is untrusted, conflicts unadjudicated; no generation, repair guidance, GraphRAG or tool execution.",
         "operationId": "SearchEvidence",
         "requestBody": {
@@ -4682,6 +4699,7 @@
         "tags": [
           "Drivers"
         ],
+        "summary": "List Drivers",
         "description": " Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Storage returns 503 until DEC-001 durable persistence is approved/configured. Read access accepts exact all-read permission OR Reader+own-read scope, then applies trusted tenant/owner filtering before count/page. All x-faultcode-required-policies are ANDed. Writes require strong If-Match where declared; create replay is actor/client/operation/payload scoped. DELETE soft-deactivates or ends an association. Unowned vehicles are excluded from reads.",
         "operationId": "ListDrivers",
         "parameters": [
@@ -4975,6 +4993,7 @@
         "tags": [
           "Drivers"
         ],
+        "summary": "Create Driver",
         "description": " Requires drivers.write. Delegated: exact scope drivers.write AND one of roles Operator. Application: exact role Drivers.Write.All. Caller kind: Either. Storage returns 503 until DEC-001 durable persistence is approved/configured. Read access accepts exact all-read permission OR Reader+own-read scope, then applies trusted tenant/owner filtering before count/page. All x-faultcode-required-policies are ANDed. Writes require strong If-Match where declared; create replay is actor/client/operation/payload scoped. DELETE soft-deactivates or ends an association. Unowned vehicles are excluded from reads.",
         "operationId": "CreateDriver",
         "parameters": [
@@ -5271,6 +5290,7 @@
         "tags": [
           "Drivers"
         ],
+        "summary": "Get Driver",
         "description": " Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Storage returns 503 until DEC-001 durable persistence is approved/configured. Read access accepts exact all-read permission OR Reader+own-read scope, then applies trusted tenant/owner filtering before count/page. All x-faultcode-required-policies are ANDed. Writes require strong If-Match where declared; create replay is actor/client/operation/payload scoped. DELETE soft-deactivates or ends an association. Unowned vehicles are excluded from reads.",
         "operationId": "GetDriver",
         "parameters": [
@@ -5537,6 +5557,7 @@
         "tags": [
           "Drivers"
         ],
+        "summary": "Update Driver",
         "description": " Requires drivers.write. Delegated: exact scope drivers.write AND one of roles Operator. Application: exact role Drivers.Write.All. Caller kind: Either. Storage returns 503 until DEC-001 durable persistence is approved/configured. Read access accepts exact all-read permission OR Reader+own-read scope, then applies trusted tenant/owner filtering before count/page. All x-faultcode-required-policies are ANDed. Writes require strong If-Match where declared; create replay is actor/client/operation/payload scoped. DELETE soft-deactivates or ends an association. Unowned vehicles are excluded from reads.",
         "operationId": "UpdateDriver",
         "parameters": [
@@ -5828,6 +5849,7 @@
         "tags": [
           "Drivers"
         ],
+        "summary": "Deactivate Driver",
         "description": " Requires drivers.write. Delegated: exact scope drivers.write AND one of roles Operator. Application: exact role Drivers.Write.All. Caller kind: Either. Storage returns 503 until DEC-001 durable persistence is approved/configured. Read access accepts exact all-read permission OR Reader+own-read scope, then applies trusted tenant/owner filtering before count/page. All x-faultcode-required-policies are ANDed. Writes require strong If-Match where declared; create replay is actor/client/operation/payload scoped. DELETE soft-deactivates or ends an association. Unowned vehicles are excluded from reads.",
         "operationId": "DeactivateDriver",
         "parameters": [
@@ -6086,6 +6108,7 @@
         "tags": [
           "EngineeringCases"
         ],
+        "summary": "List Engineering Cases",
         "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires escalations.read. Delegated: exact scope escalations.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Escalations.Read.All. Caller kind: Either. Tenant/incident-owner filtered engineering case. Strong If-Match and scoped Idempotency-Key on every mutation; creation matches incident version, subsequent mutations case version. Assignment is a work label, not an Entra grant. Separate proposal and approval; approval requires escalations.write AND knowledge.publish and commits knowledge/incident/event atomically. Events are retained historical Pending intents requiring FAU-19 revalidation and deduplication, never delivery or current dispatch authority. Production503 pending DEC-001/003; test memory is not durable. Existing MCP lifecycle escalation remains unchanged.",
         "operationId": "ListEngineeringCases",
         "parameters": [
@@ -6437,7 +6460,8 @@
         "tags": [
           "EngineeringCases"
         ],
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires escalations.write. Delegated: exact scope escalations.write AND one of roles Engineer. Application: exact role Escalations.Write. Caller kind: Either. Tenant/incident-owner filtered engineering case. Strong If-Match and scoped Idempotency-Key on every mutation; creation matches incident version, subsequent mutations case version. Assignment is a work label, not an Entra grant. Separate proposal and approval; approval requires escalations.write AND knowledge.publish and commits knowledge/incident/event atomically. Events are retained historical Pending intents requiring FAU-19 revalidation and deduplication, never delivery or current dispatch authority. Production503 pending DEC-001/003; test memory is not durable. Existing MCP lifecycle escalation remains unchanged.",
+        "summary": "Create Engineering Case",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires escalations.write. Delegated: exact scope escalations.write AND one of roles Engineer. Application: exact role Escalations.Write.Application. Caller kind: Either. Tenant/incident-owner filtered engineering case. Strong If-Match and scoped Idempotency-Key on every mutation; creation matches incident version, subsequent mutations case version. Assignment is a work label, not an Entra grant. Separate proposal and approval; approval requires escalations.write AND knowledge.publish and commits knowledge/incident/event atomically. Events are retained historical Pending intents requiring FAU-19 revalidation and deduplication, never delivery or current dispatch authority. Production503 pending DEC-001/003; test memory is not durable. Existing MCP lifecycle escalation remains unchanged.",
         "operationId": "CreateEngineeringCase",
         "parameters": [
           {
@@ -6793,6 +6817,7 @@
         "tags": [
           "EngineeringCases"
         ],
+        "summary": "Get Engineering Case",
         "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires escalations.read. Delegated: exact scope escalations.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Escalations.Read.All. Caller kind: Either. Tenant/incident-owner filtered engineering case. Strong If-Match and scoped Idempotency-Key on every mutation; creation matches incident version, subsequent mutations case version. Assignment is a work label, not an Entra grant. Separate proposal and approval; approval requires escalations.write AND knowledge.publish and commits knowledge/incident/event atomically. Events are retained historical Pending intents requiring FAU-19 revalidation and deduplication, never delivery or current dispatch authority. Production503 pending DEC-001/003; test memory is not durable. Existing MCP lifecycle escalation remains unchanged.",
         "operationId": "GetEngineeringCase",
         "parameters": [
@@ -7118,6 +7143,7 @@
         "tags": [
           "EngineeringCases"
         ],
+        "summary": "Engineering Case History",
         "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires escalations.read. Delegated: exact scope escalations.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Escalations.Read.All. Caller kind: Either. Tenant/incident-owner filtered engineering case. Strong If-Match and scoped Idempotency-Key on every mutation; creation matches incident version, subsequent mutations case version. Assignment is a work label, not an Entra grant. Separate proposal and approval; approval requires escalations.write AND knowledge.publish and commits knowledge/incident/event atomically. Events are retained historical Pending intents requiring FAU-19 revalidation and deduplication, never delivery or current dispatch authority. Production503 pending DEC-001/003; test memory is not durable. Existing MCP lifecycle escalation remains unchanged.",
         "operationId": "EngineeringCaseHistory",
         "parameters": [
@@ -7473,6 +7499,7 @@
         "tags": [
           "EngineeringCases"
         ],
+        "summary": "Engineering Case Events",
         "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires escalations.read. Delegated: exact scope escalations.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Escalations.Read.All. Caller kind: Either. Tenant/incident-owner filtered engineering case. Strong If-Match and scoped Idempotency-Key on every mutation; creation matches incident version, subsequent mutations case version. Assignment is a work label, not an Entra grant. Separate proposal and approval; approval requires escalations.write AND knowledge.publish and commits knowledge/incident/event atomically. Events are retained historical Pending intents requiring FAU-19 revalidation and deduplication, never delivery or current dispatch authority. Production503 pending DEC-001/003; test memory is not durable. Existing MCP lifecycle escalation remains unchanged.",
         "operationId": "EngineeringCaseEvents",
         "parameters": [
@@ -7828,7 +7855,8 @@
         "tags": [
           "EngineeringCases"
         ],
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires escalations.write. Delegated: exact scope escalations.write AND one of roles Engineer. Application: exact role Escalations.Write. Caller kind: Either. Tenant/incident-owner filtered engineering case. Strong If-Match and scoped Idempotency-Key on every mutation; creation matches incident version, subsequent mutations case version. Assignment is a work label, not an Entra grant. Separate proposal and approval; approval requires escalations.write AND knowledge.publish and commits knowledge/incident/event atomically. Events are retained historical Pending intents requiring FAU-19 revalidation and deduplication, never delivery or current dispatch authority. Production503 pending DEC-001/003; test memory is not durable. Existing MCP lifecycle escalation remains unchanged.",
+        "summary": "Assign Engineering Case",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires escalations.write. Delegated: exact scope escalations.write AND one of roles Engineer. Application: exact role Escalations.Write.Application. Caller kind: Either. Tenant/incident-owner filtered engineering case. Strong If-Match and scoped Idempotency-Key on every mutation; creation matches incident version, subsequent mutations case version. Assignment is a work label, not an Entra grant. Separate proposal and approval; approval requires escalations.write AND knowledge.publish and commits knowledge/incident/event atomically. Events are retained historical Pending intents requiring FAU-19 revalidation and deduplication, never delivery or current dispatch authority. Production503 pending DEC-001/003; test memory is not durable. Existing MCP lifecycle escalation remains unchanged.",
         "operationId": "AssignEngineeringCase",
         "parameters": [
           {
@@ -8185,7 +8213,8 @@
         "tags": [
           "EngineeringCases"
         ],
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires escalations.write. Delegated: exact scope escalations.write AND one of roles Engineer. Application: exact role Escalations.Write. Caller kind: Either. Tenant/incident-owner filtered engineering case. Strong If-Match and scoped Idempotency-Key on every mutation; creation matches incident version, subsequent mutations case version. Assignment is a work label, not an Entra grant. Separate proposal and approval; approval requires escalations.write AND knowledge.publish and commits knowledge/incident/event atomically. Events are retained historical Pending intents requiring FAU-19 revalidation and deduplication, never delivery or current dispatch authority. Production503 pending DEC-001/003; test memory is not durable. Existing MCP lifecycle escalation remains unchanged.",
+        "summary": "Add Engineering Note",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires escalations.write. Delegated: exact scope escalations.write AND one of roles Engineer. Application: exact role Escalations.Write.Application. Caller kind: Either. Tenant/incident-owner filtered engineering case. Strong If-Match and scoped Idempotency-Key on every mutation; creation matches incident version, subsequent mutations case version. Assignment is a work label, not an Entra grant. Separate proposal and approval; approval requires escalations.write AND knowledge.publish and commits knowledge/incident/event atomically. Events are retained historical Pending intents requiring FAU-19 revalidation and deduplication, never delivery or current dispatch authority. Production503 pending DEC-001/003; test memory is not durable. Existing MCP lifecycle escalation remains unchanged.",
         "operationId": "AddEngineeringNote",
         "parameters": [
           {
@@ -8542,7 +8571,8 @@
         "tags": [
           "EngineeringCases"
         ],
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires escalations.write. Delegated: exact scope escalations.write AND one of roles Engineer. Application: exact role Escalations.Write. Caller kind: Either. Tenant/incident-owner filtered engineering case. Strong If-Match and scoped Idempotency-Key on every mutation; creation matches incident version, subsequent mutations case version. Assignment is a work label, not an Entra grant. Separate proposal and approval; approval requires escalations.write AND knowledge.publish and commits knowledge/incident/event atomically. Events are retained historical Pending intents requiring FAU-19 revalidation and deduplication, never delivery or current dispatch authority. Production503 pending DEC-001/003; test memory is not durable. Existing MCP lifecycle escalation remains unchanged.",
+        "summary": "Change Engineering Status",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires escalations.write. Delegated: exact scope escalations.write AND one of roles Engineer. Application: exact role Escalations.Write.Application. Caller kind: Either. Tenant/incident-owner filtered engineering case. Strong If-Match and scoped Idempotency-Key on every mutation; creation matches incident version, subsequent mutations case version. Assignment is a work label, not an Entra grant. Separate proposal and approval; approval requires escalations.write AND knowledge.publish and commits knowledge/incident/event atomically. Events are retained historical Pending intents requiring FAU-19 revalidation and deduplication, never delivery or current dispatch authority. Production503 pending DEC-001/003; test memory is not durable. Existing MCP lifecycle escalation remains unchanged.",
         "operationId": "ChangeEngineeringStatus",
         "parameters": [
           {
@@ -8899,7 +8929,8 @@
         "tags": [
           "EngineeringCases"
         ],
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires escalations.write. Delegated: exact scope escalations.write AND one of roles Engineer. Application: exact role Escalations.Write. Caller kind: Either. Tenant/incident-owner filtered engineering case. Strong If-Match and scoped Idempotency-Key on every mutation; creation matches incident version, subsequent mutations case version. Assignment is a work label, not an Entra grant. Separate proposal and approval; approval requires escalations.write AND knowledge.publish and commits knowledge/incident/event atomically. Events are retained historical Pending intents requiring FAU-19 revalidation and deduplication, never delivery or current dispatch authority. Production503 pending DEC-001/003; test memory is not durable. Existing MCP lifecycle escalation remains unchanged.",
+        "summary": "Propose Engineering Resolution",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires escalations.write. Delegated: exact scope escalations.write AND one of roles Engineer. Application: exact role Escalations.Write.Application. Caller kind: Either. Tenant/incident-owner filtered engineering case. Strong If-Match and scoped Idempotency-Key on every mutation; creation matches incident version, subsequent mutations case version. Assignment is a work label, not an Entra grant. Separate proposal and approval; approval requires escalations.write AND knowledge.publish and commits knowledge/incident/event atomically. Events are retained historical Pending intents requiring FAU-19 revalidation and deduplication, never delivery or current dispatch authority. Production503 pending DEC-001/003; test memory is not durable. Existing MCP lifecycle escalation remains unchanged.",
         "operationId": "ProposeEngineeringResolution",
         "parameters": [
           {
@@ -9331,7 +9362,8 @@
         "tags": [
           "EngineeringCases"
         ],
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires escalations.write. Delegated: exact scope escalations.write AND one of roles Engineer. Application: exact role Escalations.Write. Caller kind: Either. Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish. Caller kind: Either. Tenant/incident-owner filtered engineering case. Strong If-Match and scoped Idempotency-Key on every mutation; creation matches incident version, subsequent mutations case version. Assignment is a work label, not an Entra grant. Separate proposal and approval; approval requires escalations.write AND knowledge.publish and commits knowledge/incident/event atomically. Events are retained historical Pending intents requiring FAU-19 revalidation and deduplication, never delivery or current dispatch authority. Production503 pending DEC-001/003; test memory is not durable. Existing MCP lifecycle escalation remains unchanged.",
+        "summary": "Approve Engineering Resolution",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires escalations.write. Delegated: exact scope escalations.write AND one of roles Engineer. Application: exact role Escalations.Write.Application. Caller kind: Either. Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish.Application. Caller kind: Either. Tenant/incident-owner filtered engineering case. Strong If-Match and scoped Idempotency-Key on every mutation; creation matches incident version, subsequent mutations case version. Assignment is a work label, not an Entra grant. Separate proposal and approval; approval requires escalations.write AND knowledge.publish and commits knowledge/incident/event atomically. Events are retained historical Pending intents requiring FAU-19 revalidation and deduplication, never delivery or current dispatch authority. Production503 pending DEC-001/003; test memory is not durable. Existing MCP lifecycle escalation remains unchanged.",
         "operationId": "ApproveEngineeringResolution",
         "parameters": [
           {
@@ -9694,6 +9726,7 @@
         "tags": [
           "Examples"
         ],
+        "summary": "List Examples",
         "operationId": "ListExamples",
         "parameters": [
           {
@@ -9825,6 +9858,7 @@
         "tags": [
           "Examples"
         ],
+        "summary": "Get Example",
         "operationId": "GetExample",
         "parameters": [
           {
@@ -9944,6 +9978,7 @@
         "tags": [
           "Faults"
         ],
+        "summary": "List Faults",
         "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Tenant-local synthetic fault management. Storage is unavailable (503) pending DEC-001; ontology validates exact immutable approved publication versions and is unavailable when ontology storage is unavailable. DELETE retires and retains history. Publication snapshots a version with engineering approval; lookup exposes only approved matching remedies. No software deployment. Strong If-Match is required where declared; create/publication replay keys are actor/client/operation/payload scoped.",
         "operationId": "ListFaults",
         "parameters": [
@@ -10270,6 +10305,7 @@
         "tags": [
           "Faults"
         ],
+        "summary": "Create Fault",
         "description": " Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Tenant-local synthetic fault management. Storage is unavailable (503) pending DEC-001; ontology validates exact immutable approved publication versions and is unavailable when ontology storage is unavailable. DELETE retires and retains history. Publication snapshots a version with engineering approval; lookup exposes only approved matching remedies. No software deployment. Strong If-Match is required where declared; create/publication replay keys are actor/client/operation/payload scoped.",
         "operationId": "CreateFault",
         "parameters": [
@@ -10639,6 +10675,7 @@
         "tags": [
           "Faults"
         ],
+        "summary": "Get Fault",
         "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Tenant-local synthetic fault management. Storage is unavailable (503) pending DEC-001; ontology validates exact immutable approved publication versions and is unavailable when ontology storage is unavailable. DELETE retires and retains history. Publication snapshots a version with engineering approval; lookup exposes only approved matching remedies. No software deployment. Strong If-Match is required where declared; create/publication replay keys are actor/client/operation/payload scoped.",
         "operationId": "GetFault",
         "parameters": [
@@ -10922,6 +10959,7 @@
         "tags": [
           "Faults"
         ],
+        "summary": "Update Fault",
         "description": " Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Tenant-local synthetic fault management. Storage is unavailable (503) pending DEC-001; ontology validates exact immutable approved publication versions and is unavailable when ontology storage is unavailable. DELETE retires and retains history. Publication snapshots a version with engineering approval; lookup exposes only approved matching remedies. No software deployment. Strong If-Match is required where declared; create/publication replay keys are actor/client/operation/payload scoped.",
         "operationId": "UpdateFault",
         "parameters": [
@@ -11281,6 +11319,7 @@
         "tags": [
           "Faults"
         ],
+        "summary": "Retire Fault",
         "description": " Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Tenant-local synthetic fault management. Storage is unavailable (503) pending DEC-001; ontology validates exact immutable approved publication versions and is unavailable when ontology storage is unavailable. DELETE retires and retains history. Publication snapshots a version with engineering approval; lookup exposes only approved matching remedies. No software deployment. Strong If-Match is required where declared; create/publication replay keys are actor/client/operation/payload scoped.",
         "operationId": "RetireFault",
         "parameters": [
@@ -11538,6 +11577,7 @@
         "tags": [
           "Faults"
         ],
+        "summary": "Fault History",
         "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Tenant-local synthetic fault management. Storage is unavailable (503) pending DEC-001; ontology validates exact immutable approved publication versions and is unavailable when ontology storage is unavailable. DELETE retires and retains history. Publication snapshots a version with engineering approval; lookup exposes only approved matching remedies. No software deployment. Strong If-Match is required where declared; create/publication replay keys are actor/client/operation/payload scoped.",
         "operationId": "FaultHistory",
         "parameters": [
@@ -11852,7 +11892,8 @@
         "tags": [
           "Faults"
         ],
-        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish. Caller kind: Either. Tenant-local synthetic fault management. Storage is unavailable (503) pending DEC-001; ontology validates exact immutable approved publication versions and is unavailable when ontology storage is unavailable. DELETE retires and retains history. Publication snapshots a version with engineering approval; lookup exposes only approved matching remedies. No software deployment. Strong If-Match is required where declared; create/publication replay keys are actor/client/operation/payload scoped.",
+        "summary": "Publish Fault",
+        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish.Application. Caller kind: Either. Tenant-local synthetic fault management. Storage is unavailable (503) pending DEC-001; ontology validates exact immutable approved publication versions and is unavailable when ontology storage is unavailable. DELETE retires and retains history. Publication snapshots a version with engineering approval; lookup exposes only approved matching remedies. No software deployment. Strong If-Match is required where declared; create/publication replay keys are actor/client/operation/payload scoped.",
         "operationId": "PublishFault",
         "parameters": [
           {
@@ -12118,6 +12159,7 @@
         "tags": [
           "Faults"
         ],
+        "summary": "Lookup Approved Fault",
         "description": " Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Tenant-local synthetic fault management. Storage is unavailable (503) pending DEC-001; ontology validates exact immutable approved publication versions and is unavailable when ontology storage is unavailable. DELETE retires and retains history. Publication snapshots a version with engineering approval; lookup exposes only approved matching remedies. No software deployment. Strong If-Match is required where declared; create/publication replay keys are actor/client/operation/payload scoped.",
         "operationId": "LookupApprovedFault",
         "parameters": [
@@ -12427,6 +12469,7 @@
         "tags": [
           "Health"
         ],
+        "summary": "Get Api Health",
         "operationId": "GetApiHealth",
         "responses": {
           "200": {
@@ -12484,6 +12527,7 @@
         "tags": [
           "Incidents"
         ],
+        "summary": "Create Incident",
         "description": " Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Synthetic incident workflow. Production storage/context unavailable (503) pending DEC-001. Source client is validated azp; tenant/client/event replay is independent of actor/key. Reads require immutable intake owner or exact vehicle all-read plus faults.read and knowledge.read. Status/failure/retry record authorized workflow reports; no external investigation or notification delivery is performed. Strong version and replay key required on conditional mutations.",
         "operationId": "CreateIncident",
         "parameters": [
@@ -12803,6 +12847,7 @@
         "tags": [
           "Incidents"
         ],
+        "summary": "List Incidents",
         "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Synthetic incident workflow. Production storage/context unavailable (503) pending DEC-001. Source client is validated azp; tenant/client/event replay is independent of actor/key. Reads require immutable intake owner or exact vehicle all-read plus faults.read and knowledge.read. Status/failure/retry record authorized workflow reports; no external investigation or notification delivery is performed. Strong version and replay key required on conditional mutations.",
         "operationId": "ListIncidents",
         "parameters": [
@@ -13168,6 +13213,7 @@
         "tags": [
           "Incidents"
         ],
+        "summary": "Get Incident",
         "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Synthetic incident workflow. Production storage/context unavailable (503) pending DEC-001. Source client is validated azp; tenant/client/event replay is independent of actor/key. Reads require immutable intake owner or exact vehicle all-read plus faults.read and knowledge.read. Status/failure/retry record authorized workflow reports; no external investigation or notification delivery is performed. Strong version and replay key required on conditional mutations.",
         "operationId": "GetIncident",
         "parameters": [
@@ -13497,6 +13543,7 @@
         "tags": [
           "Incidents"
         ],
+        "summary": "Incident History",
         "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Synthetic incident workflow. Production storage/context unavailable (503) pending DEC-001. Source client is validated azp; tenant/client/event replay is independent of actor/key. Reads require immutable intake owner or exact vehicle all-read plus faults.read and knowledge.read. Status/failure/retry record authorized workflow reports; no external investigation or notification delivery is performed. Strong version and replay key required on conditional mutations.",
         "operationId": "IncidentHistory",
         "parameters": [
@@ -13831,6 +13878,7 @@
         "tags": [
           "Incidents"
         ],
+        "summary": "Transition Incident",
         "description": " Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Synthetic incident workflow. Production storage/context unavailable (503) pending DEC-001. Source client is validated azp; tenant/client/event replay is independent of actor/key. Reads require immutable intake owner or exact vehicle all-read plus faults.read and knowledge.read. Status/failure/retry record authorized workflow reports; no external investigation or notification delivery is performed. Strong version and replay key required on conditional mutations.",
         "operationId": "TransitionIncident",
         "parameters": [
@@ -14126,6 +14174,7 @@
         "tags": [
           "Incidents"
         ],
+        "summary": "Fail Incident Work",
         "description": " Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Synthetic incident workflow. Production storage/context unavailable (503) pending DEC-001. Source client is validated azp; tenant/client/event replay is independent of actor/key. Reads require immutable intake owner or exact vehicle all-read plus faults.read and knowledge.read. Status/failure/retry record authorized workflow reports; no external investigation or notification delivery is performed. Strong version and replay key required on conditional mutations.",
         "operationId": "FailIncidentWork",
         "parameters": [
@@ -14421,6 +14470,7 @@
         "tags": [
           "Incidents"
         ],
+        "summary": "Retry Incident Work",
         "description": " Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Synthetic incident workflow. Production storage/context unavailable (503) pending DEC-001. Source client is validated azp; tenant/client/event replay is independent of actor/key. Reads require immutable intake owner or exact vehicle all-read plus faults.read and knowledge.read. Status/failure/retry record authorized workflow reports; no external investigation or notification delivery is performed. Strong version and replay key required on conditional mutations.",
         "operationId": "RetryIncidentWork",
         "parameters": [
@@ -14687,7 +14737,8 @@
         "tags": [
           "Incidents"
         ],
-        "description": " Requires escalations.write. Delegated: exact scope escalations.write AND one of roles Engineer. Application: exact role Escalations.Write. Caller kind: Either. Synthetic incident workflow. Production storage/context unavailable (503) pending DEC-001. Source client is validated azp; tenant/client/event replay is independent of actor/key. Reads require immutable intake owner or exact vehicle all-read plus faults.read and knowledge.read. Status/failure/retry record authorized workflow reports; no external investigation or notification delivery is performed. Strong version and replay key required on conditional mutations.",
+        "summary": "Escalate Incident",
+        "description": " Requires escalations.write. Delegated: exact scope escalations.write AND one of roles Engineer. Application: exact role Escalations.Write.Application. Caller kind: Either. Synthetic incident workflow. Production storage/context unavailable (503) pending DEC-001. Source client is validated azp; tenant/client/event replay is independent of actor/key. Reads require immutable intake owner or exact vehicle all-read plus faults.read and knowledge.read. Status/failure/retry record authorized workflow reports; no external investigation or notification delivery is performed. Strong version and replay key required on conditional mutations.",
         "operationId": "EscalateIncident",
         "parameters": [
           {
@@ -14953,6 +15004,7 @@
         "tags": [
           "Investigations"
         ],
+        "summary": "Investigate Incident",
         "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Immutable historical investigation and pending proposal only; no dispatch or incident transition. Original actor/client history plus trusted incident ownership. POST requires empty object, strong If-Match and scoped Idempotency-Key. Production canonical storage503 pending DEC-001/003; model tools remain disabled. investigation-v1 requires exact approved text/source/version support at score>=0.85; unadjudicated evidence requires review.",
         "operationId": "InvestigateIncident",
         "parameters": [
@@ -15412,6 +15464,7 @@
         "tags": [
           "Investigations"
         ],
+        "summary": "List Incident Investigations",
         "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Immutable historical investigation and pending proposal only; no dispatch or incident transition. Original actor/client history plus trusted incident ownership. POST requires empty object, strong If-Match and scoped Idempotency-Key. Production canonical storage503 pending DEC-001/003; model tools remain disabled. investigation-v1 requires exact approved text/source/version support at score>=0.85; unadjudicated evidence requires review.",
         "operationId": "ListIncidentInvestigations",
         "parameters": [
@@ -15766,6 +15819,7 @@
         "tags": [
           "Notifications"
         ],
+        "summary": "List Incident Notifications",
         "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Synthetic incident workflow. Production storage/context unavailable (503) pending DEC-001. Source client is validated azp; tenant/client/event replay is independent of actor/key. Reads require immutable intake owner or exact vehicle all-read plus faults.read and knowledge.read. Status/failure/retry record authorized workflow reports; no external investigation or notification delivery is performed. Strong version and replay key required on conditional mutations. Explicit synthetic local notifications only; production503 pending DEC-001/002/003. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
         "operationId": "ListIncidentNotifications",
         "parameters": [
@@ -16140,6 +16194,7 @@
         "tags": [
           "Notifications"
         ],
+        "summary": "Enqueue Incident Notification",
         "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Synthetic incident workflow. Production storage/context unavailable (503) pending DEC-001. Source client is validated azp; tenant/client/event replay is independent of actor/key. Reads require immutable intake owner or exact vehicle all-read plus faults.read and knowledge.read. Status/failure/retry record authorized workflow reports; no external investigation or notification delivery is performed. Strong version and replay key required on conditional mutations. Explicit synthetic local notifications only; production503 pending DEC-001/002/003. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
         "operationId": "EnqueueIncidentNotification",
         "parameters": [
@@ -16531,6 +16586,7 @@
         "tags": [
           "Notifications"
         ],
+        "summary": "Get Notification",
         "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Explicit synthetic local notifications only; production503 pending DEC-001/002/003. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
         "operationId": "GetNotification",
         "parameters": [
@@ -16872,6 +16928,7 @@
         "tags": [
           "Notifications"
         ],
+        "summary": "Notification History",
         "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Explicit synthetic local notifications only; production503 pending DEC-001/002/003. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
         "operationId": "NotificationHistory",
         "parameters": [
@@ -17231,6 +17288,7 @@
         "tags": [
           "Notifications"
         ],
+        "summary": "Dispatch Notification",
         "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Explicit synthetic local notifications only; production503 pending DEC-001/002/003. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
         "operationId": "DispatchNotification",
         "parameters": [
@@ -17603,6 +17661,7 @@
         "tags": [
           "Notifications"
         ],
+        "summary": "Cancel Notification",
         "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Explicit synthetic local notifications only; production503 pending DEC-001/002/003. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
         "operationId": "CancelNotification",
         "parameters": [
@@ -17975,6 +18034,7 @@
         "tags": [
           "NotificationPreferences"
         ],
+        "summary": "Get Notification Preferences",
         "description": " Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Storage returns 503 until DEC-001 durable persistence is approved/configured. Read access accepts exact all-read permission OR Reader+own-read scope, then applies trusted tenant/owner filtering before count/page. All x-faultcode-required-policies are ANDed. Writes require strong If-Match where declared; create replay is actor/client/operation/payload scoped. DELETE soft-deactivates or ends an association. Unowned vehicles are excluded from reads. Explicit synthetic local notifications only; production503 pending DEC-001/002/003. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
         "operationId": "GetNotificationPreferences",
         "parameters": [
@@ -18237,6 +18297,7 @@
         "tags": [
           "NotificationPreferences"
         ],
+        "summary": "Update Notification Preferences",
         "description": " Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.write. Delegated: exact scope drivers.write AND one of roles Operator. Application: exact role Drivers.Write.All. Caller kind: Either. Storage returns 503 until DEC-001 durable persistence is approved/configured. Read access accepts exact all-read permission OR Reader+own-read scope, then applies trusted tenant/owner filtering before count/page. All x-faultcode-required-policies are ANDed. Writes require strong If-Match where declared; create replay is actor/client/operation/payload scoped. DELETE soft-deactivates or ends an association. Unowned vehicles are excluded from reads. Explicit synthetic local notifications only; production503 pending DEC-001/002/003. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
         "operationId": "UpdateNotificationPreferences",
         "parameters": [
@@ -18561,7 +18622,8 @@
         "tags": [
           "Ontology"
         ],
-        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish. Caller kind: Either. Tenant-local synthetic ontology. Draft replacement manages concepts, relationships and rules as one validated aggregate; omission removes draft entries only. knowledge.publish manages drafts/history/approval; knowledge.read reads approved versions and evaluates. Evaluation requires an explicit approved publicationVersion and stores the immutable result with a server ID. Priority then specificity then ordinal rule ID determines precedence. No-match is explicit; results are rule evidence, not driver guidance. Production store503 pending DEC-001. Strong versions and actor/client/operation/canonical-payload replay keys apply where declared.",
+        "summary": "Get Ontology Draft",
+        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish.Application. Caller kind: Either. Tenant-local synthetic ontology. Draft replacement manages concepts, relationships and rules as one validated aggregate; omission removes draft entries only. knowledge.publish manages drafts/history/approval; knowledge.read reads approved versions and evaluates. Evaluation requires an explicit approved publicationVersion and stores the immutable result with a server ID. Priority then specificity then ordinal rule ID determines precedence. No-match is explicit; results are rule evidence, not driver guidance. Production store503 pending DEC-001. Strong versions and actor/client/operation/canonical-payload replay keys apply where declared.",
         "operationId": "GetOntologyDraft",
         "responses": {
           "400": {
@@ -18841,7 +18903,8 @@
         "tags": [
           "Ontology"
         ],
-        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish. Caller kind: Either. Tenant-local synthetic ontology. Draft replacement manages concepts, relationships and rules as one validated aggregate; omission removes draft entries only. knowledge.publish manages drafts/history/approval; knowledge.read reads approved versions and evaluates. Evaluation requires an explicit approved publicationVersion and stores the immutable result with a server ID. Priority then specificity then ordinal rule ID determines precedence. No-match is explicit; results are rule evidence, not driver guidance. Production store503 pending DEC-001. Strong versions and actor/client/operation/canonical-payload replay keys apply where declared.",
+        "summary": "Create Ontology Draft",
+        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish.Application. Caller kind: Either. Tenant-local synthetic ontology. Draft replacement manages concepts, relationships and rules as one validated aggregate; omission removes draft entries only. knowledge.publish manages drafts/history/approval; knowledge.read reads approved versions and evaluates. Evaluation requires an explicit approved publicationVersion and stores the immutable result with a server ID. Priority then specificity then ordinal rule ID determines precedence. No-match is explicit; results are rule evidence, not driver guidance. Production store503 pending DEC-001. Strong versions and actor/client/operation/canonical-payload replay keys apply where declared.",
         "operationId": "CreateOntologyDraft",
         "parameters": [
           {
@@ -19247,7 +19310,8 @@
         "tags": [
           "Ontology"
         ],
-        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish. Caller kind: Either. Tenant-local synthetic ontology. Draft replacement manages concepts, relationships and rules as one validated aggregate; omission removes draft entries only. knowledge.publish manages drafts/history/approval; knowledge.read reads approved versions and evaluates. Evaluation requires an explicit approved publicationVersion and stores the immutable result with a server ID. Priority then specificity then ordinal rule ID determines precedence. No-match is explicit; results are rule evidence, not driver guidance. Production store503 pending DEC-001. Strong versions and actor/client/operation/canonical-payload replay keys apply where declared.",
+        "summary": "Update Ontology Draft",
+        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish.Application. Caller kind: Either. Tenant-local synthetic ontology. Draft replacement manages concepts, relationships and rules as one validated aggregate; omission removes draft entries only. knowledge.publish manages drafts/history/approval; knowledge.read reads approved versions and evaluates. Evaluation requires an explicit approved publicationVersion and stores the immutable result with a server ID. Priority then specificity then ordinal rule ID determines precedence. No-match is explicit; results are rule evidence, not driver guidance. Production store503 pending DEC-001. Strong versions and actor/client/operation/canonical-payload replay keys apply where declared.",
         "operationId": "UpdateOntologyDraft",
         "parameters": [
           {
@@ -19650,7 +19714,8 @@
         "tags": [
           "Ontology"
         ],
-        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish. Caller kind: Either. Tenant-local synthetic ontology. Draft replacement manages concepts, relationships and rules as one validated aggregate; omission removes draft entries only. knowledge.publish manages drafts/history/approval; knowledge.read reads approved versions and evaluates. Evaluation requires an explicit approved publicationVersion and stores the immutable result with a server ID. Priority then specificity then ordinal rule ID determines precedence. No-match is explicit; results are rule evidence, not driver guidance. Production store503 pending DEC-001. Strong versions and actor/client/operation/canonical-payload replay keys apply where declared.",
+        "summary": "Ontology History",
+        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish.Application. Caller kind: Either. Tenant-local synthetic ontology. Draft replacement manages concepts, relationships and rules as one validated aggregate; omission removes draft entries only. knowledge.publish manages drafts/history/approval; knowledge.read reads approved versions and evaluates. Evaluation requires an explicit approved publicationVersion and stores the immutable result with a server ID. Priority then specificity then ordinal rule ID determines precedence. No-match is explicit; results are rule evidence, not driver guidance. Production store503 pending DEC-001. Strong versions and actor/client/operation/canonical-payload replay keys apply where declared.",
         "operationId": "OntologyHistory",
         "parameters": [
           {
@@ -19966,7 +20031,8 @@
         "tags": [
           "Ontology"
         ],
-        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish. Caller kind: Either. Tenant-local synthetic ontology. Draft replacement manages concepts, relationships and rules as one validated aggregate; omission removes draft entries only. knowledge.publish manages drafts/history/approval; knowledge.read reads approved versions and evaluates. Evaluation requires an explicit approved publicationVersion and stores the immutable result with a server ID. Priority then specificity then ordinal rule ID determines precedence. No-match is explicit; results are rule evidence, not driver guidance. Production store503 pending DEC-001. Strong versions and actor/client/operation/canonical-payload replay keys apply where declared.",
+        "summary": "Publish Ontology",
+        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish.Application. Caller kind: Either. Tenant-local synthetic ontology. Draft replacement manages concepts, relationships and rules as one validated aggregate; omission removes draft entries only. knowledge.publish manages drafts/history/approval; knowledge.read reads approved versions and evaluates. Evaluation requires an explicit approved publicationVersion and stores the immutable result with a server ID. Priority then specificity then ordinal rule ID determines precedence. No-match is explicit; results are rule evidence, not driver guidance. Production store503 pending DEC-001. Strong versions and actor/client/operation/canonical-payload replay keys apply where declared.",
         "operationId": "PublishOntology",
         "parameters": [
           {
@@ -20223,6 +20289,7 @@
         "tags": [
           "Ontology"
         ],
+        "summary": "Get Approved Ontology",
         "description": " Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Tenant-local synthetic ontology. Draft replacement manages concepts, relationships and rules as one validated aggregate; omission removes draft entries only. knowledge.publish manages drafts/history/approval; knowledge.read reads approved versions and evaluates. Evaluation requires an explicit approved publicationVersion and stores the immutable result with a server ID. Priority then specificity then ordinal rule ID determines precedence. No-match is explicit; results are rule evidence, not driver guidance. Production store503 pending DEC-001. Strong versions and actor/client/operation/canonical-payload replay keys apply where declared.",
         "operationId": "GetApprovedOntology",
         "parameters": [
@@ -20524,6 +20591,7 @@
         "tags": [
           "Ontology"
         ],
+        "summary": "Evaluate Ontology",
         "description": " Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Tenant-local synthetic ontology. Draft replacement manages concepts, relationships and rules as one validated aggregate; omission removes draft entries only. knowledge.publish manages drafts/history/approval; knowledge.read reads approved versions and evaluates. Evaluation requires an explicit approved publicationVersion and stores the immutable result with a server ID. Priority then specificity then ordinal rule ID determines precedence. No-match is explicit; results are rule evidence, not driver guidance. Production store503 pending DEC-001. Strong versions and actor/client/operation/canonical-payload replay keys apply where declared.",
         "operationId": "EvaluateOntology",
         "parameters": [
@@ -20855,6 +20923,7 @@
         "tags": [
           "Ontology"
         ],
+        "summary": "Get Ontology Evaluation",
         "description": " Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Tenant-local synthetic ontology. Draft replacement manages concepts, relationships and rules as one validated aggregate; omission removes draft entries only. knowledge.publish manages drafts/history/approval; knowledge.read reads approved versions and evaluates. Evaluation requires an explicit approved publicationVersion and stores the immutable result with a server ID. Priority then specificity then ordinal rule ID determines precedence. No-match is explicit; results are rule evidence, not driver guidance. Production store503 pending DEC-001. Strong versions and actor/client/operation/canonical-payload replay keys apply where declared.",
         "operationId": "GetOntologyEvaluation",
         "parameters": [
@@ -21134,6 +21203,7 @@
         "tags": [
           "Vehicles"
         ],
+        "summary": "List Vehicles",
         "description": " Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Storage returns 503 until DEC-001 durable persistence is approved/configured. Read access accepts exact all-read permission OR Reader+own-read scope, then applies trusted tenant/owner filtering before count/page. All x-faultcode-required-policies are ANDed. Writes require strong If-Match where declared; create replay is actor/client/operation/payload scoped. DELETE soft-deactivates or ends an association. Unowned vehicles are excluded from reads.",
         "operationId": "ListVehicles",
         "parameters": [
@@ -21425,6 +21495,7 @@
         "tags": [
           "Vehicles"
         ],
+        "summary": "Create Vehicle",
         "description": " Requires vehicles.write. Delegated: exact scope vehicles.write AND one of roles Operator. Application: exact role Vehicles.Write.All. Caller kind: Either. Storage returns 503 until DEC-001 durable persistence is approved/configured. Read access accepts exact all-read permission OR Reader+own-read scope, then applies trusted tenant/owner filtering before count/page. All x-faultcode-required-policies are ANDed. Writes require strong If-Match where declared; create replay is actor/client/operation/payload scoped. DELETE soft-deactivates or ends an association. Unowned vehicles are excluded from reads.",
         "operationId": "CreateVehicle",
         "parameters": [
@@ -21712,6 +21783,7 @@
         "tags": [
           "Vehicles"
         ],
+        "summary": "Get Vehicle",
         "description": " Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Storage returns 503 until DEC-001 durable persistence is approved/configured. Read access accepts exact all-read permission OR Reader+own-read scope, then applies trusted tenant/owner filtering before count/page. All x-faultcode-required-policies are ANDed. Writes require strong If-Match where declared; create replay is actor/client/operation/payload scoped. DELETE soft-deactivates or ends an association. Unowned vehicles are excluded from reads.",
         "operationId": "GetVehicle",
         "parameters": [
@@ -21976,6 +22048,7 @@
         "tags": [
           "Vehicles"
         ],
+        "summary": "Update Vehicle",
         "description": " Requires vehicles.write. Delegated: exact scope vehicles.write AND one of roles Operator. Application: exact role Vehicles.Write.All. Caller kind: Either. Storage returns 503 until DEC-001 durable persistence is approved/configured. Read access accepts exact all-read permission OR Reader+own-read scope, then applies trusted tenant/owner filtering before count/page. All x-faultcode-required-policies are ANDed. Writes require strong If-Match where declared; create replay is actor/client/operation/payload scoped. DELETE soft-deactivates or ends an association. Unowned vehicles are excluded from reads.",
         "operationId": "UpdateVehicle",
         "parameters": [
@@ -22264,6 +22337,7 @@
         "tags": [
           "Vehicles"
         ],
+        "summary": "Deactivate Vehicle",
         "description": " Requires vehicles.write. Delegated: exact scope vehicles.write AND one of roles Operator. Application: exact role Vehicles.Write.All. Caller kind: Either. Storage returns 503 until DEC-001 durable persistence is approved/configured. Read access accepts exact all-read permission OR Reader+own-read scope, then applies trusted tenant/owner filtering before count/page. All x-faultcode-required-policies are ANDed. Writes require strong If-Match where declared; create replay is actor/client/operation/payload scoped. DELETE soft-deactivates or ends an association. Unowned vehicles are excluded from reads.",
         "operationId": "DeactivateVehicle",
         "parameters": [
@@ -22522,6 +22596,7 @@
         "tags": [
           "Vehicles"
         ],
+        "summary": "List Vehicle Associations",
         "description": " Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Storage returns 503 until DEC-001 durable persistence is approved/configured. Read access accepts exact all-read permission OR Reader+own-read scope, then applies trusted tenant/owner filtering before count/page. All x-faultcode-required-policies are ANDed. Writes require strong If-Match where declared; create replay is actor/client/operation/payload scoped. DELETE soft-deactivates or ends an association. Unowned vehicles are excluded from reads.",
         "operationId": "ListVehicleAssociations",
         "parameters": [
@@ -22815,6 +22890,7 @@
         "tags": [
           "Vehicles"
         ],
+        "summary": "Associate Vehicle",
         "description": " Requires vehicles.write. Delegated: exact scope vehicles.write AND one of roles Operator. Application: exact role Vehicles.Write.All. Caller kind: Either. Requires drivers.write. Delegated: exact scope drivers.write AND one of roles Operator. Application: exact role Drivers.Write.All. Caller kind: Either. Storage returns 503 until DEC-001 durable persistence is approved/configured. Read access accepts exact all-read permission OR Reader+own-read scope, then applies trusted tenant/owner filtering before count/page. All x-faultcode-required-policies are ANDed. Writes require strong If-Match where declared; create replay is actor/client/operation/payload scoped. DELETE soft-deactivates or ends an association. Unowned vehicles are excluded from reads.",
         "operationId": "AssociateVehicle",
         "parameters": [
@@ -23132,6 +23208,7 @@
         "tags": [
           "Vehicles"
         ],
+        "summary": "End Vehicle Association",
         "description": " Requires vehicles.write. Delegated: exact scope vehicles.write AND one of roles Operator. Application: exact role Vehicles.Write.All. Caller kind: Either. Requires drivers.write. Delegated: exact scope drivers.write AND one of roles Operator. Application: exact role Drivers.Write.All. Caller kind: Either. Storage returns 503 until DEC-001 durable persistence is approved/configured. Read access accepts exact all-read permission OR Reader+own-read scope, then applies trusted tenant/owner filtering before count/page. All x-faultcode-required-policies are ANDed. Writes require strong If-Match where declared; create replay is actor/client/operation/payload scoped. DELETE soft-deactivates or ends an association. Unowned vehicles are excluded from reads.",
         "operationId": "EndVehicleAssociation",
         "parameters": [
@@ -26988,7 +27065,7 @@
     "securitySchemes": {
       "EntraBearer": {
         "type": "http",
-        "description": "Dedicated Entra v2 access token. Protected operations require exact delegated scopes or machine application roles. These public fixtures require neither.",
+        "description": "Dedicated Entra v2 access token. Protected operations require exact delegated scopes or machine application roles. Only operations explicitly marked public omit bearer authorization.",
         "scheme": "bearer",
         "bearerFormat": "JWT"
       }
