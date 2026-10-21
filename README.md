@@ -3,6 +3,8 @@
 Independent API-first agentic automotive fault investigation proof of concept. The initial ASP.NET Core backend foundation is implemented; vehicle/driver lifecycle APIs and rules are implemented with production storage unavailable pending DEC-001. Fault knowledge lifecycle APIs and approved versioned ontology management/rule evaluation are implemented with production storage unavailable pending DEC-001. Incident intake/lifecycle APIs are implemented with production transactional storage/context unavailable pending DEC-001. Other business workflows remain specified for later tickets.
 
 ## Start here
+- [Public Mintlify sources and verification](docs/documentation-delivery.md)
+- [Linux release and rollback runbook](docs/release-runbook.md)
 - [Angular administration workspace](docs/administration.md)
 - [Provider-independent operational telemetry](docs/observability.md)
 - [Driver notifications and dealership referrals](docs/driver-notifications.md)

@@ -1,0 +1,23 @@
+---
+title: "Operations"
+description: "Configuration, health and provider boundaries."
+---
+
+Linux Docker containers are the delivery platform, including on the developer's Mac. Native Windows/macOS CI is optional.
+
+## Configuration
+Supply secrets only through an approved secret store or runtime environment. Browser configuration contains public tenant/SPA/API identifiers and exact scopes only; it defaults empty and the administration UI reports sign-in setup unavailable. Entra, canonical stores, model and telemetry activation need their documented approved configuration. No fixture authentication or in-memory production fallback exists.
+
+The standalone administration image serves `/admin` and uses a same-origin API proxy. The backend/Qdrant network remains internal. No docs change activates `faultcode.test`, publishes Qdrant or changes CORS/network isolation.
+
+## Health
+`/health/live` checks the process. `/health/ready` can check configured Qdrant; neither establishes durable business storage, identity, model, delivery or complete production readiness. Verify protected 401/403 behavior and authorized supported requests separately.
+
+## Storage and migrations
+DEC-001 has not selected a relational engine, schema/migration tool or durable outbox. No migration command exists. DEC-003 still covers hosting, canonical storage, retention and backups. Do not invent SQL, apply an empty migration or interpret process health as proof of persistence. Before production, approve adapters and test transactions, crash recovery, backups/restores and upgrade compatibility.
+
+## Telemetry
+Provider-independent OpenTelemetry supports an explicitly configured same-host Datadog Agent. It defaults disabled. Deterministic OTLP receiver tests establish sanitized export behavior, not Datadog account ingestion, allowances or retention. Sentry remains optional and unimplemented. Model calls remain mocked in CI; no paid smoke call is required.
+
+See [release and rollback](/release) before loading or promoting an image.
+

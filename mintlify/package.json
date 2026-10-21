@@ -1,0 +1,15 @@
+{
+  "name": "faultcode-documentation",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "cd site && mint dev --port 5083",
+    "validate": "cd site && mint validate",
+    "links": "cd site && mint broken-links",
+    "openapi": "cd site && mint openapi-check openapi.json"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "mint": "4.2.1085"
+  }
+}

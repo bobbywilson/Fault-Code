@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+"""Extract observed deterministic release cases; reject missing, duplicate or failed evidence."""
+import json
+from pathlib import Path
+import subprocess
+import sys
+import xml.etree.ElementTree as ET
+
+# Minimum distinct parameterized cases from the real integration suite. Full suite must also pass.
+REQUIRED = {
+    'Real_investigation_A_B_to_approved_notification_and_local_acknowledgement': 2,
+    'Real_engineering_C_deduplicates_event_and_retains_approved_history': 1,
+    'Workflow_C_uses_real_investigation_then_engineering_and_approved_lookup_without_delivery': 1,
+    'Deterministic_routing_evaluation_has_exact_provenance_and_zero_unsupported_guidance': 15,
+    'Invalid_or_injected_model_output_cannot_promote_or_commit': 1,
+    'Unavailable_dependencies_never_confirm_unknown_or_commit_actions': 1,
+    'Concurrent_retry_replays_before_provider_dependencies_and_changed_version_conflicts': 1,
+    'Actual_framework_investigation_schema_is_strict_fresh_and_tool_free': 1,
+    'Real_framework_and_OpenAI_sdk_emit_strict_schema_no_tools_and_bounded_output': 1,
+    'Actual_SDK_discovers_exact_permission_filtered_schemas_and_reauthorizes_each_request': 1,
+    'Invalid_identity_fails_closed_without_disclosing_token_or_reason': 1,
+    'Authenticated_identity_is_not_an_automatic_operation_permission': 1,
+    'Public_operations_stay_anonymous_with_enabled_identity': 1,
+    'Every_notification_write_grant_is_required_for_signed_humans_and_machines': 2,
+    'Actual_engineering_notification_commit_and_replay_survive_OTLP_outage': 2,
+    'Handled_delivery_failure_exports_actionable_failure_without_contact_or_exception': 1,
+}
+NS = {'t': 'http://microsoft.com/schemas/VisualStudio/TeamTest/2010'}
+
+
+def extract(directory):
+    observed = {}; total = 0
+    files = sorted(directory.rglob('*.trx'))
+    if not files: raise ValueError('No actual TRX results')
+    for file in files:
+        root = ET.parse(file).getroot()
+        definitions = {x.attrib['id']: x.find('t:TestMethod', NS).attrib['name'] for x in root.findall('.//t:UnitTest', NS)}
+        results = root.findall('.//t:UnitTestResult', NS)
+        if not results: raise ValueError('Empty TRX')
+        for result in results:
+            method = definitions[result.attrib['testId']]
+            name = result.attrib['testName']; outcome = result.attrib['outcome']
+            if outcome != 'Passed': raise ValueError(f'Non-passing release case: {name}: {outcome}')
+            total += 1
+            if method in REQUIRED:
+                key = (method, name)
+                if key in observed: raise ValueError(f'Duplicate/stale release evidence: {name}')
+                observed[key] = {'method':method,'case':name,'outcome':outcome,'duration':result.attrib.get('duration'),'trx':file.name}
+    for method, minimum in REQUIRED.items():
+        count = sum(key[0] == method for key in observed)
+        if count < minimum: raise ValueError(f'Missing release evaluations: {method}: {count} < {minimum}')
+    return {'actualTrxFiles':[f.name for f in files], 'passedTestResults':total,
+            'selectedReleaseCases':list(observed.values()),
+            'limitations':['test-only canonical stores; no relational durability acceptance',
+                          'mocked OpenAI; no live paid call', 'local synthetic acknowledgement; no external notification',
+                          'signed synthetic JWT discovery; no live Entra tenant',
+                          'real Qdrant and production browser/container results are separate jobs',
+                          'opt-in live-provider test bodies may return without live execution and are not live evidence']}
+
+
+if __name__ == '__main__':
+    try:
+        evidence = extract(Path(sys.argv[1]))
+        evidence['source'] = subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+        Path(sys.argv[2]).write_text(json.dumps(evidence,indent=2)+'\n')
+        print(f"Observed {evidence['passedTestResults']} passed results; {len(evidence['selectedReleaseCases'])} required release cases")
+    except (ValueError, OSError, KeyError) as error:
+        sys.exit(str(error))

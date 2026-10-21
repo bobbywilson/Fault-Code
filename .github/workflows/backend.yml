@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
@@ -21,13 +23,25 @@ jobs:
           OPENSPEC_TELEMETRY: '0'
       - run: dotnet restore FaultCode.slnx --locked-mode
       - run: dotnet build FaultCode.slnx --configuration Release --no-restore
-      - run: dotnet test FaultCode.slnx --configuration Release --no-build --logger trx
+      - run: dotnet test FaultCode.slnx --configuration Release --no-build --logger trx --results-directory artifacts/test-results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results
+          path: artifacts/test-results/*.trx
+          if-no-files-found: error
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - run: python -m pip install -r scripts/requirements-contracts.txt
       - run: python scripts/check-api-contract.py artifacts/openapi/faultcode-v1.json contracts/openapi-v1.json
       - run: python scripts/check-mcp-contract.py artifacts/mcp-contracts.json
+      - run: python scripts/release-evidence.py artifacts/test-results artifacts/release-evaluations.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deterministic-release-evaluations
+          path: artifacts/release-evaluations.json
+          if-no-files-found: error
       - name: Compare against base branch contract
         if: github.event_name == 'pull_request'
         shell: bash

@@ -14,3 +14,9 @@ TestResults/
 *.suo
 
 artifacts/
+
+# Python verification caches
+__pycache__/
+# Documentation browser evidence
+mintlify/test-results/
+mintlify/playwright-report/
