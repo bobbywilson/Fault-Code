@@ -81,13 +81,15 @@ public sealed class ApiDocumentTransformer : IOpenApiDocumentTransformer
                 operation.Extensions["x-faultcode-policy-requirements"] = new JsonNodeExtension(requirements);
                 if (policies.Length > 1)
                 {
-                    var grants = policies.Select(p => Permissions.Find(p!)!).ToArray();
+                    var grants = policies.Select(p => Permissions.Find(p == "vehicles.access.read" ? "vehicles.read" : p!)!).ToArray();
                     operation.Extensions["x-faultcode-permission"] = new JsonNodeExtension(JsonValue.Create(string.Join(" AND ", policies))!);
-                    operation.Extensions["x-delegated-scopes"] = new JsonNodeExtension(new JsonArray(grants.Select(p => (JsonNode?)JsonValue.Create(p.Scope)).ToArray()));
+                    operation.Extensions["x-human-roles"] = new JsonNodeExtension(new JsonArray(grants.Select(p => p.HumanRoles.AsEnumerable()).Aggregate((a, b) => a.Intersect(b)).Select(r => (JsonNode?)JsonValue.Create(r)).ToArray()));
+                    operation.Extensions["x-delegated-scopes"] = new JsonNodeExtension(new JsonArray(grants.Select(p => p.Scope).Concat(policies.Contains("vehicles.access.read") ? new[] { "vehicles.read.own" } : []).Select(p => (JsonNode?)JsonValue.Create(p)).ToArray()));
                     operation.Extensions["x-application-roles"] = new JsonNodeExtension(new JsonArray(grants.Select(p => (JsonNode?)JsonValue.Create(p.ApplicationRole)).ToArray()));
                 }
                 if (path.StartsWith("/api/v1/drivers", StringComparison.Ordinal) || path.StartsWith("/api/v1/vehicles", StringComparison.Ordinal))
                     FleetDocumentExamples.Decorate(operation, path);
+                if (path.StartsWith("/api/v1/incidents", StringComparison.Ordinal)) IncidentDocumentExamples.Decorate(operation, path);
                 if (path.StartsWith("/api/v1/faults", StringComparison.Ordinal)) KnowledgeDocumentExamples.Decorate(operation, path);
             }
         }
