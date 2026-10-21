@@ -173,7 +173,7 @@ public sealed class AuthorizationTests
                 Assert.True(known || readArea is not null);
                 Assert.NotNull(await factory.Services.GetRequiredService<IAuthorizationPolicyProvider>().GetPolicyAsync(policy.Policy!));
                 var route = Assert.IsType<RouteEndpoint>(endpoint).RoutePattern.RawText!;
-                route = System.Text.RegularExpressions.Regex.Replace(route, @":guid(?=})", "");
+                route = System.Text.RegularExpressions.Regex.Replace(route, @":(?:guid|long)(?=})", "");
                 var method = endpoint.Metadata.GetMetadata<HttpMethodMetadata>()!.HttpMethods.Single().ToLowerInvariant();
                 var operation = json.RootElement.GetProperty("paths").GetProperty("/" + route.TrimStart('/')).GetProperty(method);
                 Assert.True(operation.GetProperty("security")[0].TryGetProperty("EntraBearer", out _));
@@ -204,7 +204,7 @@ public sealed class AuthorizationTests
             }
             protectedCount++;
         }
-        Assert.Equal(29, protectedCount);
+        Assert.Equal(37, protectedCount);
     }
 
     [Fact]

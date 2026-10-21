@@ -66,3 +66,7 @@ Use a Python virtual environment locally. CI uses Python 3.12, validates OpenAPI
 ## FAU-12 incident operations
 
 [Incident contracts](incident-processing.md) add source-bound intake, historical ownership reads and conditional status/failure/retry. Seven operations bring the protected inventory to29 across21 OpenAPI paths. Production storage/context503; test-only adapters are not durable persistence.
+
+## FAU-13 ontology operations
+
+[Ontology contracts](automotive-ontology.md) add aggregate concept/relationship/rule draft management, immutable approval, pinned deterministic evaluation and retained results. Eight operations bring the protected inventory to37 across27 OpenAPI paths. Exact knowledge.publish manages and approves; knowledge.read consumes approved content/evaluations. Production ontology storage503; approved taxonomy validation is now implemented against the same unavailable-until-configured store. No production memory persistence.
