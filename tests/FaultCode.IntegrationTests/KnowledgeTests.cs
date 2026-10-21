@@ -180,7 +180,7 @@ public sealed class KnowledgeTests
         Auth(client, keys, "faults.read", "Reader"); await Send(client, Request(HttpMethod.Get, "/api/v1/faults"), 503);
         Auth(client, keys, "Faults.Read.All", machine: true); await Send(client, Request(HttpMethod.Get, "/api/v1/faults"), 503);
         Auth(client, keys, "Knowledge.Read.All", machine: true); await Send(client, Request(HttpMethod.Get, Lookup), 503);
-        Auth(client, keys, "Knowledge.Publish", machine: true); await Send(client, Request(HttpMethod.Post, "/api/v1/faults/" + Guid.NewGuid() + "/publications", version: "\"1\"", key: "publish"), 503);
+        Auth(client, keys, "Knowledge.Publish.Application", machine: true); await Send(client, Request(HttpMethod.Post, "/api/v1/faults/" + Guid.NewGuid() + "/publications", version: "\"1\"", key: "publish"), 503);
         Auth(client, keys, "Faults.Write.All", machine: true); await Send(client, Request(HttpMethod.Post, "/api/v1/faults", new CreateFaultRequest("SYN-EPS:001", "EPS", Content()), key: "create"), 503);
         Auth(client, keys);
         foreach (var key in new string?[] { null, "", "bad key", "bad/key" }) await Send(client, Request(HttpMethod.Post, "/api/v1/faults", new CreateFaultRequest("SYN-EPS:001", "EPS", Content()), key: key), 400);

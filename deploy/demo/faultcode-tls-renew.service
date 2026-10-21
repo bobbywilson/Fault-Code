@@ -1,0 +1,13 @@
+[Unit]
+Description=Renew only Fault Code demo HTTPS certificate
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/faultcode-tls-renew
+User=root
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+TimeoutStartSec=20min

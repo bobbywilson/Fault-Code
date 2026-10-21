@@ -15,6 +15,9 @@ RUN for path in /context/src/FaultCode.Api/.env.smoke /context/.env /context/.gi
     done
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0.13-noble@sha256:d5633778c754e89a386882eddf8dbee6942447a8a4b8267c19cf1e1158d0b0ac AS runtime
+ARG SOURCE_REVISION=unversioned
+LABEL org.opencontainers.image.revision=$SOURCE_REVISION
+LABEL org.opencontainers.image.source="https://github.com/bobbywilson/Fault-Code"
 WORKDIR /app
 COPY --from=build /app ./
 COPY --from=build /probe /probe

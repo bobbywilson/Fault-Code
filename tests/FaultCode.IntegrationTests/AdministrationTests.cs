@@ -12,8 +12,8 @@ namespace FaultCode.IntegrationTests;
 public sealed class AdministrationTests
 {
     [Theory]
-    [InlineData("users", "users.manage", "Users.Manage")]
-    [InlineData("integrations", "integrations.manage", "Integrations.Manage")]
+    [InlineData("users", "users.manage", "Users.Manage.Application")]
+    [InlineData("integrations", "integrations.manage", "Integrations.Manage.Application")]
     public async Task Production_management_enforces_exact_role_scope_and_returns_unavailable(string area, string scope, string appRole)
     {
         using var keys = new Discovery();

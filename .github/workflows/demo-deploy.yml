@@ -1,0 +1,106 @@
+name: Fault Code demo deployment
+on:
+  workflow_run:
+    workflows: [Backend foundation, Linux administration, Linux documentation, Linux containers, Linux release candidate]
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: read
+  actions: read
+  checks: read
+concurrency:
+  group: faultcode-demo-production
+  cancel-in-progress: false
+jobs:
+  gate:
+    if: vars.DEMO_DEPLOY_ENABLED == 'true' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.checks.outputs.ready }}
+      source: ${{ steps.checks.outputs.source }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - name: Require all successful checks on current main source
+        id: checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/demo-ci-gate.py
+
+  publish:
+    needs: gate
+    if: needs.gate.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      api: ${{ steps.publish.outputs.api }}
+      web: ${{ steps.publish.outputs.web }}
+      qdrant: ${{ steps.publish.outputs.qdrant }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.gate.outputs.source }}
+          persist-credentials: false
+      - name: Build and publish source-labelled immutable images
+        id: publish
+        env:
+          SOURCE: ${{ needs.gate.outputs.source }}
+          GH_TOKEN: ${{ github.token }}
+          GH_ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          grep -F '"Authorization.Read.Application"' src/FaultCode.Api/Authorization/Permissions.cs >/dev/null
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GH_ACTOR" --password-stdin
+          trap 'docker logout ghcr.io >/dev/null' EXIT
+          for component in api administration qdrant; do
+            image="ghcr.io/bobbywilson/fault-code-$component:$SOURCE"
+            case "$component" in
+              api) docker build --target runtime --build-arg "SOURCE_REVISION=$SOURCE" -t "$image" . ;;
+              administration) docker build --build-arg "SOURCE_REVISION=$SOURCE" -t "$image" frontend ;;
+              qdrant) docker build --label "org.opencontainers.image.revision=$SOURCE" --label 'org.opencontainers.image.source=https://github.com/bobbywilson/Fault-Code' -f docker/Qdrant.Dockerfile -t "$image" . ;;
+            esac
+            docker push "$image"
+            digest=$(docker image inspect "$image" --format '{{index .RepoDigests 0}}')
+            digest=${digest##*@}
+            test "$component" != administration || component=web
+            echo "$component=$digest" >> "$GITHUB_OUTPUT"
+          done
+  deploy:
+    needs: [gate, publish]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: demo-production
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Confirm main has not moved before server access
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE: ${{ needs.gate.outputs.source }}
+        run: test "$(gh api repos/bobbywilson/Fault-Code/git/ref/heads/main --jq .object.sha)" = "$SOURCE"
+      - name: Deploy only through restricted receiver
+        env:
+          DEPLOY_KEY: ${{ secrets.DEMO_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEMO_SSH_KNOWN_HOSTS }}
+          GH_TOKEN: ${{ github.token }}
+          SOURCE: ${{ needs.gate.outputs.source }}
+          API_DIGEST: ${{ needs.publish.outputs.api }}
+          WEB_DIGEST: ${{ needs.publish.outputs.web }}
+          QDRANT_DIGEST: ${{ needs.publish.outputs.qdrant }}
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOY_KEY" && test -n "$KNOWN_HOSTS"
+          umask 077
+          key=$(mktemp); hosts=$(mktemp)
+          trap 'rm -f "$key" "$hosts"' EXIT
+          printf '%s\n' "$DEPLOY_KEY" > "$key"
+          printf '%s\n' "$KNOWN_HOSTS" > "$hosts"
+          printf '%s' "$GH_TOKEN" | ssh -T -i "$key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$hosts" -o ConnectTimeout=15 faultcode-deploy@134.209.215.92 "deploy $SOURCE $API_DIGEST $WEB_DIGEST $QDRANT_DIGEST"
+          curl --fail --silent --show-error https://faultcodeai.com/api/v1/health >/dev/null
+          echo "Verified demo deployment source=$SOURCE" >> "$GITHUB_STEP_SUMMARY"

@@ -29,7 +29,7 @@ test('generated protected reference preserves permissions, errors and non-sendin
   await expect(page).toHaveURL(/api-reference/, { timeout: 45000 });
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('List Administration Roles');
   await expect(page.locator('#content-area')).toContainText('Requires users.manage');
-  await expect(page.locator('#content-area')).toContainText('exact role Users.Manage');
+  await expect(page.locator('#content-area')).toContainText('exact role Users.Manage.Application');
   await expect(page.getByRole('heading', { name: 'Authorizations', exact: true })).toBeVisible();
   await expect(page.getByRole('tab', { name: '401', exact: true })).toBeVisible();
   await expect(page.getByRole('tab', { name: '403', exact: true })).toBeVisible();

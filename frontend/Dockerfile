@@ -7,6 +7,9 @@ COPY src/ src/
 COPY public/ public/
 RUN npm run build
 FROM nginxinc/nginx-unprivileged:1.28.0-alpine AS runtime
+ARG SOURCE_REVISION=unversioned
+LABEL org.opencontainers.image.revision=$SOURCE_REVISION
+LABEL org.opencontainers.image.source="https://github.com/bobbywilson/Fault-Code"
 COPY --from=build --chown=101:101 /app/dist/admin/browser /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 USER 101

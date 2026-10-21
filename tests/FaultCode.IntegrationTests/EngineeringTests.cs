@@ -315,7 +315,7 @@ public sealed class EngineeringTests
         await Send(400, HttpMethod.Get, "?pageSize=101"); await Send(400, HttpMethod.Get, "?status=Notified");
         Auth(null, ["Escalations.Read.All", "Faults.Read.All", "Vehicles.Read.All", "Knowledge.Read.All"], true);
         await Send(200, HttpMethod.Get, "/" + id);
-        Auth(null, ["Escalations.Write", "Faults.Read.All", "Vehicles.Read.All", "Knowledge.Read.All"], true);
+        Auth(null, ["Escalations.Write.Application", "Faults.Read.All", "Vehicles.Read.All", "Knowledge.Read.All"], true);
         await Send(200, HttpMethod.Post, $"/{id}/notes", new { text = "Synthetic machine note" }, "\"6\"", "machine-note");
         await using var unavailable = CreateFactory(keys); using var prod = unavailable.CreateClient();
         prod.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthorizationTests.Token(keys.Key, "escalations.read faults.read vehicles.read knowledge.read", ["Reader"], false));
@@ -369,7 +369,7 @@ public sealed class EngineeringTests
         await using var factory = CreateFactory(keys).WithWebHostBuilder(b => b.ConfigureServices(services => services.Replace(ServiceDescriptor.Singleton<IEscalationStore>(s))));
         using var client = factory.CreateClient();
         var scopes = new[] { "escalations.write", "knowledge.publish", "faults.read", "vehicles.read", "knowledge.read" };
-        var roles = new[] { "Escalations.Write", "Knowledge.Publish", "Faults.Read.All", "Vehicles.Read.All", "Knowledge.Read.All" };
+        var roles = new[] { "Escalations.Write.Application", "Knowledge.Publish.Application", "Faults.Read.All", "Vehicles.Read.All", "Knowledge.Read.All" };
         async Task<int> Approve(int omit)
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthorizationTests.Token(keys.Key,

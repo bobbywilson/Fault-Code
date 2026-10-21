@@ -8,7 +8,7 @@ A delegated access token requires both the exact scope below and at least one li
 
 | Permission / delegated scope | Allowed human roles | Application role |
 |---|---|---|
-| authorization.read | Reader, Operator, Engineer, Administrator | Authorization.Read |
+| authorization.read | Reader, Operator, Engineer, Administrator | Authorization.Read.Application |
 | drivers.read.own | Reader | unavailable |
 | vehicles.read.own | Reader | unavailable |
 | drivers.read | Reader, Operator, Engineer, Administrator | Drivers.Read.All |
@@ -18,11 +18,11 @@ A delegated access token requires both the exact scope below and at least one li
 | faults.read | Reader, Operator, Engineer, Administrator | Faults.Read.All |
 | faults.write | Operator | Faults.Write.All |
 | knowledge.read | Reader, Operator, Engineer, Administrator | Knowledge.Read.All |
-| knowledge.publish | Engineer | Knowledge.Publish |
+| knowledge.publish | Engineer | Knowledge.Publish.Application |
 | escalations.read | Reader, Operator, Engineer, Administrator | Escalations.Read.All |
-| escalations.write | Engineer | Escalations.Write |
-| integrations.manage | Administrator | Integrations.Manage |
-| users.manage | Administrator | Users.Manage |
+| escalations.write | Engineer | Escalations.Write.Application |
+| integrations.manage | Administrator | Integrations.Manage.Application |
+| users.manage | Administrator | Users.Manage.Application |
 
 Full delegated scope request strings use `api://{api-client-id}/{scope}`; the token's `scp` contains the short value. `Reader` with only own-read scopes is the driver profile; do not grant all-resource scopes to drivers. Reader does not by itself grant all-resource access. Operator operates; Engineer publishes knowledge/approved remedy metadata and manages escalations; Administrator manages integrations/users. A user needing multiple capabilities must be assigned each role and scope explicitly. Machines and agents get only explicit granular application roles; a role named Reader/Administrator/Agent never substitutes for one. Delegated roles without scope, scopes without allowed roles, scope substrings/case changes and app roles in delegated tokens deny.
 
@@ -56,7 +56,7 @@ Production vehicle/driver routes now exist; see [lifecycle contract](vehicle-dri
 
 ## FAU-13 ontology access
 
-Draft creation/replacement/read, history and approval require exact knowledge.publish (Engineer or Knowledge.Publish application role). Approved publication read and stored deterministic evaluation require exact knowledge.read (listed read roles or Knowledge.Read.All). No new permissions or implicit Operator/Administrator access. Both stored evaluation and publication are tenant-local; approved reads never expose drafts.
+Draft creation/replacement/read, history and approval require exact knowledge.publish (Engineer or Knowledge.Publish.Application application role). Approved publication read and stored deterministic evaluation require exact knowledge.read (listed read roles or Knowledge.Read.All). No new permissions or implicit Operator/Administrator access. Both stored evaluation and publication are tenant-local; approved reads never expose drafts.
 
 ## FAU-14 document access
 
