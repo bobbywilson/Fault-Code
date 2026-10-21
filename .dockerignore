@@ -34,3 +34,13 @@
 !src/FaultCode.Api/Authorization/DriverResourceHandler.cs
 !src/FaultCode.Api/Authorization/Permissions.cs
 !src/FaultCode.Api/Controllers/AuthorizationController.cs
+!src/FaultCode.Api/Contracts/FleetContracts.cs
+!src/FaultCode.Api/Contracts/FleetDocumentExamples.cs
+!src/FaultCode.Api/Controllers/DriversController.cs
+!src/FaultCode.Api/Controllers/FleetControllerBase.cs
+!src/FaultCode.Api/Controllers/VehiclesController.cs
+!src/FaultCode.Application/Fleet/FleetContracts.cs
+!src/FaultCode.Application/Fleet/FleetService.cs
+!src/FaultCode.Domain/FleetRecords.cs
+!src/FaultCode.Infrastructure/UnavailableFleetStore.cs
+!src/FaultCode.Api/Authorization/FleetReadHandler.cs

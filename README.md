@@ -1,9 +1,10 @@
 # Fault Code
 
-Independent API-first agentic automotive fault investigation proof of concept. The initial ASP.NET Core backend foundation is implemented; business workflows remain specified for later tickets.
+Independent API-first agentic automotive fault investigation proof of concept. The initial ASP.NET Core backend foundation is implemented; vehicle/driver lifecycle APIs and rules are implemented with production storage unavailable pending DEC-001. Other business workflows remain specified for later tickets.
 
 ## Start here
 - [Run and test the backend](docs/local-development.md)
+- [Vehicle/driver lifecycle and storage boundary](docs/vehicle-driver-management.md)
 - [API conventions and contracts](docs/api-conventions.md)
 - [API authorization and permission matrix](docs/authorization.md)
 - [Dedicated Entra authentication and registration](docs/entra-authentication.md)
@@ -32,4 +33,4 @@ OPENSPEC_TELEMETRY=0 npx --yes @fission-ai/openspec@1.14.3 validate --all --stri
 OPENSPEC_TELEMETRY=0 npx --yes @fission-ai/openspec@1.14.3 list --specs
 ```
 
-Specs are versioned in GitHub, not only a temporary agent environment. Before implementation follow the complete lifecycle in docs/development-workflow.md. Database, notification provider and deployment target remain unresolved; no application features, tenant or infrastructure are provisioned.
+Specs are versioned in GitHub, not only a temporary agent environment. Before implementation follow the complete lifecycle in docs/development-workflow.md. Database, notification provider and deployment target remain unresolved; no durable business storage, tenant or infrastructure is provisioned.

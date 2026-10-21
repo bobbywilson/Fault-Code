@@ -10,6 +10,9 @@ using FaultCode.Api.Authorization;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEntraAuthentication(builder.Configuration);
 builder.Services.AddFaultCodeAuthorization();
+builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
+builder.Services.AddSingleton<FaultCode.Application.Fleet.IFleetStore, UnavailableFleetStore>();
+builder.Services.AddScoped<FaultCode.Application.Fleet.FleetService>();
 
 builder.Services.AddOptions<FoundationOptions>()
     .Bind(builder.Configuration.GetSection(FoundationOptions.SectionName))
@@ -75,6 +78,12 @@ app.Use(async (context, next) =>
 });
 app.UseExceptionHandler(handler => handler.Run(context => WriteProblem(context, 500)));
 app.UseStatusCodePages(context => WriteProblem(context.HttpContext, context.HttpContext.Response.StatusCode));
+app.Use(async (context, next) =>
+{
+    try { await next(context); }
+    catch (FaultCode.Application.Fleet.FleetException error) when (!context.Response.HasStarted)
+    { await WriteProblem(context, error.Status); }
+});
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapOpenApi().AllowAnonymous();

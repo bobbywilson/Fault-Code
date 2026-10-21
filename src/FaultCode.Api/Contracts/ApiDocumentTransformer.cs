@@ -51,16 +51,43 @@ public sealed class ApiDocumentTransformer : IOpenApiDocumentTransformer
                         if (status != "200") media.Example!["status"] = int.Parse(status, System.Globalization.CultureInfo.InvariantCulture);
                     }
                 }
+                operation.Extensions ??= new Dictionary<string, IOpenApiExtension>();
+                operation.Extensions["x-faultcode-required-policies"] = new JsonNodeExtension(new JsonArray(policies.Select(p => (JsonNode?)JsonValue.Create(p)).ToArray()));
+                var requirements = new JsonArray();
                 foreach (var policy in policies)
                 {
-                    if (!Permissions.TryPolicy(policy!, out var permission, out var kind)) continue;
-                    operation.Description = $"Requires {permission!.Name}. Delegated: exact scope {permission.Scope} AND one of roles {string.Join(", ", permission.HumanRoles)}. Application: exact role {permission.ApplicationRole ?? "not permitted"}. Caller kind: {kind}.";
+                    var readArea = policy is "drivers.access.read" ? "drivers" : policy is "vehicles.access.read" ? "vehicles" : null;
+                    var known = Permissions.TryPolicy(policy!, out var permission, out var kind);
+                    if (readArea is not null) permission = Permissions.Find(readArea + ".read");
+                    if (!known && readArea is null) continue;
+                    var alternatives = new JsonArray();
+                    void Alternative(Permission grant) => alternatives.Add(new JsonObject
+                    {
+                        ["scope"] = grant.Scope,
+                        ["humanRoles"] = new JsonArray(grant.HumanRoles.Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()),
+                        ["applicationRole"] = grant.ApplicationRole
+                    });
+                    Alternative(permission!);
+                    if (readArea is not null) Alternative(Permissions.Find(readArea + ".read.own")!);
+                    requirements.Add(new JsonObject { ["policy"] = policy, ["anyOf"] = alternatives });
+                    operation.Description += $" Requires {permission!.Name}. Delegated: exact scope {permission.Scope} AND one of roles {string.Join(", ", permission.HumanRoles)}. Application: exact role {permission.ApplicationRole ?? "not permitted"}. Caller kind: {kind}.";
+                    if (readArea is not null) operation.Description += $" Alternatively exact {readArea}.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required.";
                     operation.Extensions ??= new Dictionary<string, IOpenApiExtension>();
-                    operation.Extensions["x-faultcode-permission"] = new JsonNodeExtension(JsonValue.Create(permission.Name)!);
-                    operation.Extensions["x-delegated-scopes"] = new JsonNodeExtension(new JsonArray(JsonValue.Create(permission.Scope)));
+                    operation.Extensions["x-faultcode-permission"] = new JsonNodeExtension(JsonValue.Create(readArea is null ? permission.Name : policy)!);
+                    operation.Extensions["x-delegated-scopes"] = new JsonNodeExtension(readArea is null ? new JsonArray(JsonValue.Create(permission.Scope)) : new JsonArray(JsonValue.Create(permission.Scope), JsonValue.Create(readArea + ".read.own")));
                     operation.Extensions["x-human-roles"] = new JsonNodeExtension(new JsonArray(permission.HumanRoles.Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()));
                     operation.Extensions["x-application-roles"] = new JsonNodeExtension(permission.ApplicationRole is null ? new JsonArray() : new JsonArray(JsonValue.Create(permission.ApplicationRole)));
                 }
+                operation.Extensions["x-faultcode-policy-requirements"] = new JsonNodeExtension(requirements);
+                if (policies.Length > 1)
+                {
+                    var grants = policies.Select(p => Permissions.Find(p!)!).ToArray();
+                    operation.Extensions["x-faultcode-permission"] = new JsonNodeExtension(JsonValue.Create(string.Join(" AND ", policies))!);
+                    operation.Extensions["x-delegated-scopes"] = new JsonNodeExtension(new JsonArray(grants.Select(p => (JsonNode?)JsonValue.Create(p.Scope)).ToArray()));
+                    operation.Extensions["x-application-roles"] = new JsonNodeExtension(new JsonArray(grants.Select(p => (JsonNode?)JsonValue.Create(p.ApplicationRole)).ToArray()));
+                }
+                if (path.StartsWith("/api/v1/drivers", StringComparison.Ordinal) || path.StartsWith("/api/v1/vehicles", StringComparison.Ordinal))
+                    FleetDocumentExamples.Decorate(operation, path);
             }
         }
         foreach (var (path, item) in document.Paths)

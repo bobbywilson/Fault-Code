@@ -54,3 +54,7 @@ python scripts/check-api-contract.py artifacts/openapi/faultcode-v1.json contrac
 ```
 
 Use a Python virtual environment locally. CI uses Python 3.12, validates OpenAPI 3.1 and response examples, and compares against both the committed baseline and the PR base branch, preventing baseline edits from bypassing compatibility. The first baseline has no predecessor. Existing schemas, request bodies, parameters, responses and security are conservatively immutable except prose/examples; new operations, responses, schemas and optional parameters can be additive. Some compatible schema changes are deliberately rejected for review/new versioning. Negative fixtures cover removed paths/properties/responses, tightened pagination, required new inputs, and changed/removed security. Actual OAuth behavior remains dependent on FAU-8/9.
+
+## FAU-10 lifecycle operations
+
+[Vehicle/driver API contracts](vehicle-driver-management.md) add protected CRUD/list/association operations and 503 unavailable storage. Mutation status201 is a success and its examples are schema-validated alongside200; all non-2xx responses require Problem Details. Existing foundation contract schemas remain unchanged. OpenAPI policy requirements describe composite read alternatives and ANDed association writes. No in-memory production persistence or fabricated durable replay is provided.
