@@ -40,3 +40,26 @@ describe('workflow form validation', () => {
     ).toBe(false);
   });
 });
+
+describe('nullable API schema fields', () => {
+  it('retains required nullable properties and omits optional nested objects until chosen', () => {
+    const s = {
+      type: 'object',
+      required: ['model', 'patch'],
+      properties: {
+        model: { type: ['string', 'null'] },
+        patch: {
+          type: ['object', 'null'],
+          required: ['reference'],
+          properties: { reference: { type: 'string' } },
+        },
+        optional: { type: 'object', required: ['name'], properties: { name: { type: 'string' } } },
+      },
+    };
+    expect(initial(s)).toEqual({ model: null, patch: null });
+    expect(validate(s, initial(s))).toBe(true);
+    expect(validate(s, {})).toBe(false);
+    expect(validate(s, { model: null, patch: { reference: '' } })).toBe(false);
+    expect(clean(s, { model: '', patch: null })).toEqual({ model: null, patch: null });
+  });
+});

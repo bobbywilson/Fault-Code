@@ -187,7 +187,7 @@ export const areas = [
                   @for (record of data().items; track $index) {
                     <div class="record">
                       <app-records [value]="record" />
-                      @if (record.id) {
+                      @if (record.id && canOpenRecord()) {
                         <button brnButton class="quiet" (click)="openRecord(record)">
                           Open record
                         </button>
@@ -342,6 +342,12 @@ export class Workspace {
       this.parameters.id = recordId;
       this.version = version;
     }
+  }
+  canOpenRecord() {
+    return this.actions().some(
+      (a) =>
+        a.method === 'GET' && a.parameters.some((p) => p.name === 'id') && a.path.endsWith('{id}'),
+    );
   }
   openRecord(record: any) {
     const o = this.actions().find(

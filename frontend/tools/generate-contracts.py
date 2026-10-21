@@ -5,6 +5,13 @@ root=Path(__file__).resolve().parents[2]
 doc=json.loads((root/'contracts/openapi-v1.json').read_text())
 def resolve(s, depth=0):
  if depth>12: raise ValueError('Recursive input schema needs explicit UI design')
+ if 'oneOf' in s or 'anyOf' in s:
+  variants=s.get('oneOf',s.get('anyOf'))
+  nonnull=[x for x in variants if x.get('type')!='null']
+  if len(nonnull)!=1 or len(nonnull)==len(variants): raise ValueError('Union input schema needs explicit UI design')
+  result=resolve(nonnull[0],depth+1)
+  result['type']=[result.get('type','object'),'null']
+  return result
  if '$ref' in s: return resolve(doc['components']['schemas'][s['$ref'].split('/')[-1]],depth+1)
  return {k: ({a:resolve(b,depth+1) for a,b in v.items()} if k=='properties' else resolve(v,depth+1) if k=='items' else v) for k,v in s.items() if k in ('type','format','enum','properties','items','required','minimum','maximum','minLength','maxLength','minItems','maxItems','additionalProperties','default','pattern')}
 ops=[]

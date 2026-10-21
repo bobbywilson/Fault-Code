@@ -253,3 +253,47 @@ test('least privilege scope conjunctions for Operator, Engineer, Administrator a
     else await expect(page.locator('button[type=submit]')).toBeVisible();
   }
 });
+test('engineering proposal supports nested evidence and nullable approved patch metadata', async ({
+  page,
+}) => {
+  await setup(page);
+  await action(page, 'engineering', 'ProposeEngineeringResolution');
+  await page.getByLabel('Id *', { exact: true }).fill(id);
+  await page.getByLabel('Current record version').fill('1');
+  await page.locator('#body-content-description').fill('Synthetic engineering finding');
+  await page.locator('#body-content-classificationId').fill('SYN-CLASS');
+  await page.locator('#body-content-classificationVersion').fill('2');
+  await page.locator('#body-expectedFaultVersion').fill('0');
+  await page.getByRole('button', { name: 'Add Symptoms', exact: true }).click();
+  await page.locator('#body-content-symptoms-0').fill('SYN-SYM');
+  await page.getByRole('button', { name: 'Add References', exact: true }).click();
+  await page.locator('#body-content-references-0-id').fill('SYN-DOC');
+  await page.locator('#body-content-references-0-version').fill('1');
+  await page.getByRole('button', { name: 'Add Remedies', exact: true }).click();
+  for (const [key, value] of Object.entries({
+    id: 'SYN-REMEDY',
+    kind: 'guidance',
+    description: 'Synthetic inspection',
+    model: 'SYN-MODEL',
+    softwareVersion: '1.0',
+  }))
+    await page.locator('#body-content-remedies-0-' + key).fill(value);
+  await page.locator('#body-content-remedies-0-approved').check();
+  let payload: any;
+  await page.route('**/api/v1/engineering-escalations/' + id + '/resolutions', (r) => {
+    payload = r.request().postDataJSON();
+    return r.fulfill({ json: { id, version: 2, state: 'PendingApproval' } });
+  });
+  await submit(page);
+  await expect(page.getByRole('status')).toContainText('request completed');
+  expect(payload.content.remedies[0].patch).toBeNull();
+  expect(payload.content.references).toEqual([{ id: 'SYN-DOC', version: '1' }]);
+  // A second proposal can explicitly include patch metadata through typed fields.
+  await page.getByLabel('Action', { exact: true }).selectOption('GetEngineeringCase');
+  await page.getByLabel('Action', { exact: true }).selectOption('ProposeEngineeringResolution');
+  await page.getByRole('button', { name: 'Add Remedies', exact: true }).click();
+  await page.getByRole('checkbox', { name: 'Include Patch' }).check();
+  await expect(page.locator('#body-content-remedies-0-patch-reference')).toBeVisible();
+  await page.getByRole('checkbox', { name: 'Include Patch' }).uncheck();
+  await expect(page.locator('#body-content-remedies-0-patch-reference')).toHaveCount(0);
+});

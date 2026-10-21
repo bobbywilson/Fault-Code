@@ -1,7 +1,7 @@
 import { Component, Input, forwardRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrnButton } from '@spartan-ng/brain/button';
-import { Schema, kind, initial, label } from './schema';
+import { Schema, kind, initial, label, nullable } from './schema';
 @Component({
   selector: 'app-fields',
   imports: [FormsModule, BrnButton, forwardRef(() => Fields)],
@@ -11,7 +11,19 @@ import { Schema, kind, initial, label } from './schema';
       @if (kind(field) === 'object') {
         <fieldset>
           <legend>{{ label(name) }}</legend>
-          <app-fields [schema]="field" [model]="object(name, field)" [prefix]="key" />
+          @if (nullable(field) || !schema.required?.includes(name)) {
+            <label
+              ><input
+                type="checkbox"
+                [checked]="model[name] != null"
+                (change)="toggle(name, field)"
+              />
+              Include {{ label(name) }}</label
+            >
+          }
+          @if (model[name] != null || (schema.required?.includes(name) && !nullable(field))) {
+            <app-fields [schema]="field" [model]="object(name, field)" [prefix]="key" />
+          }
         </fieldset>
       } @else if (kind(field) === 'array') {
         <fieldset>
@@ -60,7 +72,7 @@ import { Schema, kind, initial, label } from './schema';
               [name]="key"
               [ngModelOptions]="{ standalone: true }"
               [(ngModel)]="model[name]"
-              [required]="schema.required?.includes(name) ?? false"
+              [required]="(schema.required?.includes(name) ?? false) && !nullable(field)"
             >
               <option value="">Choose…</option>
               @for (value of field.enum; track $index) {
@@ -84,7 +96,7 @@ import { Schema, kind, initial, label } from './schema';
               [(ngModel)]="model[name]"
               [min]="field.minimum ?? null"
               [max]="field.maximum ?? null"
-              [required]="schema.required?.includes(name) ?? false"
+              [required]="(schema.required?.includes(name) ?? false) && !nullable(field)"
             />
           } @else {
             <textarea
@@ -94,7 +106,7 @@ import { Schema, kind, initial, label } from './schema';
               [(ngModel)]="model[name]"
               [attr.minlength]="field.minLength ?? null"
               [attr.maxlength]="field.maxLength ?? 100000"
-              [required]="schema.required?.includes(name) ?? false"
+              [required]="(schema.required?.includes(name) ?? false) && !nullable(field)"
               rows="2"
             ></textarea>
           }
@@ -107,6 +119,10 @@ export class Fields {
   @Input({ required: true }) schema!: Schema;
   @Input({ required: true }) model!: any;
   @Input() prefix = 'field';
+  nullable = nullable;
+  toggle(name: string, s: Schema) {
+    this.model[name] = this.model[name] == null ? initial({ ...s, type: kind(s) }) : null;
+  }
   kind = kind;
   initial = initial;
   label = label;

@@ -20,15 +20,17 @@ export function kind(s: Schema): string {
     (s.properties ? 'object' : 'string')
   );
 }
+export function nullable(s: Schema): boolean {
+  return s.type === 'null' || (Array.isArray(s.type) && s.type.includes('null'));
+}
 export function initial(s: Schema): any {
+  if (nullable(s)) return null;
   if (s.default !== undefined) return s.default;
   switch (kind(s)) {
     case 'object':
       return Object.fromEntries(
         Object.entries(s.properties ?? {})
-          .filter(
-            ([k, v]) => s.required?.includes(k) || kind(v) === 'object' || kind(v) === 'array',
-          )
+          .filter(([k, v]) => s.required?.includes(k))
           .map(([k, v]) => [k, initial(v)]),
       );
     case 'array':
@@ -43,18 +45,19 @@ export function label(s: string): string {
   return s.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/^./, (x) => x.toUpperCase());
 }
 export function validate(s: Schema, v: any): boolean {
-  if (v === undefined || v === null || v === '')
-    return Array.isArray(s.type) && s.type.includes('null');
+  if (v === undefined || v === null || v === '') return nullable(s);
   const k = kind(s);
   if (s.enum && !s.enum.includes(v)) return false;
   if (k === 'object')
     return (
       typeof v === 'object' &&
       !Array.isArray(v) &&
-      (s.required ?? []).every((x) => v[x] !== undefined && v[x] !== null && v[x] !== '') &&
+      (s.required ?? []).every(
+        (x) => Object.hasOwn(v, x) && validate(s.properties?.[x] ?? {}, v[x]),
+      ) &&
       Object.entries(s.properties ?? {}).every(([key, c]) =>
         v[key] === undefined || v[key] === ''
-          ? !(s.required ?? []).includes(key)
+          ? !(s.required ?? []).includes(key) || nullable(c)
           : validate(c, v[key]),
       )
     );
@@ -83,6 +86,7 @@ export function validate(s: Schema, v: any): boolean {
   );
 }
 export function clean(s: Schema, v: any): any {
+  if (v === null || (v === '' && nullable(s))) return null;
   if (kind(s) === 'object')
     return Object.fromEntries(
       Object.entries(v)
