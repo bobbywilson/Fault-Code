@@ -182,7 +182,7 @@ public sealed class OntologyTests
         Auth(client, keys, "knowledge.publish", "Operator"); await Send(client, HttpMethod.Put, "draft", 403, Content(), "\"1\"");
         foreach (var machine in new[] { false, true })
         {
-            Auth(client, keys, machine ? "Knowledge.Publish" : "knowledge.publish", machine: machine);
+            Auth(client, keys, machine ? "Knowledge.Publish.Application" : "knowledge.publish", machine: machine);
             await Send(client, HttpMethod.Get, "draft", 503); await Send(client, HttpMethod.Get, "history", 503);
             await Send(client, HttpMethod.Post, "draft", 503, Content(), key: "create");
             await Send(client, HttpMethod.Put, "draft", 503, Content(), "\"1\"");

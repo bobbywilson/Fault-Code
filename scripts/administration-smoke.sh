@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# Disposable Linux acceptance, no tenant configuration or credentials.
+# Disposable Linux acceptance with public registration IDs; no credentials or live sign-in.
 name="faultcode-admin-ci-${GITHUB_RUN_ID:-$$}"
 cleanup() { docker rm -f "$name-web" "$name-api" >/dev/null 2>&1 || true; docker network rm "$name" >/dev/null 2>&1 || true; }
 trap cleanup EXIT
@@ -27,9 +27,15 @@ curl --fail --silent "http://127.0.0.1:$port/browser-config.json" > /tmp/adminis
 python3 - <<'PY'
 import json
 assert json.load(open('/tmp/administration-problem.json'))['status']==401
-assert json.load(open('/tmp/administration-config.json'))['tenantId']==''
+config = json.load(open('/tmp/administration-config.json'))
+assert config['tenantId'] == 'c0ff26e9-dd24-4e59-b395-1e9b48354aad'
+assert config['clientId'] == 'c09a3b35-fa74-4288-9706-db1287bf5634'
+assert config['apiClientId'] == 'ce48cbc2-5349-4228-b5ea-365c9df1e2af'
+assert len(config['scopes']) == 15
+assert all(scope.startswith('api://' + config['apiClientId'] + '/') for scope in config['scopes'])
+assert 'clientSecret' not in config
 PY
 node frontend/tools/production-smoke.mjs "http://127.0.0.1:$port"
 # Test identity and synthetic token cannot be packaged.
 if docker exec "$name-web" sh -c 'grep -R -E "synthetic-test-token|__test/session" /usr/share/nginx/html'; then exit 1; fi
-printf 'Non-root Linux SPA, default configuration, fixture exclusion and protected API401 passed.\n'
+printf 'Non-root Linux SPA, public registration configuration, fixture exclusion and protected API401 passed.\n'

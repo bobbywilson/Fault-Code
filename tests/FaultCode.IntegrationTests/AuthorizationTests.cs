@@ -124,11 +124,13 @@ public sealed class AuthorizationTests
         using var delegated = JsonDocument.Parse(await client.GetStringAsync(path));
         Assert.Equal("delegated", delegated.RootElement.GetProperty("callerKind").GetString());
         Assert.Equal(new[] { "authorization.read" }, delegated.RootElement.GetProperty("permissions").EnumerateArray().Select(x => x.GetString()));
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token(keys.Key, null, ["Authorization.Read", "Knowledge.Publish"], true));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token(keys.Key, null, ["Authorization.Read.Application", "Knowledge.Publish.Application"], true));
         using var machine = JsonDocument.Parse(await client.GetStringAsync(path));
         Assert.Equal("application", machine.RootElement.GetProperty("callerKind").GetString());
         Assert.Equal(new[] { "authorization.read", "knowledge.publish" }, machine.RootElement.GetProperty("permissions").EnumerateArray().Select(x => x.GetString()));
         Assert.DoesNotContain(Actor, machine.RootElement.GetRawText());
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token(keys.Key, null, ["Authorization.Read"], true));
+        await Problem(await client.GetAsync(path), 403);
         foreach (var failure in new[] { "expired", "wrong-issuer", "wrong-audience", "wrong-tenant" })
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", EntraAuthenticationTests.Token(keys.Key, failure));

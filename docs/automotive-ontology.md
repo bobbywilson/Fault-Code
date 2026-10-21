@@ -11,7 +11,7 @@ Part of FAU-13. Typed, provider-independent synthetic steering ontology, determi
 | `/api/v1/ontology/evaluations` | POST knowledge.read |
 | `/api/v1/ontology/evaluations/{id}` | GET knowledge.read |
 
-Exact delegated scope plus allowed human role or granular application role follows authorization.md. Engineer+knowledge.publish / Knowledge.Publish manages and approves. knowledge.read / Knowledge.Read.All reads approved catalogs and evaluates; knowledge.read alone cannot see drafts/history. Administrator and Operator have no implicit management authority. Tenant/actor/client are validated token claims; server correlation and UTC time supply audit provenance. DTOs omit tenant and reject unknown input fields, including approval spoofing. No Entra catalog values were added.
+Exact delegated scope plus allowed human role or granular application role follows authorization.md. Engineer+knowledge.publish / Knowledge.Publish.Application manages and approves. knowledge.read / Knowledge.Read.All reads approved catalogs and evaluates; knowledge.read alone cannot see drafts/history. Administrator and Operator have no implicit management authority. Tenant/actor/client are validated token claims; server correlation and UTC time supply audit provenance. DTOs omit tenant and reject unknown input fields, including approval spoofing. No Entra catalog values were added.
 
 ## Draft and typed references
 

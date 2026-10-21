@@ -2,7 +2,7 @@
 
 Independent API-first agentic automotive fault investigation proof of concept. Protected REST/MCP APIs, grounded A/B/C investigation and engineering/notification services, Angular administration, provider-independent telemetry and public Mintlify sources are implemented with deterministic synthetic acceptance and Linux container verification.
 
-Production canonical stores and external delivery intentionally return 503 pending approved durable adapters and provider decisions. No live Entra tenant, hosted documentation/application, paid model integration or durable deployment is provisioned. The administration UI reports sign-in setup unavailable until approved public browser configuration is supplied. See the release runbook for the remaining live acceptance requirements.
+Production canonical stores and external delivery intentionally return 503 pending approved durable adapters and provider decisions. A dedicated Entra ID Free tenant and three real app registrations are configured; local Angular user sign-in and certificate machine authentication were verified. Hosted application/documentation, paid model integration and durable deployment remain unprovisioned. See [live identity evidence](docs/entra-provisioning-evidence.md) for IDs and remaining acceptance gaps. See the release runbook for the remaining live acceptance requirements.
 
 ## Start here
 - [Public Mintlify sources and verification](docs/documentation-delivery.md)

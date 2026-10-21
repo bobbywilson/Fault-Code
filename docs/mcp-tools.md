@@ -20,7 +20,7 @@ This interface is separate from the model. FAU-15 still supplies only selected s
 | `incident_status` | `faults.write` | `id`, `expectedVersion`, `idempotencyKey`, `status` | Existing `{id, version}` mutation result |
 | `incident_escalate` | `escalations.write` | `id`, `expectedVersion`, `idempotencyKey` | Existing `{id, version}` mutation result for lifecycle escalation |
 
-The exact human/app-role mappings remain in authorization.md. For example, fault lookup/search permit an assigned `Knowledge.Read.All` machine role. Status requires `Faults.Write.All`; escalation requires `Escalations.Write`. Human Operator and Engineer roles do not imply each other's permissions.
+The exact human/app-role mappings remain in authorization.md. For example, fault lookup/search permit an assigned `Knowledge.Read.All` machine role. Status requires `Faults.Write.All`; escalation requires `Escalations.Write.Application`. Human Operator and Engineer roles do not imply each other's permissions.
 
 Each listed tool advertises `inputSchema`, `outputSchema` and read-only/destructive/idempotent/closed-world annotations. Annotations are descriptive hints; server validation and authorization enforce behavior. All inputs are JSON objects with exact case-sensitive property names, required fields and `additionalProperties: false`. Unknown/missing/null/wrong-type fields, noncanonical/empty GUIDs, invalid enums/versions/keys or bounds reject before service execution. Synthetic code/system/model/software validation also uses the existing domain rules. There is no arbitrary SQL, file, URL, command, publication, identity-management or vehicle operation tool.
 

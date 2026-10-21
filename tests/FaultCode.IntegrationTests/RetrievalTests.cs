@@ -197,7 +197,7 @@ public sealed class RetrievalTests
         await Send(client, HttpMethod.Post, "search", 400, Query with { Limit = 21 });
         await Send(client, HttpMethod.Post, "search", 400, new { text = "Synthetic", system = "EPS", model = "SYN-MODEL-1", softwareVersion = "1.0", access = "admin" });
         Auth(client, keys, "Knowledge.Read.All", machine: true); await Send(client, HttpMethod.Post, "search", 200, Query);
-        Auth(client, keys, "Knowledge.Publish", machine: true); await Send(client, HttpMethod.Post, "reindex", 200, key: "reindex");
+        Auth(client, keys, "Knowledge.Publish.Application", machine: true); await Send(client, HttpMethod.Post, "reindex", 200, key: "reindex");
         await Send(client, HttpMethod.Put, "documents/" + id, 200, Body(), "\"2\"");
         await Send(client, HttpMethod.Delete, "documents/" + id, 200, version: "\"3\"", key: "delete");
         Auth(client, keys, "knowledge.read", "Reader"); var missing = await Send(client, HttpMethod.Post, "search", 200, Query); Assert.Equal("missing-evidence", missing.GetProperty("status").GetString());
@@ -210,7 +210,7 @@ public sealed class RetrievalTests
         foreach (var role in new[] { "Reader", "Operator", "Administrator" }) { Auth(client, keys, "knowledge.publish", role); await Send(client, HttpMethod.Post, "documents", 403, new CreateDocumentRequest("SYN-DOC", Body()), key: "create"); }
         foreach (var machine in new[] { false, true })
         {
-            Auth(client, keys, machine ? "Knowledge.Publish" : "knowledge.publish", machine: machine);
+            Auth(client, keys, machine ? "Knowledge.Publish.Application" : "knowledge.publish", machine: machine);
             await Send(client, HttpMethod.Post, "documents", 503, new CreateDocumentRequest("SYN-DOC", Body()), key: "create");
             var unavailable = await Send(client, HttpMethod.Get, "documents/" + id, 503);
             Assert.Equal("document-storage-unavailable", unavailable.GetProperty("failureCode").GetString());
