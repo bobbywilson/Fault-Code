@@ -91,3 +91,11 @@
 !src/FaultCode.Infrastructure/UnavailableInvestigationStore.cs
 !src/FaultCode.Application/Investigations/InvestigationService.cs
 !src/FaultCode.Application/Investigations/InvestigationContracts.cs
+
+!src/FaultCode.Domain/EngineeringCase.cs
+!src/FaultCode.Infrastructure/UnavailableEscalationStore.cs
+!src/FaultCode.Api/Contracts/EscalationContracts.cs
+!src/FaultCode.Api/Controllers/EngineeringCasesController.cs
+!src/FaultCode.Application/Escalations/EscalationContracts.cs
+!src/FaultCode.Application/Escalations/EscalationService.cs
+!src/FaultCode.Api/Contracts/EngineeringDocumentExamples.cs

@@ -82,3 +82,7 @@ The additive POST /api/v1/incidents/{id}/escalations operation requires escalati
 ## FAU-17 investigation contracts
 
 [Investigation creation/history](fault-investigation.md) adds POST/GET /api/v1/incidents/{id}/investigations (49 protected operations across36 paths). POST requires faults.write plus faults.read/vehicles.access.read/knowledge.read and strong If-Match/Idempotency-Key; GET requires the three read policies and original actor/client history filtering. Production storage503; proposed actions are pending only. Previous REST/MCP/advisory schemas remain compatible.
+
+## FAU-18 engineering contracts
+
+[Engineering cases](engineering-escalation.md) add10 protected operations across9 new paths, for59 protected operations/45 total paths. Explicit DTOs, conditional scoped replay, policy conjunctions and correlated safe failures preserve existing REST/MCP contracts. Production engineering storage503 pending approved durable adapters.

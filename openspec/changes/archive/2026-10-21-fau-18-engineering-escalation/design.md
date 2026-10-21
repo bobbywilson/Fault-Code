@@ -1,0 +1,22 @@
+# Design
+
+## Context
+See proposal. Main is verified FAU-17 merge537e6ea. Engineering case authority is a new explicit authenticated request; historical proposal text cannot authorize it. Existing lifecycle-only REST/MCP escalation stays unchanged.
+
+## Goals / Non-Goals
+Implement case workflow and atomic publication intent without choosing DEC-001/003 or claiming delivery. Model/MCP adapters stay untouched. FAU-19 consumes retained notification-ready events; no worker/provider/lease/ack endpoint or fake delivery state here.
+
+## Decisions
+Use an IEscalationStore transaction containing detached engineering, incident, knowledge, ontology, document and investigation states. Unlike nested independent service commits this permits a single conditional approval/rollback. Future adapters MUST share authoritative storage/isolation with existing adapters, not copy them sequentially. Production unavailable adapter503; a combined test-only copy-on-write adapter proves one-process atomicity only.
+
+Create from a persisted UnknownFault or InsufficientEvidence investigation for an Investigating/Escalated incident, with If-Match of incident version. Current lookup absence must still hold for an UnknownFault case. Case identity is unique per incident forever; resolved cases are reopened rather than duplicated. Source result is retained by ID/classification/incident version; no original publisher-only citation text is exposed to a different actor. Engineering case reads use escalations.read plus the three incident-read policies; writes use escalations.write plus those policies; approval additionally knowledge.publish. Tenant/owner comes from stored incident.
+
+Open->Investigating; Reopened->Investigating; Investigating->AwaitingApproval only by proposing a resolution; AwaitingApproval->Investigating withdraws proposal; AwaitingApproval->Resolved only by approval; Resolved->Reopened explicitly retains previous evidence/events. Assignment accepts a bounded canonical object ID as an internal work label, not an Entra membership/permission grant. Notes are immutable bounded authored text. Every mutation requires strong version and scoped key; exact retries precede dependency revalidation after resource checks. New distinct creation keys deduplicate the case under current incident precondition.
+
+Resolution proposal contains full bounded FaultContent and expectedFaultVersion(0 means absent). It never edits published knowledge. Proposal validates current approved ontology, accessible current canonical source references and at least one approved remedy matching the incident exactly, and pins document IDs/publication versions/checksums. Approval repeats those checks and requires the exact proposal evidence snapshot and exact knowledge+incident versions. It creates or revises/publishes knowledge under explicit engineering approval, resolves the linked incident, appends immutable approval and creates one Pending notification-ready event with incident/driver IDs, fault/publication/ontology/document versions and stable ID. One case approves its own linked incident; other incidents require their own cases and authorization, avoiding cross-owner bulk changes. Original intake/history and old approvals remain intact. Reopen returns Resolved incident to Investigating; notification states conflict until FAU-19 defines coordinated cancellation/supersession. Events are historical Pending intent, never evidence of current guidance authority; downstream MUST revalidate current state/approval/consent and deduplicate by event ID before delivery. No exactly-once delivery claim.
+
+## Risks / Trade-offs
+Cross-store consistency -> mandatory shared transaction acceptance before production activation. Test memory -> explicitly not durable. Knowledge document references are canonical evidence metadata, not semantic proof of remedy text; engineering approval is the trusted adjudication. Retrieval index is derived and unchanged; independently published source documents retain their own index readiness boundary. Pending event supersession after reopen -> FAU-19 must check current case/incident approval before dispatch. Assigned object ID existence is not verified without separately authorized identity directory integration.
+
+## Migration Plan
+Additive API/DI with unavailable production adapter, no schema/provider/deployment migration. Preserve complete generated FAU-17 REST and five MCP schemas.
