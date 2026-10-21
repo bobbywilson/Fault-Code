@@ -56,6 +56,7 @@ builder.Services.AddScoped<FaultCode.Application.Escalations.EscalationService>(
 builder.Services.AddSingleton<FaultCode.Application.Notifications.INotificationStore, UnavailableNotificationStore>();
 builder.Services.AddSingleton<FaultCode.Application.Notifications.INotificationDelivery, UnavailableNotificationDelivery>();
 builder.Services.AddScoped<FaultCode.Application.Notifications.NotificationService>();
+builder.Services.AddSingleton<FaultCode.Application.Administration.IAdministrationStore, UnavailableAdministrationStore>();
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddSingleton<FaultCode.Application.Fleet.IFleetStore, UnavailableFleetStore>();
 builder.Services.AddScoped<FaultCode.Application.Fleet.FleetService>();

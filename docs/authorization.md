@@ -73,3 +73,6 @@ Engineering case reads require escalations.read, faults.read, vehicles.access.re
 ## FAU-19 notification access
 
 Notification reads AND faults.read, vehicles.access.read, drivers.access.read, knowledge.read; writes add faults.write. Preference GET uses drivers.access.read; PUT adds drivers.write. Reuse exact FAU-9 human/machine grants; no new Entra grants or service privilege union. Stored original driver/vehicle owner and tenant checked before page/count/history/replay. See driver-notifications.md for routes and local-only preference boundary.
+
+## FAU-22 local administration
+User list/detail/local role replacement and role catalog require users.manage; integration list/detail/local enabled metadata replacement require integrations.manage. Existing scope+Administrator or granular machine roles apply unchanged. No catalog grants, role hierarchy, Entra Graph permission or browser authority is added. Production store503; see administration.md. Local records never rewrite token claims or activate external privileges.

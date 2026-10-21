@@ -7,11 +7,7 @@ permissions:
   contents: read
 jobs:
   verify:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -19,7 +15,7 @@ jobs:
           global-json-file: global.json
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '22.22.3'
       - run: npx --yes @fission-ai/openspec@1.14.3 validate --all --strict
         env:
           OPENSPEC_TELEMETRY: '0'
@@ -45,7 +41,7 @@ jobs:
           fi
       - uses: actions/upload-artifact@v4
         with:
-          name: openapi-${{ matrix.os }}
+          name: openapi-ubuntu-latest
           path: |
             artifacts/openapi/faultcode-v1.json
             artifacts/mcp-contracts.json

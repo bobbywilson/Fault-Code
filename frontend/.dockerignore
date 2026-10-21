@@ -1,0 +1,13 @@
+**
+!package.json
+!package-lock.json
+!angular.json
+!tsconfig.json
+!tsconfig.app.json
+!.postcssrc.json
+!src/
+!src/**
+src/**/*.spec.ts
+!public/
+!public/browser-config.json
+!nginx.conf

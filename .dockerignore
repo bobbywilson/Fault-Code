@@ -118,3 +118,11 @@
 !src/FaultCode.Infrastructure/Telemetry/OtlpTelemetryAdapter.cs
 !src/FaultCode.Infrastructure/Telemetry/OtlpTelemetrySettings.cs
 !src/FaultCode.Infrastructure/Telemetry/SanitizedHttpTelemetryHandler.cs
+
+!src/FaultCode.Application/Administration/AdministrationContracts.cs
+
+!src/FaultCode.Infrastructure/UnavailableAdministrationStore.cs
+
+!src/FaultCode.Api/Controllers/AdministrationController.cs
+
+!src/FaultCode.Api/Contracts/AdministrationDocumentExamples.cs
