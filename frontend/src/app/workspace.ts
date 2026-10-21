@@ -454,7 +454,7 @@ export class Workspace {
         409: 'The record changed or this retry conflicts. Reload the current record before retrying.',
         422: 'The request cannot be completed with the current evidence.',
         429: 'Too many requests. Wait before trying again.',
-        503: 'This service is unavailable. No successful change is recorded.',
+        503: 'This service is unavailable. Review recorded history before retrying.',
         504: 'The request timed out. Review recorded history before retrying.',
       };
       this.message.set(
