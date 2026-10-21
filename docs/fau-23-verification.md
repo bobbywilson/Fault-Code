@@ -15,4 +15,4 @@ Part of FAU-23. Read live native Linear requirements; current origin/main09e1f53
 DEC-001canonical storage/outbox/migrations, DEC-002notification channel/contact/consent, DEC-003hosting/canonical storage/retention/backups, remaining DEC-004models/embeddings and DEC-005plan entitlements remain open. Synthetic local delivery/test transactions are not live durable acceptance. No host, database, tenant, subscription, credential, registry publication, cost or actual deployment is introduced. Release runbook preserves these prerequisites and demonstrates image-only disposable rollback separately.
 
 ## Linux acceptance
-Pending initial exact-source CI. Record actual outcomes before completing tracked tasks and archive.
+Initial Linux source9997f04 exposed an incorrect administration Docker build context in the new release script. Corrected it to the existing frontend/ context, preserving the established image inputs and network isolation. Added bounded probe timeouts. The failed candidate is not release acceptance; corrected source must pass all checks.

@@ -25,7 +25,7 @@ docker info >/dev/null
 git archive "$base_sha" | tar -x -C "$scratch"
 docker build --label "org.opencontainers.image.revision=$base_sha" -t "$previous" "$scratch"
 docker build --label "org.opencontainers.image.revision=$source_sha" -t "$candidate" .
-docker build --label "org.opencontainers.image.revision=$source_sha" -t "$admin" -f frontend/Dockerfile .
+docker build --label "org.opencontainers.image.revision=$source_sha" -t "$admin" -f frontend/Dockerfile frontend
 docker network create "$task" >/dev/null
 : > artifacts/release/rollback.jsonl
 start() {
@@ -42,15 +42,15 @@ probe() {
   address="http://$(docker port "$task" 8080/tcp | tail -1)"
   local healthy=false
   for attempt in {1..60}; do
-    if [[ "$(curl -s "$address/health/live" || true)" = Healthy ]]; then healthy=true; break; fi
+    if [[ "$(curl --connect-timeout 2 --max-time 5 -s "$address/health/live" || true)" = Healthy ]]; then healthy=true; break; fi
     sleep 1
   done
   test "$healthy" = true
-  test "$(curl -fsS "$address/health/ready")" = Healthy
-  test "$(curl -s -o /dev/null -w '%{http_code}' "$address/api/v1/authorization/me")" = 401
+  test "$(curl --connect-timeout 2 --max-time 5 -fsS "$address/health/ready")" = Healthy
+  test "$(curl --connect-timeout 2 --max-time 5 -s -o /dev/null -w '%{http_code}' "$address/api/v1/authorization/me")" = 401
   test "$(docker exec "$task" id -u)" != 0
   # Public fixtures must remain identical to the running prior source after rollback.
-  curl -fsS "$address/api/v1/examples" > "artifacts/release/$stage-examples.json"
+  curl --connect-timeout 2 --max-time 5 -fsS "$address/api/v1/examples" > "artifacts/release/$stage-examples.json"
   python3 - "$stage" "$revision" "$config" "$(docker inspect "$task" --format '{{.Image}}')" <<'PY'
 import json,sys
 with open('artifacts/release/rollback.jsonl', 'a') as f:
