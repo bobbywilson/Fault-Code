@@ -88,6 +88,7 @@ public sealed class ApiDocumentTransformer : IOpenApiDocumentTransformer
                 }
                 if (path.StartsWith("/api/v1/drivers", StringComparison.Ordinal) || path.StartsWith("/api/v1/vehicles", StringComparison.Ordinal))
                     FleetDocumentExamples.Decorate(operation, path);
+                if (path.StartsWith("/api/v1/faults", StringComparison.Ordinal)) KnowledgeDocumentExamples.Decorate(operation, path);
             }
         }
         foreach (var (path, item) in document.Paths)

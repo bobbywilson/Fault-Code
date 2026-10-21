@@ -58,3 +58,7 @@ Use a Python virtual environment locally. CI uses Python 3.12, validates OpenAPI
 ## FAU-10 lifecycle operations
 
 [Vehicle/driver API contracts](vehicle-driver-management.md) add protected CRUD/list/association operations and 503 unavailable storage. Mutation status201 is a success and its examples are schema-validated alongside200; all non-2xx responses require Problem Details. Existing foundation contract schemas remain unchanged. OpenAPI policy requirements describe composite read alternatives and ANDed association writes. No in-memory production persistence or fabricated durable replay is provided.
+
+## FAU-11 fault operations
+
+[Fault knowledge contracts](fault-code-management.md) add tenant-local management, paginated immutable revision history, engineering publication and approved applicable lookup. Exact faults.read/faults.write/knowledge.publish/knowledge.read policies remain separate. Production store and taxonomy adapters return503; unknown approved lookup404 remains distinct from unavailable503. No production persistence or software deployment is claimed.

@@ -44,3 +44,10 @@
 !src/FaultCode.Domain/FleetRecords.cs
 !src/FaultCode.Infrastructure/UnavailableFleetStore.cs
 !src/FaultCode.Api/Authorization/FleetReadHandler.cs
+!src/FaultCode.Domain/FaultKnowledge.cs
+!src/FaultCode.Application/Knowledge/KnowledgeContracts.cs
+!src/FaultCode.Application/Knowledge/KnowledgeService.cs
+!src/FaultCode.Infrastructure/UnavailableKnowledge.cs
+!src/FaultCode.Api/Contracts/KnowledgeContracts.cs
+!src/FaultCode.Api/Controllers/FaultsController.cs
+!src/FaultCode.Api/Contracts/KnowledgeDocumentExamples.cs
