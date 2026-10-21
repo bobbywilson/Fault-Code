@@ -81,10 +81,10 @@ public sealed class ApiDocumentTransformer : IOpenApiDocumentTransformer
                 operation.Extensions["x-faultcode-policy-requirements"] = new JsonNodeExtension(requirements);
                 if (policies.Length > 1)
                 {
-                    var grants = policies.Select(p => Permissions.Find(p == "vehicles.access.read" ? "vehicles.read" : p!)!).ToArray();
+                    var grants = policies.Select(p => Permissions.Find(p == "vehicles.access.read" ? "vehicles.read" : p == "drivers.access.read" ? "drivers.read" : p!)!).ToArray();
                     operation.Extensions["x-faultcode-permission"] = new JsonNodeExtension(JsonValue.Create(string.Join(" AND ", policies))!);
                     operation.Extensions["x-human-roles"] = new JsonNodeExtension(new JsonArray(grants.Select(p => p.HumanRoles.AsEnumerable()).Aggregate((a, b) => a.Intersect(b)).Select(r => (JsonNode?)JsonValue.Create(r)).ToArray()));
-                    operation.Extensions["x-delegated-scopes"] = new JsonNodeExtension(new JsonArray(grants.Select(p => p.Scope).Concat(policies.Contains("vehicles.access.read") ? new[] { "vehicles.read.own" } : []).Select(p => (JsonNode?)JsonValue.Create(p)).ToArray()));
+                    operation.Extensions["x-delegated-scopes"] = new JsonNodeExtension(new JsonArray(grants.Select(p => p.Scope).Concat(policies.Contains("vehicles.access.read") ? new[] { "vehicles.read.own" } : []).Concat(policies.Contains("drivers.access.read") ? new[] { "drivers.read.own" } : []).Select(p => (JsonNode?)JsonValue.Create(p)).ToArray()));
                     operation.Extensions["x-application-roles"] = new JsonNodeExtension(new JsonArray(grants.Select(p => (JsonNode?)JsonValue.Create(p.ApplicationRole)).ToArray()));
                 }
                 if (path.StartsWith("/api/v1/drivers", StringComparison.Ordinal) || path.StartsWith("/api/v1/vehicles", StringComparison.Ordinal))
@@ -96,6 +96,7 @@ public sealed class ApiDocumentTransformer : IOpenApiDocumentTransformer
                 if (path.StartsWith("/api/v1/ontology", StringComparison.Ordinal)) OntologyDocumentExamples.Decorate(operation, path);
                 if (path.StartsWith("/api/v1/knowledge", StringComparison.Ordinal)) RetrievalDocumentExamples.Decorate(operation, path);
                 if (path.StartsWith("/api/v1/engineering-escalations", StringComparison.Ordinal)) EngineeringDocumentExamples.Decorate(operation, path);
+                if (operation.OperationId is "ListIncidentNotifications" or "EnqueueIncidentNotification" or "GetNotification" or "NotificationHistory" or "DispatchNotification" or "CancelNotification" or "GetNotificationPreferences" or "UpdateNotificationPreferences") NotificationDocumentExamples.Decorate(operation, path);
             }
         }
         foreach (var (path, item) in document.Paths)

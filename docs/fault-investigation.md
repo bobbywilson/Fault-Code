@@ -43,3 +43,7 @@ InvestigationTests runs deterministic fixtures for A/B/C, score0.85/0.8/0.5, mis
 All returned citations must support the same selected approved remedy text. Different individually approved remedy texts are also unadjudicated conflict and require review. API responses carry an explicit untrusted historical evidence policy.
 
 FAU-18 now offers separately authorized [engineering case creation](engineering-escalation.md) from stored UnknownFault/InsufficientEvidence results. Investigation results/proposals remain immutable historical evidence; no automatic case creation or permission is inferred from them.
+
+## FAU-19 consumer
+
+[Notifications](driver-notifications.md) explicitly consume supported current A/B investigations under independent caller authority and canonical tenant-accessible evidence checks. Original results/proposals remain immutable Pending. Source actor/client isolation and investigation-v1 support remain unchanged; no model tools or automatic execution.

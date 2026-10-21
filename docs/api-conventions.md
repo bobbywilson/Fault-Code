@@ -86,3 +86,7 @@ The additive POST /api/v1/incidents/{id}/escalations operation requires escalati
 ## FAU-18 engineering contracts
 
 [Engineering cases](engineering-escalation.md) add10 protected operations across9 new paths, for59 protected operations/45 total paths. Explicit DTOs, conditional scoped replay, policy conjunctions and correlated safe failures preserve existing REST/MCP contracts. Production engineering storage503 pending approved durable adapters.
+
+## FAU-19 notification contracts
+
+[Driver notifications](driver-notifications.md) add8 operations across6 new paths, for67 protected operations/51 paths. Explicit synthetic local preference, conditional enqueue/dispatch/cancellation and bounded history preserve existing complete REST/MCP schemas. Production storage/delivery503; local sink acknowledgement is test acceptance only. No external provider, contact/consent policy or vehicle operations are selected.
