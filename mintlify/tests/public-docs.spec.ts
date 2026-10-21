@@ -27,7 +27,7 @@ test('generated protected reference preserves permissions, errors and non-sendin
   await page.goto('/');
   await page.getByRole('link', { name: 'API reference', exact: true }).click();
   await expect(page).toHaveURL(/api-reference/, { timeout: 45000 });
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('adminroles');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('List Administration Roles');
   await expect(page.locator('#content-area')).toContainText('Requires users.manage');
   await expect(page.locator('#content-area')).toContainText('exact role Users.Manage');
   await expect(page.getByRole('heading', { name: 'Authorizations', exact: true })).toBeVisible();

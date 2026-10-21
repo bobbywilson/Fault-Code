@@ -10,11 +10,11 @@ N = '{http://microsoft.com/schemas/VisualStudio/TeamTest/2010}'
 
 
 class ReleaseGate(unittest.TestCase):
-    def fixture(self, directory, omit=None, outcome='Passed', duplicate=False):
+    def fixture(self, directory, omit=None, outcome='Passed', duplicate=False, omit_case=False):
         root = ET.Element(N+'TestRun'); defs=ET.SubElement(root,N+'TestDefinitions'); results=ET.SubElement(root,N+'Results')
         for method, count in module.REQUIRED.items():
             for case in range(count):
-                if method==omit: continue
+                if method==omit or (omit_case and method==next(iter(module.REQUIRED)) and case==0): continue
                 identity=f'{method}-{case}'
                 unit=ET.SubElement(defs,N+'UnitTest',id=identity)
                 ET.SubElement(unit,N+'TestMethod',name=method)
@@ -23,7 +23,7 @@ class ReleaseGate(unittest.TestCase):
         ET.ElementTree(root).write(Path(directory)/'result.trx')
 
     def test_actual_required_cases_and_rejected_missing_failure_skip_duplicate(self):
-        for settings in [{}, {'omit':next(iter(module.REQUIRED))}, {'outcome':'Failed'}, {'outcome':'NotExecuted'}, {'duplicate':True}]:
+        for settings in [{}, {'omit':next(iter(module.REQUIRED))}, {'outcome':'Failed'}, {'outcome':'NotExecuted'}, {'duplicate':True}, {'omit_case':True}]:
             with self.subTest(settings=settings), tempfile.TemporaryDirectory() as directory:
                 self.fixture(directory,**settings)
                 if settings:
