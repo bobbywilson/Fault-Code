@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FaultCode.Application.Escalations;
+using FaultCode.Application.Notifications;
 using FaultCode.Application.Agents;
 using FaultCode.Application.Investigations;
 using FaultCode.Application.Ontology;
@@ -18,33 +19,41 @@ using static FaultCode.IntegrationTests.EntraAuthenticationTests;
 namespace FaultCode.IntegrationTests;
 
 // One-process coordinated copy-on-write fixture, never a production durability claim.
-internal sealed class TestEngineeringStore : IEscalationStore, IKnowledgeStore, IIncidentStore, IInvestigationStore, IOntologyStore, IDocumentStore
+internal sealed class TestEngineeringStore : IEscalationStore, IKnowledgeStore, IIncidentStore, IInvestigationStore, IOntologyStore, IDocumentStore, INotificationStore, IFleetStore
 {
     private readonly SemaphoreSlim gate = new(1);
-    private readonly AsyncLocal<EngineeringTransaction?> active = new();
-    private readonly Dictionary<string, EngineeringTransaction> tenants = [];
+    private readonly AsyncLocal<NotificationTransaction?> active = new();
+    private readonly Dictionary<string, NotificationTransaction> tenants = [];
     public bool FailCommit { get; set; }
     public Action? BeforeCommit { get; set; }
     private static EngineeringTransaction Copy(EngineeringTransaction t) => new(t.Engineering.Copy(), t.Incidents.Copy(), t.Knowledge.Copy(), t.Ontology.Copy(), t.Documents.Copy(), t.Investigations.Copy());
-    public EngineeringTransaction Snapshot(string tenant = Tenant) => tenants.TryGetValue(tenant, out var tx) ? Copy(tx) : new(new(), new(), new(), new(), new(), new());
+    private static NotificationTransaction Copy(NotificationTransaction t) => new(t.Notifications.Copy(), t.Fleet.Copy(), Copy(t.Context));
+    public NotificationTransaction NotificationSnapshot(string tenant = Tenant) => tenants.TryGetValue(tenant, out var tx) ? Copy(tx) : new(new(), new(), new(new(), new(), new(), new(), new(), new()));
+    public EngineeringTransaction Snapshot(string tenant = Tenant) => NotificationSnapshot(tenant).Context;
+    public Task<T> NotificationExecute<T>(string tenant, Func<NotificationTransaction, T> action, CancellationToken ct = default) =>
+        ExecuteJoined(tenant, tx => Task.FromResult(action(tx)), ct);
+    Task<T> INotificationStore.Execute<T>(string tenant, Func<NotificationTransaction, T> action, CancellationToken ct) => NotificationExecute(tenant, action, ct);
     public Task<T> Execute<T>(string tenant, Func<EngineeringTransaction, T> action, CancellationToken ct) =>
-        ExecuteAsync(tenant, tx => Task.FromResult(action(tx)), ct);
-    private async Task<T> ExecuteAsync<T>(string tenant, Func<EngineeringTransaction, Task<T>> action, CancellationToken ct)
+        ExecuteJoined(tenant, tx => Task.FromResult(action(tx.Context)), ct);
+    private Task<T> ExecuteAsync<T>(string tenant, Func<EngineeringTransaction, Task<T>> action, CancellationToken ct) => ExecuteJoined(tenant, tx => action(tx.Context), ct);
+    private async Task<T> ExecuteJoined<T>(string tenant, Func<NotificationTransaction, Task<T>> action, CancellationToken ct)
     {
         if (active.Value is { } joined) return await action(joined);
         await gate.WaitAsync(ct);
         try
         {
-            var tx = Snapshot(tenant); active.Value = tx;
+            var tx = NotificationSnapshot(tenant); active.Value = tx;
             var result = await action(tx); BeforeCommit?.Invoke(); ct.ThrowIfCancellationRequested();
             if (FailCommit) throw new IncidentException(503);
             tenants[tenant] = Copy(tx); return result;
         }
         finally { active.Value = null; gate.Release(); }
     }
+    Task<FleetState> IFleetStore.ReadAsync(string tenant, CancellationToken ct) => NotificationExecute(tenant, tx => tx.Fleet.Copy(), ct);
+    Task<T> IFleetStore.TransactAsync<T>(string tenant, Func<FleetState, T> action, CancellationToken ct) => NotificationExecute(tenant, tx => action(tx.Fleet), ct);
     Task<IncidentState> IIncidentStore.ReadAsync(string tenant, CancellationToken ct) => Execute(tenant, tx => tx.Incidents.Copy(), ct);
     Task<T> IIncidentStore.TransactAsync<T>(string tenant, Func<IncidentTransaction, T> action, CancellationToken ct) =>
-        Execute(tenant, tx => action(new(tx.Incidents, () => new([], [], [], tx.Knowledge.Faults))), ct);
+        NotificationExecute(tenant, tx => action(new(tx.Context.Incidents, () => new(tx.Fleet.Vehicles, tx.Fleet.Drivers, tx.Fleet.Associations, tx.Context.Knowledge.Faults))), ct);
     Task<OntologyState> IOntologyStore.ReadAsync(string tenant, CancellationToken ct) => Execute(tenant, tx => tx.Ontology.Copy(), ct);
     Task<T> IOntologyStore.TransactAsync<T>(string tenant, Func<OntologyState, T> action, CancellationToken ct) => Execute(tenant, tx => action(tx.Ontology), ct);
     Task<T> IInvestigationStore.Execute<T>(string tenant, Func<InvestigationState, Task<T>> action, CancellationToken ct) => ExecuteAsync(tenant, tx => action(tx.Investigations), ct);
@@ -54,13 +63,13 @@ internal sealed class TestEngineeringStore : IEscalationStore, IKnowledgeStore, 
 }
 public sealed class EngineeringTests
 {
-    private static readonly Guid IncidentId = Guid.Parse("55555555-5555-4555-8555-555555555555");
-    private static readonly Guid RunId = Guid.Parse("66666666-6666-4666-8666-666666666666");
-    private static readonly FleetCaller Caller = new(Tenant, Actor, Client, "synthetic-engineering", true, false, true, false);
-    private static readonly FaultContent Content = new("Synthetic adjudicated EPS finding", "SYN-CLASS", 2, ["SYN-SYM"], [new("SYN-DOC", "1")],
+    internal static readonly Guid IncidentId = Guid.Parse("55555555-5555-4555-8555-555555555555");
+    internal static readonly Guid RunId = Guid.Parse("66666666-6666-4666-8666-666666666666");
+    internal static readonly FleetCaller Caller = new(Tenant, Actor, Client, "synthetic-engineering", true, false, true, false);
+    internal static readonly FaultContent Content = new("Synthetic adjudicated EPS finding", "SYN-CLASS", 2, ["SYN-SYM"], [new("SYN-DOC", "1")],
         [new("SYN-REMEDY", "guidance", "Synthetic engineering approved inspection guidance.", true, "SYN-MODEL-1", "1.0", null)]);
     private static EscalationService Service(TestEngineeringStore store) => new(store, TimeProvider.System);
-    private static async Task<TestEngineeringStore> Setup(string classification = "UnknownFault")
+    internal static async Task<TestEngineeringStore> Setup(string classification = "UnknownFault")
     {
         var s = new TestEngineeringStore(); var now = DateTimeOffset.UtcNow;
         await s.Execute(Tenant, tx =>
@@ -79,7 +88,7 @@ public sealed class EngineeringTests
         }, default); return s;
     }
     private static Task<MutationResult> Create(TestEngineeringStore s, string key = "create") => Service(s).Create(Caller, IncidentId, RunId, 2, key, default);
-    private static async Task<Guid> Proposed(TestEngineeringStore s, long expectedFaultVersion = 0)
+    internal static async Task<Guid> Proposed(TestEngineeringStore s, long expectedFaultVersion = 0)
     {
         var r = await Create(s); await Service(s).Status(Caller, r.Id, 1, "start", "Investigating", default);
         await Service(s).Propose(Caller, r.Id, 2, "propose", Content, expectedFaultVersion, default); return r.Id;

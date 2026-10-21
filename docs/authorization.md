@@ -69,3 +69,7 @@ POST /api/v1/mcp authenticates each stateless HTTP request through Entra. Intern
 ## FAU-18 engineering case authority
 
 Engineering case reads require escalations.read, faults.read, vehicles.access.read and knowledge.read. Mutations require escalations.write plus the three incident read policies; approval additionally requires knowledge.publish. Tenant/historical owner filtering precedes counts and replay. Assigned object ID is a work label only. No extra Entra grant, role bypass, model authority or MCP tool. See [engineering escalation](engineering-escalation.md).
+
+## FAU-19 notification access
+
+Notification reads AND faults.read, vehicles.access.read, drivers.access.read, knowledge.read; writes add faults.write. Preference GET uses drivers.access.read; PUT adds drivers.write. Reuse exact FAU-9 human/machine grants; no new Entra grants or service privilege union. Stored original driver/vehicle owner and tenant checked before page/count/history/replay. See driver-notifications.md for routes and local-only preference boundary.

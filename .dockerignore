@@ -99,3 +99,11 @@
 !src/FaultCode.Application/Escalations/EscalationContracts.cs
 !src/FaultCode.Application/Escalations/EscalationService.cs
 !src/FaultCode.Api/Contracts/EngineeringDocumentExamples.cs
+
+!src/FaultCode.Api/Contracts/NotificationContracts.cs
+!src/FaultCode.Api/Contracts/NotificationDocumentExamples.cs
+!src/FaultCode.Api/Controllers/NotificationsController.cs
+!src/FaultCode.Application/Notifications/NotificationContracts.cs
+!src/FaultCode.Application/Notifications/NotificationService.cs
+!src/FaultCode.Domain/DriverNotification.cs
+!src/FaultCode.Infrastructure/UnavailableNotifications.cs

@@ -35,3 +35,7 @@ IEscalationStore supplies one coordinated authoritative transaction across engin
 FAU-19 must revalidate current case/incident approval, publication/applicability and consent before consuming events, reject superseded events after reopen, and deduplicate by event ID. No notification worker/provider/outbound delivery, vehicle action or model call is introduced. Qdrant remains a derived index; published source documents follow their existing independent index readiness. Canonical source revisions remain immutable.
 
 DEC-001/003 must supply approved engine/provider/schema/migrations/durable outbox/retention/backups and restart/crash/multiple-process/cancellation acceptance before activation. No provider or hosting choice, accounts, deployment, credentials or network isolation changes are made here.
+
+## FAU-19 consumer
+
+[Notifications](driver-notifications.md) now consume stable event IDs only through explicit authorized REST enqueue. Current approval/evidence/recipient/preferences are revalidated; events remain historical Pending. Cancel/supersede with no active lease coordinates notification-stage incident back to Resolved before existing reopen. Old events are permanently deduplicated; new approval/event required after reopen. No external delivery activation.
