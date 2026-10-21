@@ -21,7 +21,10 @@ async function action(page: Page, area: string, id: string) {
 }
 async function submit(page: Page) {
   const checkbox = page.getByRole('checkbox', { name: /Confirm / });
-  if (await checkbox.count()) await checkbox.check();
+  if (await checkbox.count()) {
+    if (!(await checkbox.isChecked())) await checkbox.click();
+    await expect(checkbox).toBeChecked();
+  }
   await page.locator('button[type=submit]').click();
 }
 test('all areas map real protected operations, Reader cannot mutate', async ({ page }) => {
@@ -39,6 +42,11 @@ test('recorded pagination, loading, empty, forbidden and unavailable never fabri
   await action(page, 'vehicles', 'ListVehicles');
   await submit(page);
   await expect(page.getByText('No recorded items.')).toBeVisible();
+  if (process.env['FAULTCODE_QA_DIR'])
+    await page.screenshot({
+      path: process.env['FAULTCODE_QA_DIR'] + '/spartan-vehicles-desktop-fixture.png',
+      fullPage: true,
+    });
   await page.route('**/api/v1/vehicles*', (r) => r.fulfill({ status: 503, json: { status: 503 } }));
   await submit(page);
   await expect(page.getByRole('alert')).toContainText('service is unavailable');
@@ -142,11 +150,17 @@ test('mobile keyboard navigation, focus and accessible fields', async ({ page })
   await page.setViewportSize({ width: 390, height: 844 });
   await setup(page);
   await action(page, 'vehicles', 'CreateVehicle');
+  if (process.env['FAULTCODE_QA_DIR'])
+    await page.screenshot({
+      path: process.env['FAULTCODE_QA_DIR'] + '/spartan-vehicle-form-mobile-fixture.png',
+      fullPage: true,
+    });
   await page.keyboard.press('Tab');
   await page.getByLabel('Identifier').fill('SYN-001');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const a = await new AxeBuilder({ page }).analyze();
   expect(a.violations).toEqual([]);
+  await page.getByRole('button', { name: 'Toggle Sidebar' }).click();
   await page.getByRole('link', { name: 'Engineering', exact: true }).click();
   await expect(page.locator('#main')).toBeFocused();
   if (process.env['FAULTCODE_QA_DIR'])
@@ -215,6 +229,7 @@ test('recorded list opens real detail, paginates, escapes returned markup and su
   });
   await submit(page);
   await expect(page.getByRole('status')).toHaveText('Loading…');
+  await page.getByRole('button', { name: 'Toggle Sidebar' }).click();
   await page.getByRole('link', { name: 'Engineering', exact: true }).click();
   release();
   await expect(page.getByText('Late response', { exact: true })).toHaveCount(0);
@@ -278,7 +293,8 @@ test('engineering proposal supports nested evidence and nullable approved patch 
     softwareVersion: '1.0',
   }))
     await page.locator('#body-content-remedies-0-' + key).fill(value);
-  await page.locator('#body-content-remedies-0-approved').check();
+  await page.locator('#body-content-remedies-0-approved').click();
+  await expect(page.locator('#body-content-remedies-0-approved')).toBeChecked();
   let payload: any;
   await page.route('**/api/v1/engineering-escalations/' + id + '/resolutions', (r) => {
     payload = r.request().postDataJSON();
@@ -292,8 +308,10 @@ test('engineering proposal supports nested evidence and nullable approved patch 
   await page.getByLabel('Action', { exact: true }).selectOption('GetEngineeringCase');
   await page.getByLabel('Action', { exact: true }).selectOption('ProposeEngineeringResolution');
   await page.getByRole('button', { name: 'Add Remedies', exact: true }).click();
-  await page.getByRole('checkbox', { name: 'Include Patch' }).check();
+  await page.getByRole('checkbox', { name: 'Include Patch' }).click();
+  await expect(page.getByRole('checkbox', { name: 'Include Patch' })).toBeChecked();
   await expect(page.locator('#body-content-remedies-0-patch-reference')).toBeVisible();
-  await page.getByRole('checkbox', { name: 'Include Patch' }).uncheck();
+  await page.getByRole('checkbox', { name: 'Include Patch' }).click();
+  await expect(page.getByRole('checkbox', { name: 'Include Patch' })).not.toBeChecked();
   await expect(page.locator('#body-content-remedies-0-patch-reference')).toHaveCount(0);
 });

@@ -1,7 +1,33 @@
 import { Component, Input, inject, signal, computed, effect } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { BrnButton } from '@spartan-ng/brain/button';
+import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmAlertImports } from '@spartan-ng/helm/alert';
+import { HlmEmptyImports } from '@spartan-ng/helm/empty';
+import { HlmBreadcrumbImports } from '@spartan-ng/helm/breadcrumb';
+import { HlmBadge } from '@spartan-ng/helm/badge';
+import { HlmFieldImports } from '@spartan-ng/helm/field';
+import { HlmInput } from '@spartan-ng/helm/input';
+import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
+import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideActivity,
+  lucideTriangleAlert,
+  lucideCar,
+  lucideUsers,
+  lucideWrench,
+  lucideNetwork,
+  lucideFiles,
+  lucideFlaskConical,
+  lucideBot,
+  lucideBell,
+  lucidePlug,
+  lucideShieldCheck,
+  lucideArrowUpRight,
+} from '@ng-icons/lucide';
 import { Auth } from './auth';
 import { Api, ApiError } from './api';
 import { Fields } from './fields';
@@ -35,193 +61,313 @@ export const areas = [
 ];
 @Component({
   selector: 'app-workspace',
-  imports: [RouterLink, RouterLinkActive, FormsModule, BrnButton, Fields, Records],
-  template: ` <a class="skip" href="#main">Skip to workspace</a>
-    <header>
-      <div>
-        <div class="brand">Fault<span>Code</span></div>
-        <div class="tag">Administration workspace</div>
-      </div>
-      <div class="status">
-        <span class="dot"></span
-        ><span>{{
-          auth.state() === 'signed-in' ? 'Authenticated workspace' : 'Protected workspace'
-        }}</span>
-        @if (auth.state() === 'signed-in') {
-          <button brnButton (click)="logout()">Sign out</button>
-        }
-        <a href="/openapi/v1.json" target="_blank" rel="noopener">API reference</a>
-      </div>
-    </header>
-    <div class="layout">
-      <nav aria-label="Administration">
-        @for (item of areas; track item[1]) {
-          <a
-            [routerLink]="'/admin/' + item[1]"
-            routerLinkActive="active"
-            ariaCurrentWhenActive="page"
-            >{{ item[0] }}</a
-          >
-        }
-      </nav>
-      <main id="main" tabindex="-1">
-        <p class="eyebrow">Steering systems / Administration</p>
-        <h1>{{ group() }}</h1>
-        <p class="muted">{{ description() }}</p>
-        @if (auth.state() === 'loading') {
-          <div role="status" class="notice">Loading secure workspace…</div>
-        } @else if (auth.state() === 'unconfigured') {
-          <section class="card">
-            <h2>Sign-in setup unavailable</h2>
-            <p>
-              Connect the dedicated Fault Code Microsoft Entra registration to use this workspace.
-            </p>
-            <p class="muted">
-              No protected records are loaded. Identity and business storage must be configured
-              before administration is available.
-            </p>
-          </section>
-        } @else if (auth.state() === 'error') {
-          <div role="alert" class="notice error">
-            Sign-in could not be completed. Reload and try again.
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    FormsModule,
+    HlmButton,
+    HlmSidebarImports,
+    HlmCardImports,
+    HlmAlertImports,
+    HlmBadge,
+    HlmEmptyImports,
+    HlmBreadcrumbImports,
+    HlmFieldImports,
+    HlmInput,
+    HlmNativeSelectImports,
+    HlmCheckbox,
+    NgIcon,
+    Fields,
+    Records,
+  ],
+  providers: [
+    provideIcons({
+      lucideActivity,
+      lucideTriangleAlert,
+      lucideCar,
+      lucideUsers,
+      lucideWrench,
+      lucideNetwork,
+      lucideFiles,
+      lucideFlaskConical,
+      lucideBot,
+      lucideBell,
+      lucidePlug,
+      lucideShieldCheck,
+      lucideArrowUpRight,
+    }),
+  ],
+  template: ` <a hlmBtn class="sr-only focus:not-sr-only focus:fixed focus:z-50" href="#main"
+      >Skip to workspace</a
+    >
+    <div hlmSidebarWrapper>
+      <hlm-sidebar variant="inset" collapsible="icon">
+        <div hlmSidebarHeader>
+          <ul hlmSidebarMenu>
+            <li hlmSidebarMenuItem>
+              <a hlmSidebarMenuButton size="lg" routerLink="/admin/incidents">
+                <ng-icon name="lucideActivity" class="size-5" />
+                <span class="grid"
+                  ><span class="font-semibold">Fault Code</span
+                  ><span class="text-xs text-muted-foreground">Steering intelligence</span></span
+                >
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div hlmSidebarContent>
+          <div hlmSidebarGroup>
+            <div hlmSidebarGroupLabel>Workspace</div>
+            <nav hlmSidebarGroupContent aria-label="Administration">
+              <ul hlmSidebarMenu>
+                @for (item of areas; track item[1]; let index = $index) {
+                  <li hlmSidebarMenuItem>
+                    <a
+                      hlmSidebarMenuButton
+                      [routerLink]="'/admin/' + item[1]"
+                      routerLinkActive
+                      #active="routerLinkActive"
+                      [isActive]="active.isActive"
+                      ariaCurrentWhenActive="page"
+                      [tooltip]="item[0]"
+                    >
+                      <ng-icon [name]="icons[index]" /><span>{{ item[0] }}</span>
+                    </a>
+                  </li>
+                }
+              </ul>
+            </nav>
           </div>
-        } @else if (auth.state() !== 'signed-in') {
-          <section class="card">
-            <h2>
-              {{ auth.state() === 'expired' ? 'Your session has expired' : 'Sign in to continue' }}
-            </h2>
-            <p>Your workspace requires an authorized Fault Code account.</p>
-            <button brnButton class="primary" (click)="login()">Sign in with Microsoft</button>
-          </section>
-        } @else {
-          @if (group() === 'Users & roles' || group() === 'Integrations') {
-            <p class="notice">
-              These actions manage local administration records. External identity grants and
-              provider activation require separate configuration.
-            </p>
-          }
-          @if (group() === 'Agent activity') {
-            <p class="notice">
-              Activity shows recorded investigations. Model usage and performance are unavailable
-              when not recorded.
-            </p>
-          }
-          <section class="card">
-            <h2>Workspace actions</h2>
-            <div class="field">
-              <label for="action">Action</label
-              ><select id="action" [ngModel]="op()?.id ?? ''" (ngModelChange)="select($event)">
-                @for (action of actions(); track action.id) {
-                  <option [value]="action.id">{{ action.label }}</option>
-                }
-              </select>
-            </div>
-            @if (permissionsLoading()) {
-              <p role="status">Checking permissions…</p>
-            } @else if (!op() || !allowed(op()!)) {
-              <div role="alert" class="notice error">
-                Access denied. This action requires additional permissions.
-              </div>
-            } @else if (op(); as action) {
-              <form (ngSubmit)="execute()" class="form-grid">
-                <app-fields [schema]="parameterSchema()" [model]="parameters" prefix="params" />
-                @if (action.body) {
-                  <app-fields [schema]="action.body" [model]="body" prefix="body" />
-                }
-                @if (action.headers.includes('If-Match')) {
-                  <div class="field">
-                    <label for="version">Current record version *</label
-                    ><input
-                      id="version"
-                      name="version"
-                      type="number"
-                      min="1"
-                      required
-                      [(ngModel)]="version"
-                    /><small class="muted"
-                      >Read the current record before changing it. Conflicts require a fresh
-                      read.</small
-                    >
-                  </div>
-                }
-                @if (mutation(action)) {
-                  <div class="notice">
-                    <label
-                      ><input type="checkbox" name="confirm" [(ngModel)]="confirmed" /> Confirm
-                      {{ action.label.toLowerCase() }} for the selected record.</label
-                    >
-                  </div>
-                }
-                <div class="toolbar" style="margin-top:20px">
-                  <button brnButton class="primary" type="submit" [disabled]="busy() || blocked()">
-                    {{
-                      busy() ? 'Working…' : action.method === 'GET' ? 'Load records' : action.label
-                    }}
-                  </button>
-                  @if (blocked()) {
-                    <span class="muted">Reload the current record before retrying.</span>
-                  }
-                </div>
-              </form>
+        </div>
+        <div hlmSidebarFooter>
+          <ul hlmSidebarMenu>
+            <li hlmSidebarMenuItem>
+              <a hlmSidebarMenuButton href="/openapi/v1.json" target="_blank" rel="noopener"
+                ><ng-icon name="lucideArrowUpRight" /><span>API reference</span></a
+              >
+            </li>
+            <li hlmSidebarMenuItem>
+              <span hlmBadge variant="outline" class="m-2"
+                ><ng-icon name="lucideShieldCheck" class="mr-1 size-3" />Protected workspace</span
+              >
+            </li>
+          </ul>
+        </div>
+      </hlm-sidebar>
+      <main hlmSidebarInset id="main" tabindex="-1" class="min-w-0">
+        <header class="flex h-16 shrink-0 items-center justify-between gap-4 border-b px-4 md:px-6">
+          <div class="flex items-center gap-3">
+            <button hlmSidebarTrigger></button>
+            <nav hlmBreadcrumb>
+              <ol hlmBreadcrumbList>
+                <li hlmBreadcrumbItem><span hlmBreadcrumbLink>Workspace</span></li>
+                <li hlmBreadcrumbSeparator></li>
+                <li hlmBreadcrumbItem>
+                  <span hlmBreadcrumbPage>{{ group() }}</span>
+                </li>
+              </ol>
+            </nav>
+          </div>
+          <div class="flex items-center gap-3">
+            <span hlmBadge variant="outline">{{
+              auth.state() === 'signed-in' ? 'Authenticated' : 'Secure access'
+            }}</span>
+            @if (auth.state() === 'signed-in') {
+              <button hlmBtn variant="ghost" size="sm" (click)="logout()">Sign out</button>
             }
-          </section>
-          @if (message()) {
-            <div
-              [class]="'notice ' + (error() ? 'error' : 'success')"
-              [attr.role]="error() ? 'alert' : 'status'"
-            >
-              {{ message() }}
-              @if (correlation()) {
-                <small>Reference: {{ correlation() }}</small>
-              }
+          </div>
+        </header>
+        <div class="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 p-4 md:p-8">
+          <div class="space-y-2">
+            <div class="flex items-center gap-3">
+              <h1 class="text-2xl font-semibold tracking-tight">{{ group() }}</h1>
+              <span hlmBadge variant="secondary">Administration</span>
             </div>
-          }
-          @if (busy()) {
-            <p role="status" aria-live="polite">Loading…</p>
-          }
-          @if (data() !== undefined) {
-            <section class="card" aria-label="Recorded results">
-              <h2>Recorded results</h2>
-              <div class="results">
-                @if (hasPage()) {
-                  @for (record of data().items; track $index) {
-                    <div class="record">
-                      <app-records [value]="record" />
-                      @if (record.id && canOpenRecord()) {
-                        <button brnButton class="quiet" (click)="openRecord(record)">
-                          Open record
-                        </button>
-                      }
+            <p class="max-w-2xl text-sm text-muted-foreground">{{ description() }}</p>
+          </div>
+          @if (auth.state() === 'loading') {
+            <div role="status" hlmAlert>Loading secure workspace…</div>
+          } @else if (auth.state() === 'unconfigured') {
+            <section hlmCard class="p-6">
+              <h2 hlmCardTitle>Sign-in setup unavailable</h2>
+              <p>
+                Connect the dedicated Fault Code Microsoft Entra registration to use this workspace.
+              </p>
+              <p class="text-sm text-muted-foreground">
+                No protected records are loaded. Identity and business storage must be configured
+                before administration is available.
+              </p>
+            </section>
+          } @else if (auth.state() === 'error') {
+            <div role="alert" hlmAlert variant="destructive">
+              Sign-in could not be completed. Reload and try again.
+            </div>
+          } @else if (auth.state() !== 'signed-in') {
+            <section hlmCard class="p-6">
+              <h2 hlmCardTitle>
+                {{
+                  auth.state() === 'expired' ? 'Your session has expired' : 'Sign in to continue'
+                }}
+              </h2>
+              <p>Your workspace requires an authorized Fault Code account.</p>
+              <button hlmBtn class="w-fit" (click)="login()">Sign in with Microsoft</button>
+            </section>
+          } @else {
+            @if (group() === 'Users & roles' || group() === 'Integrations') {
+              <p hlmAlert role="note">
+                These actions manage local administration records. External identity grants and
+                provider activation require separate configuration.
+              </p>
+            }
+            @if (group() === 'Agent activity') {
+              <p hlmAlert role="note">
+                Activity shows recorded investigations. Model usage and performance are unavailable
+                when not recorded.
+              </p>
+            }
+            <section hlmCard class="p-6">
+              <h2 hlmCardTitle>Workspace actions</h2>
+              <div hlmField>
+                <label hlmFieldLabel for="action">Action</label
+                ><hlm-native-select
+                  selectId="action"
+                  [ngModel]="op()?.id ?? ''"
+                  (ngModelChange)="select($event)"
+                >
+                  @for (action of actions(); track action.id) {
+                    <option [value]="action.id">{{ action.label }}</option>
+                  }
+                </hlm-native-select>
+              </div>
+              @if (permissionsLoading()) {
+                <p role="status">Checking permissions…</p>
+              } @else if (!op() || !allowed(op()!)) {
+                <div role="alert" hlmAlert variant="destructive">
+                  Access denied. This action requires additional permissions.
+                </div>
+              } @else if (op(); as action) {
+                <form (ngSubmit)="execute()" class="grid max-w-3xl gap-5">
+                  <app-fields [schema]="parameterSchema()" [model]="parameters" prefix="params" />
+                  @if (action.body) {
+                    <app-fields [schema]="action.body" [model]="body" prefix="body" />
+                  }
+                  @if (action.headers.includes('If-Match')) {
+                    <div hlmField>
+                      <label hlmFieldLabel for="version">Current record version *</label
+                      ><input
+                        hlmInput
+                        id="version"
+                        name="version"
+                        type="number"
+                        min="1"
+                        required
+                        [(ngModel)]="version"
+                      /><small class="text-sm text-muted-foreground"
+                        >Read the current record before changing it. Conflicts require a fresh
+                        read.</small
+                      >
                     </div>
                   }
-                  @if (data().items.length === 0) {
-                    <p class="empty">No recorded items.</p>
+                  @if (mutation(action)) {
+                    <div hlmField orientation="horizontal">
+                      <hlm-checkbox
+                        inputId="confirm-action"
+                        name="confirm"
+                        [(ngModel)]="confirmed"
+                        aria-label="Confirm action"
+                      /><label hlmFieldLabel for="confirm-action">
+                        Confirm {{ action.label.toLowerCase() }} for the selected record.</label
+                      >
+                    </div>
                   }
-                } @else {
-                  <app-records [value]="data()" />
-                }
-              </div>
-              @if (hasPage()) {
-                <div class="pager">
-                  <button brnButton (click)="page(-1)" [disabled]="busy() || data().page <= 1">
-                    Previous</button
-                  ><span>Page {{ data().page }} · {{ data().totalCount }} recorded items</span
-                  ><button
-                    brnButton
-                    (click)="page(1)"
-                    [disabled]="busy() || data().page * data().pageSize >= data().totalCount"
-                  >
-                    Next
-                  </button>
-                </div>
+                  <div class="flex flex-wrap items-center gap-3">
+                    <button hlmBtn type="submit" [disabled]="busy() || blocked()">
+                      {{
+                        busy()
+                          ? 'Working…'
+                          : action.method === 'GET'
+                            ? 'Load records'
+                            : action.label
+                      }}
+                    </button>
+                    @if (blocked()) {
+                      <span class="text-sm text-muted-foreground"
+                        >Reload the current record before retrying.</span
+                      >
+                    }
+                  </div>
+                </form>
               }
             </section>
+            @if (message()) {
+              <div
+                [variant]="error() ? 'destructive' : 'default'"
+                hlmAlert
+                [attr.role]="error() ? 'alert' : 'status'"
+              >
+                {{ message() }}
+                @if (correlation()) {
+                  <small>Reference: {{ correlation() }}</small>
+                }
+              </div>
+            }
+            @if (busy()) {
+              <p role="status" aria-live="polite">Loading…</p>
+            }
+            @if (data() !== undefined) {
+              <section hlmCard class="p-6" aria-label="Recorded results">
+                <h2 hlmCardTitle>Recorded results</h2>
+                <div class="space-y-4 overflow-x-auto">
+                  @if (hasPage()) {
+                    @for (record of data().items; track $index) {
+                      <div class="space-y-4 border-b pb-4">
+                        <app-records [value]="record" />
+                        @if (record.id && canOpenRecord()) {
+                          <button hlmBtn variant="outline" size="sm" (click)="openRecord(record)">
+                            Open record
+                          </button>
+                        }
+                      </div>
+                    }
+                    @if (data().items.length === 0) {
+                      <div hlmEmpty>
+                        <div hlmEmptyHeader>
+                          <div hlmEmptyMedia variant="icon"><ng-icon name="lucideFiles" /></div>
+                          <p hlmEmptyTitle>No recorded items.</p>
+                          <p hlmEmptyDescription>
+                            Records will appear here when this workspace has available data.
+                          </p>
+                        </div>
+                      </div>
+                    }
+                  } @else {
+                    <app-records [value]="data()" />
+                  }
+                </div>
+                @if (hasPage()) {
+                  <div class="flex flex-wrap items-center gap-4 border-t pt-4 text-sm">
+                    <button hlmBtn (click)="page(-1)" [disabled]="busy() || data().page <= 1">
+                      Previous</button
+                    ><span>Page {{ data().page }} · {{ data().totalCount }} recorded items</span
+                    ><button
+                      hlmBtn
+                      (click)="page(1)"
+                      [disabled]="busy() || data().page * data().pageSize >= data().totalCount"
+                    >
+                      Next
+                    </button>
+                  </div>
+                }
+              </section>
+            }
           }
-        }
-        <p class="footer-note">
-          Fault Code · Synthetic steering investigation proof of concept. Approved remedies are
-          recommendations for dealership service.
-        </p>
+        </div>
+        <footer class="border-t px-4 py-4 text-xs text-muted-foreground md:px-8">
+          <p>
+            Fault Code · Synthetic steering investigation proof of concept. Approved remedies are
+            recommendations for dealership service.
+          </p>
+        </footer>
       </main>
     </div>`,
 })
@@ -229,6 +375,19 @@ export class Workspace {
   auth = inject(Auth);
   private api = inject(Api);
   areas = areas;
+  icons = [
+    'lucideTriangleAlert',
+    'lucideCar',
+    'lucideUsers',
+    'lucideWrench',
+    'lucideNetwork',
+    'lucideFiles',
+    'lucideFlaskConical',
+    'lucideBot',
+    'lucideBell',
+    'lucideUsers',
+    'lucidePlug',
+  ];
   private routeArea = signal('incidents');
   @Input() set area(value: string) {
     this.routeArea.set(value ?? 'incidents');

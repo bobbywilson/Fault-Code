@@ -1,6 +1,6 @@
 # Administration workspace
 
-Part of FAU-22. Angular/TypeScript, Spartan accessible button primitive with local styling, Tailwind4 and maintained MSAL Angular/browser. This is an API client: no database, Qdrant, model SDK, generic URL editor or MCP/model tool is exposed to the browser. All73 business operations (74 protected REST operations including caller permissions) are mapped from generated OpenAPI. Existing five MCP schemas and model context remain unchanged.
+Part of FAU-22. Angular/TypeScript, official Spartan Helm Nova components with the neutral theme and Lucide icons, Tailwind4 and maintained MSAL Angular/browser. This is an API client: no database, Qdrant, model SDK, generic URL editor or MCP/model tool is exposed to the browser. All73 business operations (74 protected REST operations including caller permissions) are mapped from generated OpenAPI. Existing five MCP schemas and model context remain unchanged.
 
 ## Linux Docker
 
@@ -16,7 +16,7 @@ Without browser configuration the production route displays **Sign-in setup unav
 
 ## Browser configuration and identity
 
-`frontend/public/browser-config.json` contains empty public settings. Configure it only with separately approved dedicated Fault Code registration identifiers; never reuse Lalai or put secrets here. For Compose, mount an operator-managed public JSON file read-only at `/usr/share/nginx/html/browser-config.json` using a local Compose override, or replace the public config before building. API `Entra__TenantId` and `Entra__ClientId` must match its actual dedicated API registration. The SPA client is a separate registration. The API still validates issuer/audience/signature/lifetime and exact scopes/roles.
+`frontend/public/browser-config.json` contains the dedicated Fault Code public registration identifiers. Environment overrides must use that approved dedicated registration; never reuse Lalai or put secrets here. For Compose, mount an operator-managed public JSON file read-only at `/usr/share/nginx/html/browser-config.json` using a local Compose override, or replace the public config before building. API `Entra__TenantId` and `Entra__ClientId` must match its actual dedicated API registration. The SPA client is a separate registration. The API still validates issuer/audience/signature/lifetime and exact scopes/roles.
 
 The JSON fields are `tenantId`, `clientId` (SPA), `apiClientId` and `scopes` (array of full `api://{apiClientId}/{permission}` names). All identifiers must be lowercase canonical GUIDs; scopes must target that API. Include `authorization.read` and only the operation scopes needed by the signed-in user's explicitly assigned human roles. No privileged role hierarchy is inferred. Driver-only users may use own-read scopes. Browser clients are delegated-only; machine roles remain an API interface.
 
@@ -71,3 +71,11 @@ Linux CI runs locked backend build/tests/contracts/format, real disposable Qdran
 ## Separately authorized isolated tenant smoke checklist
 
 After dedicated registrations and durable adapters are approved/provisioned: verify exact SPA/API identifiers and scopes, sign in as each least-privilege persona, inspect PKCE/state/nonce failures with redacted evidence, reject unrelated tenant/audience and missing scope/role server-side, renew/expire/revoke/logout without mutation replay, exercise same-tenant CRUD and all three workflows with strong versions/replay, and verify actual persisted history and notification acknowledgement/provider delivery separately. Never include raw tokens, identities or contacts in screenshots/logs/model context. No live tenant or hosting acceptance is claimed by mocked tests.
+
+## Spartan visual system (2026-10-21)
+
+The user explicitly requested supplied Spartan components throughout all eleven administration routes, replacing the earlier Brain-button-only custom styling. Official `@spartan-ng/cli@1.8.0` generated the Helm sources in `frontend/libs/ui`, with Nova/neutral selected in `frontend/components.json`. The temporary generator was removed after generation; no Nx workspace or runtime was introduced. Compatible ng-icons core/Lucide33.3.0 and class-variance-authority0.7.1 are pinned.
+
+Sidebar, mobile sheet, breadcrumb, badges, cards, alerts, field groups/labels, inputs, native select, textarea, checkboxes, empty states, record tables and buttons use supplied Helm primitives. Header/footer and route adapters compose these primitives with Tailwind spacing; no bespoke visual control CSS remains. Fields and Records bind the API schemas/results to these supplied components. Lucide replaces decorative bespoke icons. Missing data stays unavailable/empty, with no invented dashboard metrics.
+
+Verification: production Angular build passed (931.74kB initial, 205.47kB estimated compressed; existing750kB warning remains below1MB error budget), eleven unit tests and nine Chromium workflows passed, including390px keyboard/focus and Axe checks. `npm audit` found zero vulnerabilities after removing the generator. Authenticated screenshots use isolated e2e fixtures, not a production login or production data claim. Production MSAL source/config and backend policies are unchanged. Deployment remains paused; feature/development changes must not be promoted to main until resumed.
