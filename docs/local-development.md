@@ -32,7 +32,7 @@ Application persistence contracts define typed aggregate lookup/add and cancella
 
 The initial status service is internal composition information, not a public business API. Domain data models and persistence will land with their own tickets. No relational provider has been chosen (DEC-001).
 
-Separate Domain.Tests and Application.Tests projects enforce project references and demonstrate adapter replacement; integration tests run the real host and verify options validation, override precedence, DI replacement, liveness and absent business routes. CI runs the same checks on Windows, Linux and macOS; CI results must be checked separately from native local tests.
+Separate Domain.Tests and Application.Tests projects enforce project references and demonstrate adapter replacement; integration tests run the real host and verify options validation, override precedence, DI replacement, liveness and absent business routes. Delivery CI runs Linux build/tests/contracts and Linux container acceptance. Native Windows/macOS checks are optional coverage, not delivery requirements; the sole developer runs Linux Docker containers even on Mac. Native local tests are supplemental evidence.
 
 ```sh
 dotnet format FaultCode.slnx --verify-no-changes --no-restore

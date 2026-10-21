@@ -211,7 +211,7 @@ public sealed class AuthorizationTests
             }
             protectedCount++;
         }
-        Assert.Equal(67, protectedCount);
+        Assert.Equal(74, protectedCount);
     }
 
     [Fact]

@@ -23,7 +23,7 @@ Approved 2026-10-20; user requirements are the authority. This file records deci
 - DEC-001: relational database/provider, schema/migration tooling and durable outbox implementation. Do not assume PostgreSQL or another engine.
 - DEC-002: external notification channel/provider and contact/consent policy. Local test sinks may be specified; no external provisioning.
 - DEC-003: deployment target, persistence/object-storage service, retention/backups and operating budget. Linux/Docker does not select hosting.
-- DEC-004 (remaining): Angular/model/embedding versions; record compatibility and model dimensions before use. .NET portion resolved below. OpenSpec CLI remains pinned to 1.14.3.
+- DEC-004 (remaining): model/embedding versions; record compatibility and model dimensions before use. .NET portion resolved below. OpenSpec CLI remains pinned to 1.14.3.
 - DEC-005: paid-tier limitations (Mintlify interactive OAuth/hosting, Datadog ingestion, Entra features). Prefer free capabilities; request approval before cost or architecture changes.
 
 Secrets belong in environment/secret stores, not specifications, logs, repository files or prompts. No real driver information is part of this setup.
@@ -43,3 +43,8 @@ Official ModelContextProtocol.AspNetCore2.3.0 provides stateless Streamable HTTP
 ## FAU-21 OTLP compatibility (2026-10-21)
 
 Pin official OpenTelemetry.Exporter.OpenTelemetryProtocol1.20.1 with locked SDK/API dependencies in Infrastructure, verified against net10.0. Datadog uses standard OTLP HTTP/protobuf to an explicitly configured same-host Agent; no Datadog SDK/API key is coupled into Domain/Application. Dedicated sanitized trace/metric/log pipeline excludes automatic framework/auth/HTTP/GenAI capture; bounded explicit configuration and defaults remain disabled. Optional Sentry retains the interchangeable adapter boundary and is not enabled by this change. This implements ADR-006 without resolving DEC-003/005 or authorizing remote ingestion/network/cost changes. See observability.md and fau-21-verification.md.
+
+## FAU-22 browser compatibility and Linux delivery (2026-10-21)
+Resolve the Angular portion of DEC-004 to Angular/CLI22.2.3, TypeScript6.0.2, Node22.22.3, RxJS7.8.x, Spartan brain1.8.0, Tailwind4.3.3, MSAL Angular6.2.3/browser5.25.1. Exact versions and peers are verified by the frontend lockfile and production compilation. Angular22 requires Node22.22.3+ and TypeScript6; Spartan1.8 supports Angular21/22. See https://angular.dev/reference/versions and https://spartan.ng/documentation/version-support . MSAL uses PKCE redirect with tab-scoped session storage (memoryStorage does not support redirect), no SPA secret or localStorage; see https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/caching.md .
+
+Per the user's explicit October21 direction, ADR-008 Linux/Docker is the delivery platform including on his Mac; native Windows/macOS CI is optional and not a release condition. Existing cancelled native checks are not passing evidence. No hosting or database decision follows. Vite8.3.5 override patches the Angular build dependency within its compatible8.x range; no dev server is shipped in the runtime image.

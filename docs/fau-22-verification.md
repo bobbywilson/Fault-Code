@@ -1,0 +1,25 @@
+# FAU-22 verification
+
+Part of FAU-22. Regular clean checkout branched from fetched origin/main4fcbefabdfdac8c3b770b448abb79979777247f6. Live native Fault Code Linear ticket read and set In Progress, unassigned; no worktree/subagent. OpenSpec proposal, five full capability deltas, design and tasks passed strict validation before application/workflow changes. MSAL session-cache correction was also spec-validated before implementation.
+
+## Local evidence
+
+- Locked .NET restore and Release build passed with zero warnings/errors. Full428 tests passed (38Domain,3Application,387Integration); four new administration cases cover exact scope/role and machine policy, production503, explicit role validation, unknown fields, strong versions, replay normalization/conflicts, trusted audit, tenant-filtered page/count and hidden detail. Existing server ownership and all workflow suites remain passing. Formatter verification passed.
+- Angular22.2.3/Spartan1.8.0/Tailwind4.3.3/MSAL Angular6.2.3/browser5.25.1 compile with Node22.22.3/TypeScript6.0.2; dependency lock and compatible Vite8.3.5 patch audited with zero npm vulnerabilities. Production bundle about637kB raw/147kB estimated transfer (includes MSAL and complete bounded operation manifest).
+-10 frontend unit tests passed: schema/bounds/nested arrays, absent/false/zero handling, isolated config, same-origin normalized API token boundary, preconditions/401, MSAL wrapper configuration/tenant/lifecycle/logout/failed renewal. Library doubles are not live tenant acceptance.
+-8 Playwright browser tests passed with separate test-only authentication replacement and mocked API: permission conjunctions for own Reader/Operator/Engineer/Administrator,403/503, empty/loading,401 clearing, retry-key reuse,409 stale blocking, known-fault/approved-patch investigation boundary and explicit engineering approval/notification dispatch, recorded pagination/detail/version transfer, HTML escaping, late response suppression,390px layout, keyboard/focus and zero axe violations. Desktop/mobile fixture screenshots were visually inspected; they are not live tenant records.
+- Actual local production frontend route `/admin/incidents` served with default public config and real local API: Sign-in setup unavailable, no protected data, no JavaScript errors; same-origin protected vehicle request401. This is native local serving of the production build, not local Docker or hosted deployment.
+- Complete generated REST contract passes against original committed baseline AND actual merged FAU-21 UbuntuCI artifact. Seven breaking fixtures rejected. Committed baseline now captures the entire API (74protected REST operations/57paths) instead of original foundation subset. All five actual MCP tool declarations and input/output schemas exactly equal to FAU-21 CI; samples retain per-run timestamps/correlation IDs and separately pass schema validation.
+-113 explicit allowlisted backend build inputs scanned without recognized credentials.73 business operation manifest mappings checked for drift. Compose administration profile validates with a synthetic validation-only Qdrant key. Existing backend internal network, no Qdrant host ports, MCP schemas, model isolation and authoritative workflow/notification transaction boundaries remain unchanged.
+
+## Linux acceptance and delivery
+
+Local Docker daemon is unavailable. Exact-source Linux CI must verify backend/build/contracts, disposable real Qdrant, existing container lifecycle plus new non-root administration image, fixture exclusion, real API401 and production browser setup state. Native Windows/macOS checks are optional per the user's explicit Linux Docker direction; cancelled/unrun native jobs are not passing evidence. CI/PR delivery results are recorded after observed runs.
+
+## Source review and limits
+
+Reviewed API exact policy metadata, server-derived caller/audit context, DTO/unknown-field validation and adapter503. Local roles do not mutate Entra claims; local integration metadata does not activate exporters/providers. No durable administration adapter, identity grant import, tenant, provider credentials, database or host is selected/provisioned. Test stores are one-process fixtures, never durable storage.
+
+Reviewed browser normalized same-origin paths and rejected redirects, dedicated tenant/scope checks, tab-scoped MSAL cache, no raw errors/tokens in product logs, API-generated policy AND/OR handling, scoped retry keys, stale blocking, safe text rendering, route-response epoch and production fixture exclusion. No direct model/database/vector access or generic network tool exists. No live model call, external message, vehicle operation or hosting deployment occurred.
+
+Official archive and all-spec validation follow completed verification; normal passing exact-source merge and native Linear linkage remain required. Linear stays open for Bobby's personal review. See administration.md for operator configuration and separate live tenant acceptance checklist.

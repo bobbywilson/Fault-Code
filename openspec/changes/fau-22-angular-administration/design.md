@@ -1,0 +1,19 @@
+# Design
+## Context
+See proposal.md. Existing APIs are authoritative; production canonical stores are unavailable. No active OpenSpec changes existed. Live FAU-22 read in native Fault Code Linear; implementation and normal delivery are already authorized.
+## Goals / Non-Goals
+Deliver the complete API-backed workspace and explicit safe adapter contracts. No Entra Graph provisioning, tenant setup, DB selection, live model calls, external messages or hosting deployment.
+## Decisions
+- Resolve DEC-004 Angular portion using current official Angular compatibility and Spartan support documentation and npm peer metadata: Angular/CLI22.2.3, Node22.22.3, TypeScript6.0.x, RxJS7.8.x, Spartan brain1.8.0, Tailwind4.3.3, MSAL Angular6.2.3/browser5.25.1. Use exact lockfile. Angular21 would require an earlier upgrade; React violates ADR-002. Sources: https://angular.dev/reference/versions ; https://spartan.ng/documentation/version-support ; https://spartan.ng/documentation/installation ; https://learn.microsoft.com/en-us/entra/msal/javascript/angular/initialization . Verify actual compiled peers before delivery.
+- Angular standalone workspace with Spartan accessible primitives and local Helm styling. Generate an operation manifest from OpenAPI at development/build time, with typed field schemas and policy conjunctions. Human-facing named workflow forms use the manifest to cover every existing mutation without duplicating permission/validation contracts; no raw JSON editor or unrestricted URL entry. Field groups support nested DTOs/arrays, bounded inputs and explicit resource IDs. Group actions by business area; detail/history show returned records only.
+- MSAL Angular service owns redirect handling and silent tokens. Public runtime configuration contains GUIDs only, no secrets; validates same-origin redirect and exact API scope prefix. Production cannot switch to test identity. Tests replace only bundled auth module through a separate test build configuration, excluded from production compilation.
+- Add provider-independent administration store boundary, explicit local user-role and integration metadata, server-derived caller context and atomic replay contract. Production unavailable adapter503. No external identity/provider mutation; directory grants and credential activation remain separately authorized work. Test fake proves filtering/concurrency/replay without claiming durable persistence.
+- Same-origin Nginx frontend proxy to existing API on internal Compose network, nonroot/loopback binding; explicit public config file. Preserve existing API image allowlist. Linux CI builds frontend and runs component/service and Playwright mocked auth/API suites; container smoke verifies production setup state and real401.
+## Risks / Trade-offs
+- Unprovisioned identity/storage -> visible unavailable states plus separate live tenant checklist; mocked acceptance cannot prove real tenancy/durability.
+- Broad workflow surface -> generated manifest checked against actual OpenAPI and all mutation policies/preconditions; meaningful browser tests cover all three workflows and negative states.
+- Runtime configuration -> strict same-origin and GUID/scope validation; never accept API base URL or secret.
+## Migration Plan
+Additive API, static SPA and optional Compose frontend service; no DB migration. Roll back image/source, leave existing APIs unchanged. Preserve all five MCP schemas and model isolation.
+
+MSAL primary caching documentation explicitly marks memoryStorage redirect unsupported. Use sessionStorage for redirect PKCE, cleared on tab close; no localStorage. Redirect handling uses the MSAL5 options object with navigateToLoginRequestUrl false. Source: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/caching.md .

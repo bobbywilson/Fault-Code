@@ -87,6 +87,7 @@ public sealed class ApiDocumentTransformer : IOpenApiDocumentTransformer
                     operation.Extensions["x-delegated-scopes"] = new JsonNodeExtension(new JsonArray(grants.Select(p => p.Scope).Concat(policies.Contains("vehicles.access.read") ? new[] { "vehicles.read.own" } : []).Concat(policies.Contains("drivers.access.read") ? new[] { "drivers.read.own" } : []).Select(p => (JsonNode?)JsonValue.Create(p)).ToArray()));
                     operation.Extensions["x-application-roles"] = new JsonNodeExtension(new JsonArray(grants.Select(p => (JsonNode?)JsonValue.Create(p.ApplicationRole)).ToArray()));
                 }
+                if (path.StartsWith("/api/v1/admin", StringComparison.Ordinal)) AdministrationDocumentExamples.Decorate(operation, path);
                 if (path.StartsWith("/api/v1/drivers", StringComparison.Ordinal) || path.StartsWith("/api/v1/vehicles", StringComparison.Ordinal))
                     FleetDocumentExamples.Decorate(operation, path);
                 if (path.EndsWith("/investigations", StringComparison.Ordinal)) InvestigationDocumentExamples.Decorate(operation, path);

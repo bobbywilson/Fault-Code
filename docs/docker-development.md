@@ -56,3 +56,6 @@ If Docker cannot connect, verify its Linux engine is running before retrying. If
 ## FAU-14 retrieval acceptance
 
 Linux CI adds a separately disposable authenticated Qdrant1.19.2 service for actual adapter/lifecycle/access/reindex tests with deterministic mock embeddings. Normal Compose retains its internal network/no Qdrant host port. Embeddings remain disabled and canonical storage503 pending approved decisions; this is not working production RAG. Live OpenAI outbound networking is not enabled by weakening the internal backend network. See knowledge-retrieval.md for configuration, test invocation and activation boundaries.
+
+## Administration frontend
+`docker compose --profile administration up --build -d` adds the non-root SPA at http://localhost:5082/admin/incidents with same-origin API proxying. No tenant configuration ships: initial production state is Sign-in setup unavailable. Existing internal backend network and Qdrant port exposure are unchanged. See administration.md for public configuration mount, Linux acceptance and boundaries. Native Windows/macOS CI is optional; Linux build/container checks govern delivery.

@@ -53,3 +53,6 @@ A JWT API checks the token's lifetime, not the current interactive session on ev
 - [Client credentials and .default](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-client-creds-grant-flow)
 
 Automated evidence and remaining acceptance: [FAU-8 verification](fau-8-verification.md).
+
+## FAU-22 browser client
+The Angular client now implements the maintained MSAL PKCE redirect lifecycle with dedicated public configuration, exact same-origin callback, tab-scoped session cache and silent renewal. No identifiers or tenant are provisioned by code. Browser/mock tests do not establish live Entra sign-in; follow administration.md and the existing isolated registration checklist before claiming live acceptance.
