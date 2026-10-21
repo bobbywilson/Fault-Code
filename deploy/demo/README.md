@@ -68,6 +68,13 @@ networks/volumes and no LALAI mounts. It reserves two of four CPU cores at confi
 limits and at most2304MiB container RAM, leaving observed runner/OS headroom.
 Docker log size is bounded. API container health checks actual Qdrant readiness;
 HTTP/API/authentication probes and image source labels are independently checked.
+Install `monitor.sh` root-owned0755 as `/usr/local/sbin/faultcode-monitor`, with
+the dedicated monitor service/timer after deployment. Every five minutes it records
+only this project's four service states and CPU/memory/PID statistics plus host
+headroom and LALAI runner state. It fails on unhealthy/missing services, available
+memory below1GiB or disk below10GiB; it never repairs or restarts services. Inspect
+`journalctl -u faultcode-monitor.service` and the unit's failure state. These are
+local operational signals, not a configured external notification channel.
 The receiver checks unchanged runner PID/restart counter but cannot prove every
 Simone behavior. Capture external application/agent baselines separately.
 
