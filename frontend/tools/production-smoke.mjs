@@ -14,6 +14,7 @@ try {
   await page.getByRole('heading', { name: 'Sign in to continue' }).waitFor();
   assert.equal(await page.getByRole('button', { name: 'Sign in with Microsoft' }).count(), 1);
   assert.equal(await page.getByRole('button', { name: 'Load records' }).count(), 0);
+  assert.equal(await page.getByRole('navigation', { name: 'Administration' }).count(), 0);
   assert.equal(
     await page.locator('[data-slot=sidebar-wrapper]').evaluate((e) => getComputedStyle(e).display),
     'flex',

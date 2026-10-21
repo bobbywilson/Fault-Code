@@ -99,50 +99,54 @@ export const areas = [
       >Skip to workspace</a
     >
     <div hlmSidebarWrapper>
-      <hlm-sidebar variant="inset" collapsible="icon">
-        <div hlmSidebarContent>
-          <div hlmSidebarGroup>
-            <div hlmSidebarGroupLabel>Workspace</div>
-            <nav hlmSidebarGroupContent aria-label="Administration">
-              <ul hlmSidebarMenu>
-                @for (item of areas; track item[1]; let index = $index) {
-                  <li hlmSidebarMenuItem>
-                    <a
-                      hlmSidebarMenuButton
-                      [routerLink]="'/admin/' + item[1]"
-                      routerLinkActive
-                      #active="routerLinkActive"
-                      [isActive]="active.isActive"
-                      ariaCurrentWhenActive="page"
-                      [tooltip]="item[0]"
-                    >
-                      <ng-icon [name]="icons[index]" /><span>{{ item[0] }}</span>
-                    </a>
-                  </li>
-                }
-              </ul>
-            </nav>
+      @if (auth.state() === 'signed-in') {
+        <hlm-sidebar variant="inset" collapsible="icon">
+          <div hlmSidebarContent>
+            <div hlmSidebarGroup>
+              <div hlmSidebarGroupLabel>Workspace</div>
+              <nav hlmSidebarGroupContent aria-label="Administration">
+                <ul hlmSidebarMenu>
+                  @for (item of areas; track item[1]; let index = $index) {
+                    <li hlmSidebarMenuItem>
+                      <a
+                        hlmSidebarMenuButton
+                        [routerLink]="'/admin/' + item[1]"
+                        routerLinkActive
+                        #active="routerLinkActive"
+                        [isActive]="active.isActive"
+                        ariaCurrentWhenActive="page"
+                        [tooltip]="item[0]"
+                      >
+                        <ng-icon [name]="icons[index]" /><span>{{ item[0] }}</span>
+                      </a>
+                    </li>
+                  }
+                </ul>
+              </nav>
+            </div>
           </div>
-        </div>
-        <div hlmSidebarFooter>
-          <ul hlmSidebarMenu>
-            <li hlmSidebarMenuItem>
-              <a hlmSidebarMenuButton href="/openapi/v1.json" target="_blank" rel="noopener"
-                ><ng-icon name="lucideArrowUpRight" /><span>API reference</span></a
-              >
-            </li>
-            <li hlmSidebarMenuItem>
-              <span hlmBadge variant="outline" class="m-2"
-                ><ng-icon name="lucideShieldCheck" class="mr-1 size-3" />Protected workspace</span
-              >
-            </li>
-          </ul>
-        </div>
-      </hlm-sidebar>
+          <div hlmSidebarFooter>
+            <ul hlmSidebarMenu>
+              <li hlmSidebarMenuItem>
+                <a hlmSidebarMenuButton href="/openapi/v1.json" target="_blank" rel="noopener"
+                  ><ng-icon name="lucideArrowUpRight" /><span>API reference</span></a
+                >
+              </li>
+              <li hlmSidebarMenuItem>
+                <span hlmBadge variant="outline" class="m-2"
+                  ><ng-icon name="lucideShieldCheck" class="mr-1 size-3" />Protected workspace</span
+                >
+              </li>
+            </ul>
+          </div>
+        </hlm-sidebar>
+      }
       <main hlmSidebarInset id="main" tabindex="-1" class="min-w-0">
         <header class="flex h-16 shrink-0 items-center justify-between gap-4 border-b px-4 md:px-6">
           <div class="flex items-center gap-3">
-            <button hlmSidebarTrigger></button>
+            @if (auth.state() === 'signed-in') {
+              <button hlmSidebarTrigger></button>
+            }
             <nav hlmBreadcrumb>
               <ol hlmBreadcrumbList>
                 <li hlmBreadcrumbItem><span hlmBreadcrumbLink>Workspace</span></li>

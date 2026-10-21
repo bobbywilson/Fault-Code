@@ -64,6 +64,10 @@ test('401 clears records and requires sign-in without automatic mutation retry',
   await page.route('**/api/v1/vehicles*', (r) => r.fulfill({ status: 401, json: { status: 401 } }));
   await submit(page);
   await expect(page.getByRole('heading', { name: 'Your session has expired' })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Administration', exact: true })).toHaveCount(
+    0,
+  );
+  await expect(page.getByRole('button', { name: 'Toggle Sidebar' })).toHaveCount(0);
   await expect(page.getByText('No recorded items.')).toHaveCount(0);
 });
 test('conflicts block stale resubmission and repeated outage retry retains replay key', async ({
