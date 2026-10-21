@@ -4,9 +4,10 @@ set -euo pipefail
 name="faultcode-admin-ci-${GITHUB_RUN_ID:-$$}"
 cleanup() { docker rm -f "$name-web" "$name-api" >/dev/null 2>&1 || true; docker network rm "$name" >/dev/null 2>&1 || true; }
 trap cleanup EXIT
+trap 'echo "Administration smoke failed at line $LINENO" >&2; docker ps -a --filter "name=$name"; docker logs --tail=30 "$name-web"; docker logs --tail=30 "$name-api"' ERR
 docker build --target runtime -t "$name-api" .
 docker build -t "$name-web" frontend
-docker network create --internal "$name" >/dev/null
+docker network create "$name" >/dev/null
 docker run -d --name "$name-api" --network "$name" --network-alias api "$name-api" >/dev/null
 docker run -d --name "$name-web" --network "$name" -p 127.0.0.1::8080 "$name-web" >/dev/null
 port=$(docker inspect --format '{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' "$name-web")
