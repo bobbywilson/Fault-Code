@@ -65,3 +65,7 @@ Document create/detail/update/publication/delete/index and tenant reindex requir
 ## FAU-16 MCP authority
 
 POST /api/v1/mcp authenticates each stateless HTTP request through Entra. Internal mcp.access is an authenticated transport policy only, not an Entra grant; each listed/invoked tool enforces its existing exact policy conjunction. No privileged service grants are added. MCP mutation intent must be independently bound in the authenticated consumer's HTTP header; arguments/metadata/model/retrieved text cannot authorize it. See mcp-tools.md. The model runtime remains separate with no tools connected.
+
+## FAU-18 engineering case authority
+
+Engineering case reads require escalations.read, faults.read, vehicles.access.read and knowledge.read. Mutations require escalations.write plus the three incident read policies; approval additionally requires knowledge.publish. Tenant/historical owner filtering precedes counts and replay. Assigned object ID is a work label only. No extra Entra grant, role bypass, model authority or MCP tool. See [engineering escalation](engineering-escalation.md).

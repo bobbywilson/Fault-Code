@@ -27,6 +27,8 @@ builder.Services.AddSingleton(s => s.GetRequiredService<IOptions<AgentOptions>>(
 builder.Services.AddScoped<FaultCode.Application.Agents.AgentRuntimeService>();
 builder.Services.AddSingleton<FaultCode.Application.Investigations.IInvestigationStore, UnavailableInvestigationStore>();
 builder.Services.AddScoped<FaultCode.Application.Investigations.InvestigationService>();
+builder.Services.AddSingleton<FaultCode.Application.Escalations.IEscalationStore, UnavailableEscalationStore>();
+builder.Services.AddScoped<FaultCode.Application.Escalations.EscalationService>();
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddSingleton<FaultCode.Application.Fleet.IFleetStore, UnavailableFleetStore>();
 builder.Services.AddScoped<FaultCode.Application.Fleet.FleetService>();
