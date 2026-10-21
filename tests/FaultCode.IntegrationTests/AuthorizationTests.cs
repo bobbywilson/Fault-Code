@@ -19,7 +19,7 @@ namespace FaultCode.IntegrationTests;
 
 public sealed class AuthorizationTests
 {
-    private static string Token(SecurityKey key, string? scope, string[] roles, bool machine = false, string actor = Actor)
+    internal static string Token(SecurityKey key, string? scope, string[] roles, bool machine = false, string actor = Actor)
     {
         var claims = new List<Claim> { new("tid", Tenant), new("ver", "2.0"), new("oid", actor), new("azp", Client) };
         if (scope is not null) claims.Add(new("scp", scope));
@@ -168,19 +168,43 @@ public sealed class AuthorizationTests
             Assert.NotEmpty(policies);
             foreach (var policy in policies)
             {
-                Assert.True(Permissions.TryPolicy(policy.Policy ?? "", out var permission, out _));
+                var readArea = policy.Policy is "drivers.access.read" ? "drivers" : policy.Policy is "vehicles.access.read" ? "vehicles" : null;
+                var known = Permissions.TryPolicy(policy.Policy ?? "", out var permission, out _);
+                Assert.True(known || readArea is not null);
                 Assert.NotNull(await factory.Services.GetRequiredService<IAuthorizationPolicyProvider>().GetPolicyAsync(policy.Policy!));
                 var route = Assert.IsType<RouteEndpoint>(endpoint).RoutePattern.RawText!;
-                var operation = json.RootElement.GetProperty("paths").GetProperty("/" + route.TrimStart('/')).GetProperty("get");
+                route = System.Text.RegularExpressions.Regex.Replace(route, @":guid(?=})", "");
+                var method = endpoint.Metadata.GetMetadata<HttpMethodMetadata>()!.HttpMethods.Single().ToLowerInvariant();
+                var operation = json.RootElement.GetProperty("paths").GetProperty("/" + route.TrimStart('/')).GetProperty(method);
                 Assert.True(operation.GetProperty("security")[0].TryGetProperty("EntraBearer", out _));
-                Assert.Equal(permission!.Name, operation.GetProperty("x-faultcode-permission").GetString());
-                Assert.Equal(permission.Scope, operation.GetProperty("x-delegated-scopes")[0].GetString());
-                Assert.Equal(permission.ApplicationRole, operation.GetProperty("x-application-roles")[0].GetString());
-                Assert.Equal(permission.HumanRoles, operation.GetProperty("x-human-roles").EnumerateArray().Select(x => x.GetString()));
+                Assert.Contains(policy.Policy, operation.GetProperty("x-faultcode-required-policies").EnumerateArray().Select(x => x.GetString()));
+                var requirements = operation.GetProperty("x-faultcode-policy-requirements").EnumerateArray().ToArray();
+                Assert.Equal(policies.Count, requirements.Length);
+                var requirement = Assert.Single(requirements, x => x.GetProperty("policy").GetString() == policy.Policy);
+                var alternatives = requirement.GetProperty("anyOf").EnumerateArray().ToArray();
+                Assert.Equal(readArea is null ? 1 : 2, alternatives.Length);
+                permission ??= Permissions.Find(readArea + ".read");
+                Assert.Equal(permission!.Scope, alternatives[0].GetProperty("scope").GetString());
+                Assert.Equal(permission.HumanRoles, alternatives[0].GetProperty("humanRoles").EnumerateArray().Select(x => x.GetString()));
+                Assert.Equal(permission.ApplicationRole, alternatives[0].GetProperty("applicationRole").GetString());
+                if (readArea is not null)
+                {
+                    Assert.Equal(readArea + ".read.own", alternatives[1].GetProperty("scope").GetString());
+                    Assert.Equal(new[] { "Reader" }, alternatives[1].GetProperty("humanRoles").EnumerateArray().Select(x => x.GetString()));
+                    Assert.Equal(JsonValueKind.Null, alternatives[1].GetProperty("applicationRole").ValueKind);
+                }
+                if (policies.Count == 1)
+                {
+                    Assert.Equal(policy.Policy, operation.GetProperty("x-faultcode-permission").GetString());
+                    permission ??= Permissions.Find(readArea + ".read");
+                    Assert.Equal(permission!.Scope, operation.GetProperty("x-delegated-scopes")[0].GetString());
+                    Assert.Equal(permission.ApplicationRole, operation.GetProperty("x-application-roles")[0].GetString());
+                    Assert.Equal(permission.HumanRoles, operation.GetProperty("x-human-roles").EnumerateArray().Select(x => x.GetString()));
+                }
             }
             protectedCount++;
         }
-        Assert.Equal(1, protectedCount);
+        Assert.Equal(14, protectedCount);
     }
 
     [Fact]

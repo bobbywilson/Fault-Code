@@ -29,11 +29,11 @@ public sealed class ApiHostTests
     }
 
     [Fact]
-    public async Task Unimplemented_business_routes_expose_no_data()
+    public async Task Vehicle_routes_require_identity()
     {
         await using var factory = new WebApplicationFactory<Program>();
         using var client = factory.CreateClient();
-        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/v1/vehicles")).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/v1/vehicles")).StatusCode);
     }
 
     [Theory]

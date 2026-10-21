@@ -57,6 +57,7 @@ public static class Permissions
         services.AddHttpContextAccessor();
         services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
         services.AddSingleton<IAuthorizationHandler, DriverResourceHandler>();
+        services.AddSingleton<IAuthorizationHandler, FleetReadHandler>();
         services.AddAuthorization(options =>
         {
             options.DefaultPolicy = new AuthorizationPolicyBuilder().RequireAssertion(_ => false).Build();
@@ -69,6 +70,9 @@ public static class Permissions
                     options.AddPolicy(name, policy => policy.RequireAuthenticatedUser()
                         .AddRequirements(new PermissionRequirement(permission, kind)));
                 }
+            foreach (var area in new[] { "drivers", "vehicles" })
+                options.AddPolicy(area + ".access.read", policy => policy.RequireAuthenticatedUser()
+                    .AddRequirements(new FleetReadRequirement(area)));
             options.AddPolicy("drivers.resource.read", policy => policy.RequireAuthenticatedUser()
                 .AddRequirements(new DriverResourceRequirement("drivers")));
             options.AddPolicy("vehicles.resource.read", policy => policy.RequireAuthenticatedUser()

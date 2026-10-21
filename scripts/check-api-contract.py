@@ -75,7 +75,7 @@ def validate_document(document):
                             return [resolve(v) for v in value]
                         return value
                     Draft202012Validator(resolve(media['schema'])).validate(media['example'])
-                    if code != '200':
+                    if not code.startswith('2'):
                         assert media_type == 'application/problem+json'
                         assert media['example']['status'] == int(code)
     assert len(ids) == len(set(ids)), 'duplicate operation IDs'
