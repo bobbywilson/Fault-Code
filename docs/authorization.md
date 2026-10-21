@@ -57,3 +57,7 @@ Production vehicle/driver routes now exist; see [lifecycle contract](vehicle-dri
 ## FAU-13 ontology access
 
 Draft creation/replacement/read, history and approval require exact knowledge.publish (Engineer or Knowledge.Publish application role). Approved publication read and stored deterministic evaluation require exact knowledge.read (listed read roles or Knowledge.Read.All). No new permissions or implicit Operator/Administrator access. Both stored evaluation and publication are tenant-local; approved reads never expose drafts.
+
+## FAU-14 document access
+
+Document create/detail/update/publication/delete/index and tenant reindex require exact knowledge.publish. Search requires exact knowledge.read and filters current approved tenant-local exact system/model/software and tenant-or-publisher access before vector ranking; authoritative canonical chunk IDs are checked again after ranking. Publisher-only means the publication approver oid, never a supplied claim/owner. Drafts/history are never search evidence. No new scopes/app roles, agent privilege union or Administrator bypass. See knowledge-retrieval.md.

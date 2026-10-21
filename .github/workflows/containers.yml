@@ -13,3 +13,38 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build and verify isolated container lifecycle
         run: bash scripts/container-smoke.sh
+
+  retrieval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      qdrant:
+        image: qdrant/qdrant:v1.19.2@sha256:b7b0444c4c351c970b98e90a6f89c2ee4287c65b44e52b4cb503fa5b2aa927ad
+        env:
+          QDRANT__SERVICE__API_KEY: synthetic-ci-disposable-key
+          QDRANT__TELEMETRY_DISABLED: 'true'
+        ports:
+          - 6333:6333
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Wait for disposable authenticated Qdrant
+        run: |
+          for attempt in {1..30}; do
+            if curl --fail --silent -H 'api-key: synthetic-ci-disposable-key' http://localhost:6333/collections > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - run: dotnet restore FaultCode.slnx --locked-mode
+      - name: Real Qdrant lifecycle, access, replacement, deletion, rebuild and dimensions
+        run: dotnet test tests/FaultCode.IntegrationTests -c Release --no-restore --filter FullyQualifiedName~Disposable_real_Qdrant_acceptance --logger trx
+        env:
+          FAULTCODE_TEST_QDRANT: http://localhost:6333
+          FAULTCODE_TEST_QDRANT_KEY: synthetic-ci-disposable-key
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: retrieval-qdrant-results
+          path: tests/FaultCode.IntegrationTests/TestResults/*.trx

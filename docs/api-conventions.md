@@ -70,3 +70,7 @@ Use a Python virtual environment locally. CI uses Python 3.12, validates OpenAPI
 ## FAU-13 ontology operations
 
 [Ontology contracts](automotive-ontology.md) add aggregate concept/relationship/rule draft management, immutable approval, pinned deterministic evaluation and retained results. Eight operations bring the protected inventory to37 across27 OpenAPI paths. Exact knowledge.publish manages and approves; knowledge.read consumes approved content/evaluations. Production ontology storage503; approved taxonomy validation is now implemented against the same unavailable-until-configured store. No production memory persistence.
+
+## FAU-14 document operations
+
+[Traditional retrieval contracts](knowledge-retrieval.md) add eight protected operations (45 across33 OpenAPI paths): document create/draft/update/approval/withdrawal/index, tenant reindex and approved evidence search. Exact knowledge.publish manages; knowledge.read searches. Explicit source/page/version/checksum/approval citations are untrusted evidence. Canonical storage503 pending DEC-001/003; configured embedding model/dimensions remain a separate DEC-004 choice. No production memory fallback or model-generated advice.

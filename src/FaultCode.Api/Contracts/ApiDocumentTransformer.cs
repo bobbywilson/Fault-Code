@@ -92,6 +92,7 @@ public sealed class ApiDocumentTransformer : IOpenApiDocumentTransformer
                 if (path.StartsWith("/api/v1/incidents", StringComparison.Ordinal)) IncidentDocumentExamples.Decorate(operation, path);
                 if (path.StartsWith("/api/v1/faults", StringComparison.Ordinal)) KnowledgeDocumentExamples.Decorate(operation, path);
                 if (path.StartsWith("/api/v1/ontology", StringComparison.Ordinal)) OntologyDocumentExamples.Decorate(operation, path);
+                if (path.StartsWith("/api/v1/knowledge", StringComparison.Ordinal)) RetrievalDocumentExamples.Decorate(operation, path);
             }
         }
         foreach (var (path, item) in document.Paths)

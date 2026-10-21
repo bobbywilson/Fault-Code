@@ -21,6 +21,26 @@ builder.Services.AddScoped<FaultCode.Application.Knowledge.KnowledgeService>();
 builder.Services.AddSingleton<FaultCode.Application.Incidents.IIncidentStore, UnavailableIncidentStore>();
 builder.Services.AddScoped<FaultCode.Application.Incidents.IncidentService>();
 
+builder.Services.AddSingleton<FaultCode.Application.Retrieval.IDocumentStore, UnavailableDocumentStore>();
+builder.Services.AddScoped<FaultCode.Application.Retrieval.RetrievalService>();
+builder.Services.AddOptions<EmbeddingOptions>().Bind(builder.Configuration.GetSection("Embeddings"))
+    .Validate(o => !o.Enabled || (!string.IsNullOrWhiteSpace(o.ApiKey) && !o.ApiKey.Any(char.IsControl)
+        && !string.IsNullOrWhiteSpace(o.Model) && o.Model.Length <= 100
+        && o.Model.All(x => char.IsAsciiLetterOrDigit(x) || x is '-' or '_' or '.') && o.Dimensions is >= 1 and <= 4096),
+        "Embeddings:Model, Dimensions and ApiKey must be explicitly configured when enabled.").ValidateOnStart();
+builder.Services.AddHttpClient("embeddings").RemoveAllLoggers().ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+builder.Services.AddHttpClient("document-index").RemoveAllLoggers().ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+builder.Services.AddTransient<FaultCode.Application.Retrieval.IEmbeddingProvider>(s =>
+{
+    var o = s.GetRequiredService<IOptions<EmbeddingOptions>>().Value;
+    return new EmbeddingHttpProvider(s.GetRequiredService<IHttpClientFactory>().CreateClient("embeddings"), new(o.Model, o.Dimensions), o.ApiKey, o.Enabled);
+});
+builder.Services.AddTransient<FaultCode.Application.Retrieval.IDocumentIndex>(s =>
+{
+    var o = s.GetRequiredService<IOptions<QdrantOptions>>().Value;
+    return new QdrantDocumentIndex(s.GetRequiredService<IHttpClientFactory>().CreateClient("document-index"), o.Endpoint, o.ApiKey, o.Enabled);
+});
+
 builder.Services.AddOptions<FoundationOptions>()
     .Bind(builder.Configuration.GetSection(FoundationOptions.SectionName))
     .Validate(options => !string.IsNullOrWhiteSpace(options.ApplicationName)
@@ -91,7 +111,7 @@ app.Use(async (context, next) =>
     catch (FaultCode.Application.Incidents.IncidentException error) when (!context.Response.HasStarted)
     { await WriteProblem(context, error.Status); }
     catch (FaultCode.Application.Knowledge.KnowledgeException error) when (!context.Response.HasStarted)
-    { await WriteProblem(context, error.Status); }
+    { await WriteProblem(context, error.Status, error.FailureCode); }
     catch (FaultCode.Application.Fleet.FleetException error) when (!context.Response.HasStarted)
     { await WriteProblem(context, error.Status); }
 });
@@ -103,12 +123,15 @@ app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => fa
 app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") }).AllowAnonymous();
 app.Run();
 
-static Task WriteProblem(HttpContext context, int status) => Results.Problem(
-    statusCode: status,
-    title: Microsoft.AspNetCore.WebUtilities.ReasonPhrases.GetReasonPhrase(status),
-    type: "about:blank",
-    instance: context.Request.Path,
-    extensions: new Dictionary<string, object?> { ["correlationId"] = context.TraceIdentifier })
-    .ExecuteAsync(context);
+static Task WriteProblem(HttpContext context, int status, string? failureCode = null)
+{
+    var extensions = new Dictionary<string, object?> { ["correlationId"] = context.TraceIdentifier };
+    if (failureCode is "document-storage-unavailable" or "embedding-unavailable" or "vector-index-unavailable"
+        or "collection-incompatible" or "embedding-profile-invalid" or "embedding-response-invalid" or "approved-evidence-unindexed")
+        extensions["failureCode"] = failureCode;
+    return Results.Problem(statusCode: status,
+        title: Microsoft.AspNetCore.WebUtilities.ReasonPhrases.GetReasonPhrase(status), type: "about:blank",
+        instance: context.Request.Path, extensions: extensions).ExecuteAsync(context);
+}
 
 public partial class Program;
