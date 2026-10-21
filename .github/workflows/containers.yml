@@ -22,6 +22,8 @@ jobs:
         run: docker compose --project-name faultcode-demo-configcheck --file deploy/demo/compose.yaml config --quiet
       - name: Build and verify isolated container lifecycle
         run: bash scripts/container-smoke.sh
+      - name: Verify isolated demo packaging and HTTPS with disposable test CA
+        run: bash scripts/demo-stack-smoke.sh
 
   retrieval:
     runs-on: ubuntu-latest
