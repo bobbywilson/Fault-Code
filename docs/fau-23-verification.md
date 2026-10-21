@@ -16,3 +16,21 @@ DEC-001canonical storage/outbox/migrations, DEC-002notification channel/contact/
 
 ## Linux acceptance
 Initial Linux source9997f04 exposed an incorrect administration Docker build context in the new release script. Corrected it to the existing frontend/ context, preserving the established image inputs and network isolation. Added bounded probe timeouts. The failed candidate is not release acceptance; corrected source must pass all checks. Source review also replaced ambiguous bearer prose with explicit public-operation language and generated readable operation titles from stable operation IDs. Actual browser tests pass on that output; schema/security compatibility and dotnet format pass. Evidence gates now require all9injection/5outage/20invalid-identity cases, with a negative omitted-parameter fixture.
+
+
+All exact-source Linux jobs pass on 7d366f2035a76c6684defaf64d052d8116a8e004:
+
+| Check | Run | Observed duration |
+| --- | --- | --- |
+| Backend build/tests/contracts/specs/format | 39642060716 | 3m30s |
+| Documentation and actual anonymous Chromium | 39642060300 | 2m6s |
+| Private Linux archives and actual rollback | 39642060278 | 2m14s |
+| Real authenticated Qdrant | 39642060595 | 53s |
+| Isolated container lifecycle | 39642060595 | 2m20s |
+| Administration/actual production image | 39642060645 | 2m58s |
+
+Downloaded release archives and metadata from run39642060278; independently verified every SHA-256 checksum. Manifest source matches actual head, platform linux/amd64. Candidate API ID695fc379acf6 and admin4ded501cc64d; prior API740a35f9012a. Actual JSONL stages show prior09e1f531→candidate7d366f2→same-image restart→original-image/configuration rollback. Prior/rollback public fixtures compare exactly; script also asserts health, protected401, non-root and rejected blank application configuration. No canonical state or schema migration is involved.
+
+Actual Linux documentation screenshot from corrected source e5e2778 was downloaded and visually inspected: readable styles/cards/warning and no fake deployed state. Latest7d366f2 official renderer/browser acceptance also passes after readable endpoint title and bearer-prose correction. Initial failed9997f04release remains failed evidence; no cancelled job is reported as passing.
+
+Tracked tasks are complete from this observed implementation/verification. Official archive and final all-spec validation follow, then the complete exact-head check set is required again before normal merge. Public hosted docs, live TryIt and durable deployment remain explicitly outstanding external acceptance, not completed by image-only rollback.

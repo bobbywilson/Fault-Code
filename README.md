@@ -1,6 +1,8 @@
 # Fault Code
 
-Independent API-first agentic automotive fault investigation proof of concept. The initial ASP.NET Core backend foundation is implemented; vehicle/driver lifecycle APIs and rules are implemented with production storage unavailable pending DEC-001. Fault knowledge lifecycle APIs and approved versioned ontology management/rule evaluation are implemented with production storage unavailable pending DEC-001. Incident intake/lifecycle APIs are implemented with production transactional storage/context unavailable pending DEC-001. Other business workflows remain specified for later tickets.
+Independent API-first agentic automotive fault investigation proof of concept. Protected REST/MCP APIs, grounded A/B/C investigation and engineering/notification services, Angular administration, provider-independent telemetry and public Mintlify sources are implemented with deterministic synthetic acceptance and Linux container verification.
+
+Production canonical stores and external delivery intentionally return 503 pending approved durable adapters and provider decisions. No live Entra tenant, hosted documentation/application, paid model integration or durable deployment is provisioned. The administration UI reports sign-in setup unavailable until approved public browser configuration is supplied. See the release runbook for the remaining live acceptance requirements.
 
 ## Start here
 - [Public Mintlify sources and verification](docs/documentation-delivery.md)
