@@ -1,10 +1,11 @@
 # Fault Code
 
-Independent API-first agentic automotive fault investigation proof of concept. The initial ASP.NET Core backend foundation is implemented; vehicle/driver lifecycle APIs and rules are implemented with production storage unavailable pending DEC-001. Other business workflows remain specified for later tickets.
+Independent API-first agentic automotive fault investigation proof of concept. The initial ASP.NET Core backend foundation is implemented; vehicle/driver lifecycle APIs and rules are implemented with production storage unavailable pending DEC-001. Fault knowledge lifecycle APIs are also implemented with production storage/ontology unavailable pending DEC-001 and FAU-13. Other business workflows remain specified for later tickets.
 
 ## Start here
 - [Run and test the backend](docs/local-development.md)
 - [Vehicle/driver lifecycle and storage boundary](docs/vehicle-driver-management.md)
+- [Fault knowledge lifecycle and approval](docs/fault-code-management.md)
 - [API conventions and contracts](docs/api-conventions.md)
 - [API authorization and permission matrix](docs/authorization.md)
 - [Dedicated Entra authentication and registration](docs/entra-authentication.md)
