@@ -34,7 +34,6 @@ import { Schema, kind, initial, label, nullable } from './schema';
               />
               <span hlmFieldLabel>Include {{ label(name) }}</span>
             </div>
-            >
           }
           @if (model[name] != null || (schema.required?.includes(name) && !nullable(field))) {
             <app-fields [schema]="field" [model]="object(name, field)" [prefix]="key" />

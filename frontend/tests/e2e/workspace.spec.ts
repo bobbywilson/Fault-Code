@@ -197,6 +197,11 @@ test('recorded list opens real detail, paginates, escapes returned markup and su
   });
   await submit(page);
   await expect(page.getByText('SYN-001', { exact: true })).toBeVisible();
+  if (process.env['FAULTCODE_QA_DIR'])
+    await page.screenshot({
+      path: process.env['FAULTCODE_QA_DIR'] + '/spartan-vehicle-records-desktop-fixture.png',
+      fullPage: true,
+    });
   await page.getByRole('button', { name: 'Next', exact: true }).click();
   await expect(page.getByText('SYN-021', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Next', exact: true })).toBeDisabled();

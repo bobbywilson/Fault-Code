@@ -11,3 +11,6 @@ src/**/*.spec.ts
 !public/
 !public/browser-config.json
 !nginx.conf
+
+!libs/
+!libs/**
