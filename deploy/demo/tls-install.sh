@@ -41,7 +41,9 @@ if [[ -f current.env ]]; then
   compose exec -T proxy nginx -t && compose exec -T proxy nginx -s reload || restore
   observed=''
   for attempt in 1 2 3 4 5; do
-    observed=$(timeout 10 openssl s_client -connect 127.0.0.1:443 -servername faultcodeai.com -verify_hostname faultcodeai.com -verify_return_error </dev/null 2>/dev/null | openssl x509 -noout -fingerprint -sha256 | cut -d= -f2 | tr -d :) || true
+    if ! observed=$(timeout 10 openssl s_client -connect 127.0.0.1:443 -servername faultcodeai.com -verify_hostname faultcodeai.com -verify_return_error </dev/null 2>/dev/null | openssl x509 -noout -fingerprint -sha256 | cut -d= -f2 | tr -d :); then
+      observed=''
+    fi
     [[ "$observed" != "$generation" ]] || break
     sleep 1
   done
