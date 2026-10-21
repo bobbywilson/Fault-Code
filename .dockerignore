@@ -75,3 +75,9 @@
 !src/FaultCode.Infrastructure/QdrantDocumentIndex.cs
 !src/FaultCode.Infrastructure/UnavailableDocumentStore.cs
 !src/FaultCode.Api/Contracts/RetrievalDocumentExamples.cs
+!src/FaultCode.Api/Configuration/AgentOptions.cs
+!src/FaultCode.Api/Controllers/AgentRunsController.cs
+!src/FaultCode.Infrastructure/AgentFrameworkProvider.cs
+!src/FaultCode.Application/Agents/AgentRuntimeService.cs
+!src/FaultCode.Application/Agents/AgentContracts.cs
+!src/FaultCode.Api/Contracts/AgentDocumentExamples.cs
