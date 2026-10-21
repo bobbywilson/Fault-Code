@@ -13,6 +13,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Validate isolated demo configuration without starting services
+        env:
+          API_IMAGE: ghcr.io/bobbywilson/fault-code-api@sha256:0000000000000000000000000000000000000000000000000000000000000000
+          WEB_IMAGE: ghcr.io/bobbywilson/fault-code-administration@sha256:0000000000000000000000000000000000000000000000000000000000000000
+          QDRANT_IMAGE: ghcr.io/bobbywilson/fault-code-qdrant@sha256:0000000000000000000000000000000000000000000000000000000000000000
+          FAULTCODE_QDRANT_API_KEY: synthetic-config-validation-only
+        run: docker compose --project-name faultcode-demo-configcheck --file deploy/demo/compose.yaml config --quiet
       - name: Build and verify isolated container lifecycle
         run: bash scripts/container-smoke.sh
 

@@ -16,3 +16,9 @@
 - [ ] Verify certificate rotation, failure retries and expiry alerts with distinct local/production keys.
 - [ ] Verify Fault Code rollback and no LALAI/Simone disruption; dry-run teardown without data deletion.
 - [ ] Commit/push approved files, record deployment and blockers in existing issue; archive only after acceptance.
+
+## Prepared implementation evidence
+- Main-only workflow and all-six-check source gate are written but disabled until DEMO_DEPLOY_ENABLED=true and reviewed bootstrap is complete. No deployment credentials stored.
+- Isolated Compose/proxy, bounded forced SSH receiver, root-only manifest/deployment/rollback candidate and bootstrap runbook are written. No live install or rollback claimed.
+- Four local security tests and Bash syntax checks passed. Container configuration/build/CI and live behavior still require verification.
+- Production machine-certificate rotation and ACME automation remain unimplemented; the API/SPA do not themselves need a private machine certificate.
