@@ -34,7 +34,8 @@ public sealed class KnowledgeState
         return copy;
     }
 }
-public sealed class KnowledgeException(int status) : Exception
+public sealed class KnowledgeException(int status, string? failureCode = null) : Exception
 {
     public int Status { get; } = status;
+    public string? FailureCode { get; } = failureCode;
 }
