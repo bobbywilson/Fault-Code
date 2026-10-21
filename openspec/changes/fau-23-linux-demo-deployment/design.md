@@ -20,3 +20,6 @@ Main currently returns503 for production canonical stores and delivery. No relat
 
 ## Rollback and teardown
 Store previous accepted digest/version and server configuration reference. On failed health/version probe restore only Fault Code image selection and rerun acceptance. Retain data volumes; schema rollback needs migration/backup plan before a database is added. Teardown dry-run enumerates exact project labels, directories, routes, certificates and DNS records. Default stop/remove only Fault Code containers and networks, retaining volumes and backups. Deleting persistent data requires explicit approval; no global cleanup or LALAI resource removal.
+
+## Observed GitHub entitlement
+Branch-protection API returned403 for the private repository, explicitly requiring GitHub Pro or public visibility. Neither is authorized. Do not weaken repository privacy or buy a plan. Distinguish manual PR/CI discipline and an enforceable deployment gate from unavailable platform-enforced protected merges; record this criterion blocked pending an explicit user decision. The demo-production environment creation succeeded with no secrets/deployment.

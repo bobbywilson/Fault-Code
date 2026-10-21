@@ -41,3 +41,6 @@ DEC-001 canonical storage remains unimplemented and business production endpoint
 
 ## Separate web application baseline
 Public DNS for lalai.io and staging.lalai.io returned103.133.1.1, distinct from the runner. HTTPS GET /login on staging returned302 (routing response only, not full authenticated/Simone health). Do not describe the runner as hosting the public LALAI web application. Its active systemd development-runner process is the verified shared dependency. No LALAI record or service was changed.
+
+## GitHub delivery configuration
+Existing private repository retained. The development branch was created from existing main; feature and development CI push triggers are prepared on the feature branch. GitHub environment demo-production was created without secrets or deployment. GitHub branch-protection GET returned403 with Upgrade to GitHub Pro or make this repository public to enable this feature. No upgrade or visibility change was performed. PR/CI workflow discipline can be followed, and deployment can independently enforce successful same-source CI; platform-enforced protected merges cannot be claimed under this observed entitlement. Authentication PR21 is retargeted to development, still draft and unmerged.
