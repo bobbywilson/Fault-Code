@@ -61,3 +61,7 @@ Draft creation/replacement/read, history and approval require exact knowledge.pu
 ## FAU-14 document access
 
 Document create/detail/update/publication/delete/index and tenant reindex require exact knowledge.publish. Search requires exact knowledge.read and filters current approved tenant-local exact system/model/software and tenant-or-publisher access before vector ranking; authoritative canonical chunk IDs are checked again after ranking. Publisher-only means the publication approver oid, never a supplied claim/owner. Drafts/history are never search evidence. No new scopes/app roles, agent privilege union or Administrator bypass. See knowledge-retrieval.md.
+
+## FAU-16 MCP authority
+
+POST /api/v1/mcp authenticates each stateless HTTP request through Entra. Internal mcp.access is an authenticated transport policy only, not an Entra grant; each listed/invoked tool enforces its existing exact policy conjunction. No privileged service grants are added. MCP mutation intent must be independently bound in the authenticated consumer's HTTP header; arguments/metadata/model/retrieved text cannot authorize it. See mcp-tools.md. The model runtime remains separate with no tools connected.

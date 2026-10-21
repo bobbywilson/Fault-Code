@@ -1,3 +1,4 @@
+using FaultCode.Api.Mcp;
 using FaultCode.Api.Configuration;
 using FaultCode.Api.Health;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -10,6 +11,7 @@ using FaultCode.Api.Authorization;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEntraAuthentication(builder.Configuration);
 builder.Services.AddFaultCodeAuthorization();
+builder.Services.AddFaultCodeMcp(builder.Configuration);
 builder.Services.AddOptions<AgentOptions>().Bind(builder.Configuration.GetSection("Agents"))
     .Validate(o => o.Valid, "Agents configuration requires bounded limits and, when enabled, an explicit model snapshot and ApiKey.").ValidateOnStart();
 builder.Services.AddHttpClient("agent-runtime").RemoveAllLoggers()
@@ -132,6 +134,8 @@ app.Use(async (context, next) =>
 });
 app.UseAuthentication();
 app.UseAuthorization();
+app.Use(McpTransport.ValidateBody);
+app.MapMcp("/api/v1/mcp").RequireAuthorization("mcp.access").ExcludeFromDescription();
 app.MapOpenApi().AllowAnonymous();
 app.MapControllers();
 app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false }).AllowAnonymous();

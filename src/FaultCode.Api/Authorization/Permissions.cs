@@ -60,6 +60,7 @@ public static class Permissions
         services.AddSingleton<IAuthorizationHandler, FleetReadHandler>();
         services.AddAuthorization(options =>
         {
+            options.AddPolicy("mcp.access", policy => policy.RequireAuthenticatedUser());
             options.DefaultPolicy = new AuthorizationPolicyBuilder().RequireAssertion(_ => false).Build();
             options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAssertion(context =>
                 context.Resource is HttpContext http && http.GetEndpoint() is null).Build();

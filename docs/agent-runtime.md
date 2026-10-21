@@ -29,3 +29,7 @@ dotnet test tests/FaultCode.IntegrationTests -c Release --filter FullyQualifiedN
 ```
 
 Same service/provider, one synthetic unknown-knowledge incident in test-only memory,30second deadline, output512, conservative budget8000, zero retries/tools. It asserts typed advisory/review output. This fixture is not durable production persistence. No live call, credentials, tenant/cloud provisioning, deployment, model selection or outbound production networking was performed.
+
+## FAU-16 interface isolation
+
+The MCP transport is implemented separately from this runtime. No MCP tools are registered with the model, MaxToolCalls stays0, automatic invocation stays disabled and returned tool calls still fail closed. Entra tokens, provider credentials, filesystem/shell/general network capabilities and consumer intent headers never enter model context. See mcp-tools.md.

@@ -35,3 +35,7 @@ User requested the latest stable version and authorized installing required tool
 ## FAU-15 SDK compatibility (2026-10-21)
 
 Pin Microsoft.Agents.AI.OpenAI1.25.0 / OpenAI2.14.0 / System.ClientModel1.15.0 in Infrastructure, with locked transitive versions and actual net10.0 mocked-HTTP framework tests. This implements ADR-004. Model snapshot and embedding model/dimensions remain unselected under DEC-004; runtime defaults disabled and requires an explicit dated model/secret before activation. See agent-runtime.md. No paid call, credential, provisioning or network-isolation change.
+
+## FAU-16 MCP compatibility (2026-10-21)
+
+Official ModelContextProtocol.AspNetCore2.3.0 provides stateless Streamable HTTP at /api/v1/mcp. Its API/test process resolves Microsoft.Extensions.AI.Abstractions10.11.0; actual existing Agent Framework/OpenAI HTTP tests are retained to verify compatibility. Application/Domain remain vendor-free. SDK discovery schemas and actual invocation examples are validated separately from generated REST OpenAPI. No model tools, new Entra grants, credential/provider/hosting selection or outbound activation. See mcp-tools.md.
