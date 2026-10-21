@@ -103,11 +103,22 @@ public sealed class ApiHostTests
         Assert.NotEqual(0, code); Assert.Contains("Telemetry:Provider", output); Assert.DoesNotContain(secret, output);
     }
 
+    [Theory]
+    [InlineData("https://user:SECRET@example.test", "1")]
+    [InlineData("http://127.0.0.1:4318", "SECRET-not-a-number")]
+    [InlineData("http://127.0.0.1:4318", "NaN")]
+    public async Task Invalid_OTLP_settings_fail_real_startup_without_echoing_values(string endpoint, string ratio)
+    {
+        var (code, output) = await StartWithInvalidName("Fault Code", "Otlp", endpoint, ratio);
+        Assert.NotEqual(0, code); Assert.Contains("Telemetry:Provider, Endpoint or TraceSampleRatio", output);
+        Assert.DoesNotContain("SECRET", output);
+    }
+
     private sealed record SyntheticAggregate(Guid Id) : IAggregateRoot;
 
     // Run invalid startup out of process: WebApplicationFactory can dispose its deferred
     // service provider before surfacing the original validation exception on fast failures.
-    private static async Task<(int ExitCode, string Output)> StartWithInvalidName(string? name, string? telemetry = null)
+    private static async Task<(int ExitCode, string Output)> StartWithInvalidName(string? name, string? telemetry = null, string? endpoint = null, string? ratio = null)
     {
         var directory = Directory.CreateTempSubdirectory("faultcode-startup-");
         using var process = new Process
@@ -123,6 +134,8 @@ public sealed class ApiHostTests
         };
         process.StartInfo.ArgumentList.Add(typeof(Program).Assembly.Location);
         if (telemetry is not null) process.StartInfo.Environment["Telemetry__Provider"] = telemetry;
+        if (endpoint is not null) process.StartInfo.Environment["Telemetry__Endpoint"] = endpoint;
+        if (ratio is not null) process.StartInfo.Environment["Telemetry__TraceSampleRatio"] = ratio;
         process.StartInfo.Environment.Remove("FaultCode__ApplicationName");
         process.StartInfo.Environment["ASPNETCORE_ENVIRONMENT"] = "Production";
         process.StartInfo.Environment["ASPNETCORE_URLS"] = "http://127.0.0.1:0";

@@ -113,3 +113,8 @@
 !src/FaultCode.Infrastructure/Telemetry/SafeTelemetry.cs
 !src/FaultCode.Infrastructure/Telemetry/LocalTelemetryAdapter.cs
 !src/FaultCode.Api/Configuration/TelemetryOptions.cs
+
+# FAU-21 explicit OTLP export boundary
+!src/FaultCode.Infrastructure/Telemetry/OtlpTelemetryAdapter.cs
+!src/FaultCode.Infrastructure/Telemetry/OtlpTelemetrySettings.cs
+!src/FaultCode.Infrastructure/Telemetry/SanitizedHttpTelemetryHandler.cs

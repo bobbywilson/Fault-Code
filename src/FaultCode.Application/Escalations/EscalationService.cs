@@ -1,3 +1,4 @@
+using FaultCode.Application.Telemetry;
 using System.Collections.Immutable;
 using System.Text.Json;
 using FaultCode.Application.Fleet;
@@ -6,7 +7,7 @@ using FaultCode.Domain;
 
 namespace FaultCode.Application.Escalations;
 
-public sealed class EscalationService(IEscalationStore store, TimeProvider clock)
+public sealed class EscalationService(IEscalationStore store, TimeProvider clock, ITelemetry? telemetry = null)
 {
     private static void Caller(FleetCaller c)
     {
@@ -28,17 +29,25 @@ public sealed class EscalationService(IEscalationStore store, TimeProvider clock
         var offset = ((long)page - 1) * size;
         return new(offset >= all.Length ? [] : all.Skip((int)offset).Take(size).ToArray(), page, size, all.Length);
     }
-    public Task<FleetPage<EngineeringCase>> List(FleetCaller c, int page, int size, string? status, CancellationToken ct)
+    public Task<FleetPage<EngineeringCase>> List(FleetCaller c, int page, int size, string? status, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Engineering, c.CorrelationId, () => ListCore(c, page, size, status, ct));
+    private Task<FleetPage<EngineeringCase>> ListCore(FleetCaller c, int page, int size, string? status, CancellationToken ct)
     {
         Caller(c); if (status is not null && !EngineeringRules.Status(status)) throw new IncidentException(400);
         return store.Execute(c.TenantId, tx => Page(tx.Engineering.Cases.Where(e => e.TenantId == c.TenantId && (status is null || e.Status == status)
             && tx.Incidents.Incidents.Any(i => i.Id == e.IncidentId && Visible(i, c))).OrderBy(e => e.Id).ToArray(), page, size), ct);
     }
-    public Task<EngineeringCase> Get(FleetCaller c, Guid id, CancellationToken ct)
+    public Task<EngineeringCase> Get(FleetCaller c, Guid id, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Engineering, c.CorrelationId, () => GetCore(c, id, ct));
+    private Task<EngineeringCase> GetCore(FleetCaller c, Guid id, CancellationToken ct)
     { Caller(c); return store.Execute(c.TenantId, tx => Case(tx, c, id), ct); }
-    public Task<FleetPage<EngineeringHistory>> History(FleetCaller c, Guid id, int page, int size, CancellationToken ct)
+    public Task<FleetPage<EngineeringHistory>> History(FleetCaller c, Guid id, int page, int size, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Engineering, c.CorrelationId, () => HistoryCore(c, id, page, size, ct));
+    private Task<FleetPage<EngineeringHistory>> HistoryCore(FleetCaller c, Guid id, int page, int size, CancellationToken ct)
     { Caller(c); return store.Execute(c.TenantId, tx => Page(Case(tx, c, id).History.ToArray(), page, size), ct); }
-    public Task<FleetPage<EngineeringEvent>> Events(FleetCaller c, Guid id, int page, int size, CancellationToken ct)
+    public Task<FleetPage<EngineeringEvent>> Events(FleetCaller c, Guid id, int page, int size, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Engineering, c.CorrelationId, () => EventsCore(c, id, page, size, ct));
+    private Task<FleetPage<EngineeringEvent>> EventsCore(FleetCaller c, Guid id, int page, int size, CancellationToken ct)
     {
         Caller(c); return store.Execute(c.TenantId, tx =>
         { Case(tx, c, id); return Page(tx.Engineering.Events.Where(e => e.CaseId == id).OrderBy(e => e.CreatedAt).ThenBy(e => e.Id).ToArray(), page, size); }, ct);
@@ -53,7 +62,9 @@ public sealed class EscalationService(IEscalationStore store, TimeProvider clock
     }
     private void Audit(EngineeringState s, FleetCaller c, string op, MutationResult r) =>
         s.Audit.Add(new(c.ActorId, c.ClientId, c.CorrelationId, op, r.Id, r.Version, clock.GetUtcNow()));
-    public Task<MutationResult> Create(FleetCaller c, Guid incidentId, Guid investigationId, long version, string key, CancellationToken ct)
+    public Task<MutationResult> Create(FleetCaller c, Guid incidentId, Guid investigationId, long version, string key, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Engineering, c.CorrelationId, () => CreateCore(c, incidentId, investigationId, version, key, ct));
+    private Task<MutationResult> CreateCore(FleetCaller c, Guid incidentId, Guid investigationId, long version, string key, CancellationToken ct)
     {
         Caller(c); if (incidentId == Guid.Empty || investigationId == Guid.Empty || version < 1) throw new IncidentException(400);
         return store.Execute(c.TenantId, tx =>
@@ -97,7 +108,9 @@ public sealed class EscalationService(IEscalationStore store, TimeProvider clock
             });
         }, ct);
     }
-    public Task<MutationResult> Assign(FleetCaller c, Guid id, long version, string key, string? assignee, CancellationToken ct)
+    public Task<MutationResult> Assign(FleetCaller c, Guid id, long version, string key, string? assignee, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Engineering, c.CorrelationId, () => AssignCore(c, id, version, key, assignee, ct));
+    private Task<MutationResult> AssignCore(FleetCaller c, Guid id, long version, string key, string? assignee, CancellationToken ct)
     {
         if (assignee is not null && !FleetRules.CanonicalId(assignee)) throw new IncidentException(400);
         return Change(c, id, version, key, "assigned", new { assignee }, (_, e) =>
@@ -106,7 +119,9 @@ public sealed class EscalationService(IEscalationStore store, TimeProvider clock
             e = e with { AssigneeId = assignee }; return e with { History = e.History.Add(Entry(e, c, "assigned", clock.GetUtcNow())) };
         }, ct);
     }
-    public Task<MutationResult> Note(FleetCaller c, Guid id, long version, string key, string text, CancellationToken ct)
+    public Task<MutationResult> Note(FleetCaller c, Guid id, long version, string key, string text, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Engineering, c.CorrelationId, () => NoteCore(c, id, version, key, text, ct));
+    private Task<MutationResult> NoteCore(FleetCaller c, Guid id, long version, string key, string text, CancellationToken ct)
     {
         if (!FaultRules.Text(text, 2000)) throw new IncidentException(400);
         return Change(c, id, version, key, "noted", new { text }, (_, e) =>
@@ -115,7 +130,9 @@ public sealed class EscalationService(IEscalationStore store, TimeProvider clock
             return e with { Notes = e.Notes.Add(note), History = e.History.Add(Entry(e, c, "noted", note.At, note)) };
         }, ct);
     }
-    public Task<MutationResult> Status(FleetCaller c, Guid id, long version, string key, string status, CancellationToken ct)
+    public Task<MutationResult> Status(FleetCaller c, Guid id, long version, string key, string status, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Engineering, c.CorrelationId, () => StatusCore(c, id, version, key, status, ct));
+    private Task<MutationResult> StatusCore(FleetCaller c, Guid id, long version, string key, string status, CancellationToken ct)
     {
         if (!EngineeringRules.Status(status)) throw new IncidentException(400);
         return Change(c, id, version, key, "transitioned", new { status }, (tx, e) =>
@@ -155,6 +172,8 @@ public sealed class EscalationService(IEscalationStore store, TimeProvider clock
         return evidence.ToImmutable();
     }
     public Task<MutationResult> Propose(FleetCaller c, Guid id, long version, string key, FaultContent content, long expectedFaultVersion, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Engineering, c.CorrelationId, () => ProposeCore(c, id, version, key, content, expectedFaultVersion, ct));
+    private Task<MutationResult> ProposeCore(FleetCaller c, Guid id, long version, string key, FaultContent content, long expectedFaultVersion, CancellationToken ct) =>
         Change(c, id, version, key, "proposed", new { content, expectedFaultVersion }, (tx, e) =>
         {
             if (e.Status != "Investigating") throw new IncidentException(409);
@@ -165,6 +184,8 @@ public sealed class EscalationService(IEscalationStore store, TimeProvider clock
             return e with { History = e.History.Add(Entry(e, c, "proposed", clock.GetUtcNow())) };
         }, ct);
     public Task<MutationResult> Approve(FleetCaller c, Guid id, long version, string key, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Engineering, c.CorrelationId, () => ApproveCore(c, id, version, key, ct));
+    private Task<MutationResult> ApproveCore(FleetCaller c, Guid id, long version, string key, CancellationToken ct) =>
         Change(c, id, version, key, "approved", new { }, (tx, e) =>
         {
             if (e.Status != "AwaitingApproval" || e.Proposal is not { } proposal) throw new IncidentException(409);

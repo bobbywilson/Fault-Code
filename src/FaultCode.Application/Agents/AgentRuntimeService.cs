@@ -22,7 +22,9 @@ public sealed class AgentRuntimeService(IncidentService incidents, IAgentProvide
         """;
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
     { RespectRequiredConstructorParameters = true, PropertyNameCaseInsensitive = false, MaxDepth = 8 };
-    public async Task<AgentRunResult> Run(FleetCaller caller, Guid incidentId, CancellationToken ct)
+    public Task<AgentRunResult> Run(FleetCaller caller, Guid incidentId, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Agent, caller.CorrelationId, () => RunWithModel(caller, incidentId, ct));
+    private async Task<AgentRunResult> RunWithModel(FleetCaller caller, Guid incidentId, CancellationToken ct)
     {
         using var scope = (telemetry ?? NullTelemetry.Instance).Begin(TelemetryOperation.Model, caller.CorrelationId);
         try

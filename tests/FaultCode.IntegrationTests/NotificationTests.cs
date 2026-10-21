@@ -1,3 +1,5 @@
+using FaultCode.Application.Telemetry;
+using FaultCode.Infrastructure.Telemetry;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -58,7 +60,7 @@ public sealed class NotificationTests
         });
         await Service(s).Preferences(Caller, IncidentId, 1, "preferences", true, "SYN-CONTACT", default);
     }
-    private static async Task<(TestEngineeringStore Store, Guid Source)> Engineering()
+    private static async Task<(TestEngineeringStore Store, Guid Source)> Engineering(ITelemetry? telemetry = null)
     {
         var s = await Setup(); await Fleet(s);
         await s.Execute(Tenant, tx => { tx.Investigations.Results.Clear(); return 0; }, default);
@@ -66,7 +68,7 @@ public sealed class NotificationTests
             new(s, new TestEmbedding(), new TestDocumentIndex(), TimeProvider.System), new EchoProvider(), new(), TimeProvider.System);
         var result = await runtime.Run(Caller, IncidentId, 2, "unknown-investigation", default);
         Assert.Equal("UnknownFault", result.Classification);
-        var engineering = new EscalationService(s, TimeProvider.System);
+        var engineering = new EscalationService(s, TimeProvider.System, telemetry);
         var created = await engineering.Create(Caller, IncidentId, result.Id, 2, "create", default);
         await engineering.Status(Caller, created.Id, 1, "start", "Investigating", default);
         await engineering.Propose(Caller, created.Id, 2, "propose", Content, 0, default);
@@ -109,6 +111,51 @@ public sealed class NotificationTests
     private static Task<MutationResult> Queue(TestEngineeringStore s, Guid source, string kind = "engineering", string key = "enqueue") =>
         Service(s).Enqueue(Caller, IncidentId, kind, source, s.Snapshot().Incidents.Incidents[0].Version, key, default);
     private static async Task Error(int status, Func<Task> action) => Assert.Equal(status, (await Assert.ThrowsAsync<IncidentException>(action)).Status);
+
+    [Fact]
+    public async Task Handled_delivery_failure_exports_actionable_failure_without_contact_or_exception()
+    {
+        var (store, source) = await Engineering(); await using var receiver = await OtlpTelemetryTests.Receiver.Start();
+        using var adapter = new OtlpTelemetryAdapter(new(receiver.Endpoint, 1)); var telemetry = new SafeTelemetry(adapter);
+        var sink = new Sink { Failure = "failure" }; var service = new NotificationService(store, sink, TimeProvider.System, telemetry);
+        var version = store.Snapshot().Incidents.Incidents[0].Version;
+        var queued = await service.Enqueue(Caller, IncidentId, "engineering", source, version, "otlp-queue", default);
+        var completed = await service.Dispatch(Caller, queued.Id, 1, "otlp-send", default);
+        Assert.Equal("Failed", (await service.Get(Caller, completed.Id, default)).State); Assert.Equal(1, sink.Calls);
+        Assert.True(adapter.ForceFlush());
+        var attempt = Assert.Single(receiver.Items("traces"), x => x.Text(5) == "Delivery");
+        Assert.Equal("Failed", attempt.Attributes(9)["faultcode.outcome"].Text(1)); Assert.Equal("Dependency", attempt.Attributes(9)["error.type"].Text(1));
+        foreach (var message in receiver.Messages)
+            foreach (var secret in new[] { "secret-provider-body", "SYN-CONTACT", Tenant, Actor, Client })
+                Assert.DoesNotContain(secret, System.Text.Encoding.UTF8.GetString(message.Body));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Actual_engineering_notification_commit_and_replay_survive_OTLP_outage(bool outage)
+    {
+        await using var receiver = await OtlpTelemetryTests.Receiver.Start(); receiver.Fail = outage;
+        using var adapter = new OtlpTelemetryAdapter(new(receiver.Endpoint, 1)); var telemetry = new SafeTelemetry(adapter);
+        using (var root = telemetry.Begin(TelemetryOperation.Api))
+        {
+            var (store, source) = await Engineering(telemetry); var sink = new Sink();
+            var service = new NotificationService(store, sink, TimeProvider.System, telemetry);
+            var version = store.Snapshot().Incidents.Incidents[0].Version;
+            var queued = await service.Enqueue(Caller, IncidentId, "engineering", source, version, "otlp-queue", default);
+            var sent = await service.Dispatch(Caller, queued.Id, 1, "otlp-send", default);
+            Assert.Equal(sent, await service.Dispatch(Caller, queued.Id, 1, "otlp-send", default)); Assert.Equal(1, sink.Calls);
+            await Error(403, () => service.Get(Caller with { ActorId = "invalid" }, queued.Id, default));
+            root.Complete(TelemetryOutcome.Success);
+        }
+        adapter.ForceFlush(); var spans = receiver.Items("traces");
+        Assert.Equal(4, spans.Count(x => x.Text(5) == "Engineering"));
+        Assert.Equal(4, spans.Count(x => x.Text(5) == "Notification"));
+        Assert.Single(spans.Select(x => x.Hex(1)).Distinct());
+        foreach (var message in receiver.Messages)
+            foreach (var secret in new[] { Tenant, Actor, Client, "SYN-CONTACT", "synthetic@example.test", "secret-provider-body" })
+                Assert.DoesNotContain(secret, System.Text.Encoding.UTF8.GetString(message.Body));
+    }
 
     [Theory]
     [InlineData(false)]
