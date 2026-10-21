@@ -1,3 +1,4 @@
+using FaultCode.Application.Telemetry;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -27,7 +28,7 @@ public sealed record ToolIncident(string EvidencePolicy, IncidentResponse Incide
 // A fixed registry is the only source of tools. Nothing is loaded from caller or model content.
 public sealed class McpTools(IHttpContextAccessor accessor, IAuthorizationService authorization,
     KnowledgeService knowledge, RetrievalService retrieval, IncidentService incidents,
-    IOptions<McpOptions> options, ILogger<McpTools> logger)
+    IOptions<McpOptions> options, ILogger<McpTools> logger, ITelemetry telemetry)
 {
     internal const string EvidencePolicy = RetrievalService.EvidencePolicy;
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
@@ -54,9 +55,10 @@ public sealed class McpTools(IHttpContextAccessor accessor, IAuthorizationServic
     }
     public async ValueTask<CallToolResult> Call(CallToolRequestParams? request, CancellationToken ct)
     {
+        using var operation = telemetry.Begin(TelemetryOperation.Mcp, Http.TraceIdentifier);
         var name = request?.Name;
         var d = Definitions.SingleOrDefault(x => x.Tool.Name == name);
-        if (d is null) return Outcome(404, "tool-not-found", null);
+        if (d is null) { operation.Complete(TelemetryOutcome.Rejected); return Outcome(404, "tool-not-found", null); }
         var status = 500;
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, Http.RequestAborted);
         linked.CancelAfter(TimeSpan.FromSeconds(options.Value.TimeoutSeconds));
@@ -106,6 +108,7 @@ public sealed class McpTools(IHttpContextAccessor accessor, IAuthorizationServic
         catch (Exception) { return Finish(500, "tool-failed"); }
         finally
         {
+            operation.Complete(status == 499 ? TelemetryOutcome.Cancelled : status >= 500 ? TelemetryOutcome.Failed : status >= 400 ? TelemetryOutcome.Rejected : TelemetryOutcome.Success);
             // Never log arguments, keys, intent headers, source text, provider errors, or result payloads.
             logger.LogInformation("MCP tool={Tool} status={Status} actor={Actor} client={Client} correlationId={CorrelationId}",
                 d.Tool.Name, status, PermissionHandler.Identifier(Http.User, "oid"), PermissionHandler.Identifier(Http.User, "azp"), Http.TraceIdentifier);

@@ -1,3 +1,4 @@
+using FaultCode.Application.Telemetry;
 using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text;
@@ -7,7 +8,7 @@ using FaultCode.Domain;
 
 namespace FaultCode.Application.Incidents;
 
-public sealed class IncidentService(IIncidentStore store, TimeProvider clock)
+public sealed class IncidentService(IIncidentStore store, TimeProvider clock, ITelemetry? telemetry = null)
 {
     private static void Caller(FleetCaller c)
     {
@@ -17,7 +18,9 @@ public sealed class IncidentService(IIncidentStore store, TimeProvider clock)
     private static Incident Find(IncidentState s, FleetCaller c, Guid id) => s.Incidents.SingleOrDefault(x => x.Id == id && x.TenantId == c.TenantId) ?? throw new IncidentException(404);
     private static bool Visible(Incident i, FleetCaller c) => i.TenantId == c.TenantId && FleetRules.CanonicalId(i.Fleet.OwnerObjectId)
         && (c.AllVehicles || c.OwnVehicles && i.Fleet.OwnerObjectId == c.ActorId);
-    public async Task<Incident> Get(FleetCaller c, Guid id, CancellationToken ct)
+    public Task<Incident> Get(FleetCaller c, Guid id, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Incident, c.CorrelationId, () => GetCore(c, id, ct));
+    private async Task<Incident> GetCore(FleetCaller c, Guid id, CancellationToken ct)
     {
         Caller(c); var i = Find(await store.ReadAsync(c.TenantId, ct), c, id);
         return Visible(i, c) ? i : throw new IncidentException(404);

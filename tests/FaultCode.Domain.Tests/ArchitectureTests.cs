@@ -29,6 +29,23 @@ public sealed class ArchitectureTests
         }
     }
 
+    [Fact]
+    public void Vendor_telemetry_dependencies_stay_outside_domain_and_application()
+    {
+        var root = FindRoot();
+        foreach (var component in new[] { "Domain", "Application" })
+        {
+            var directory = Path.Combine(root, "src", "FaultCode." + component);
+            foreach (var file in Directory.EnumerateFiles(directory, "*.cs", SearchOption.AllDirectories)
+                .Where(f => !f.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar, StringComparison.Ordinal)))
+            {
+                var text = File.ReadAllText(file);
+                Assert.DoesNotContain("using Datadog", text); Assert.DoesNotContain("using Sentry", text);
+                Assert.DoesNotContain("using OpenTelemetry", text);
+            }
+        }
+    }
+
     private static string FindRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

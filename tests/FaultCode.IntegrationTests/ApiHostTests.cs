@@ -95,11 +95,19 @@ public sealed class ApiHostTests
         Assert.Null(factory.Services.GetService<IRepository<SyntheticAggregate>>());
     }
 
+    [Fact]
+    public async Task Invalid_telemetry_provider_prevents_startup_without_echoing_value()
+    {
+        const string secret = "SECRET-contact-token";
+        var (code, output) = await StartWithInvalidName("Fault Code", secret);
+        Assert.NotEqual(0, code); Assert.Contains("Telemetry:Provider", output); Assert.DoesNotContain(secret, output);
+    }
+
     private sealed record SyntheticAggregate(Guid Id) : IAggregateRoot;
 
     // Run invalid startup out of process: WebApplicationFactory can dispose its deferred
     // service provider before surfacing the original validation exception on fast failures.
-    private static async Task<(int ExitCode, string Output)> StartWithInvalidName(string? name)
+    private static async Task<(int ExitCode, string Output)> StartWithInvalidName(string? name, string? telemetry = null)
     {
         var directory = Directory.CreateTempSubdirectory("faultcode-startup-");
         using var process = new Process
@@ -114,6 +122,7 @@ public sealed class ApiHostTests
             }
         };
         process.StartInfo.ArgumentList.Add(typeof(Program).Assembly.Location);
+        if (telemetry is not null) process.StartInfo.Environment["Telemetry__Provider"] = telemetry;
         process.StartInfo.Environment.Remove("FaultCode__ApplicationName");
         process.StartInfo.Environment["ASPNETCORE_ENVIRONMENT"] = "Production";
         process.StartInfo.Environment["ASPNETCORE_URLS"] = "http://127.0.0.1:0";

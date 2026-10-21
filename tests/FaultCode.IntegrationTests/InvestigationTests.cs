@@ -1,3 +1,5 @@
+using FaultCode.Application.Telemetry;
+using FaultCode.Infrastructure.Telemetry;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -79,10 +81,11 @@ public sealed class InvestigationTests
         public TestEmbedding Embedding { get; } = new();
         public TestDocumentIndex Index { get; } = new();
         public Provider Provider { get; } = new();
-        public RetrievalService Retrieval => new(Documents, Embedding, Index, TimeProvider.System);
+        public ITelemetry? Telemetry { get; set; }
+        public RetrievalService Retrieval => new(Documents, Embedding, Index, TimeProvider.System, Telemetry);
         public InvestigationService Service(AgentLimits? limits = null, IAgentProvider? provider = null, IKnowledgeStore? knowledge = null) =>
-            new(Store, new(Incidents, TimeProvider.System), new(knowledge ?? Knowledge, new ApprovedOntologyTaxonomy(Ontology), TimeProvider.System),
-                new(Ontology, TimeProvider.System), Retrieval, provider ?? Provider, limits ?? new(), TimeProvider.System);
+            new(Store, new(Incidents, TimeProvider.System, Telemetry), new(knowledge ?? Knowledge, new ApprovedOntologyTaxonomy(Ontology), TimeProvider.System),
+                new(Ontology, TimeProvider.System), Retrieval, provider ?? Provider, limits ?? new(), TimeProvider.System, Telemetry);
         public async Task Document(string text, string source = "SYN-DOC", string version = "1", string access = "publisher")
         {
             var r = await Retrieval.Create(KC, new(source, RetrievalTests.Content(text, access) with { SourceVersion = version }), source, default);
@@ -119,6 +122,42 @@ public sealed class InvestigationTests
         if (scenario == "very-low") f.Index.Score = 0.5;
         return f;
     }
+    private sealed class TelemetryCollector(bool fail) : ITelemetryAdapter
+    {
+        public List<TelemetryRecord> Records { get; } = [];
+        public void Record(TelemetryRecord record)
+        {
+            Records.Add(record);
+            if (fail) throw new InvalidOperationException("SECRET contact prompt token");
+        }
+    }
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Actual_investigation_commit_and_replay_survive_telemetry_outage_without_payload_leak(bool fail)
+    {
+        var f = await Setup(); var collector = new TelemetryCollector(fail);
+        var telemetry = new SafeTelemetry(collector); f.Telemetry = telemetry;
+        var correlation = Guid.NewGuid().ToString("N"); var caller = Caller with { CorrelationId = correlation };
+        using (var root = telemetry.Begin(TelemetryOperation.Api, correlation))
+        {
+            var r = await f.Service().Run(caller, Id, 1, "telemetry", default);
+            Assert.Equal("KnownFault", r.Classification);
+            Assert.Equal(r, await f.Service().Run(caller, Id, 1, "telemetry", default));
+            Assert.Single(f.Store.Snapshot(Tenant).Results); Assert.Single(f.Store.Snapshot(Tenant).Audit);
+            Assert.Equal(1, f.Provider.Calls); root.Complete(TelemetryOutcome.Success);
+        }
+        foreach (var op in new[] { TelemetryOperation.Api, TelemetryOperation.Incident, TelemetryOperation.Retrieval, TelemetryOperation.Investigation, TelemetryOperation.Model })
+            Assert.Contains(collector.Records, r => r.Operation == op);
+        Assert.All(collector.Records, r => Assert.Equal(correlation, r.Context.CorrelationId));
+        Assert.Single(collector.Records.Select(r => r.Context.TraceId).Distinct());
+        var model = Assert.Single(collector.Records, r => r.Operation == TelemetryOperation.Model);
+        Assert.Equal(100, model.InputTokens); Assert.Equal(100, model.OutputTokens);
+        var raw = JsonSerializer.Serialize(collector.Records);
+        foreach (var secret in new[] { Tenant, Actor, Client, Id.ToString(), Guidance, "SYN-DOC", "SECRET" }) Assert.DoesNotContain(secret, raw);
+        Assert.DoesNotContain(correlation, Assert.Single(f.Provider.Inputs).Input);
+    }
+
     [Theory]
     [InlineData("A", "KnownFault", "notification")]
     [InlineData("B", "KnownFaultWithApprovedPatch", "dealership-referral")]

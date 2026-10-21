@@ -1,3 +1,5 @@
+using FaultCode.Application.Telemetry;
+using FaultCode.Infrastructure.Telemetry;
 using FaultCode.Api.Mcp;
 using FaultCode.Api.Configuration;
 using FaultCode.Api.Health;
@@ -9,6 +11,11 @@ using FaultCode.Api.Identity;
 using FaultCode.Api.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddOptions<TelemetryOptions>().Bind(builder.Configuration.GetSection("Telemetry"))
+    .Validate(o => o.Valid, "Telemetry:Provider must be None or Local.").ValidateOnStart();
+builder.Services.AddSingleton<ITelemetryAdapter>(s => s.GetRequiredService<IOptions<TelemetryOptions>>().Value.Provider == "Local"
+    ? new LocalTelemetryAdapter(s.GetRequiredService<ILogger<LocalTelemetryAdapter>>()) : new NoOpTelemetryAdapter());
+builder.Services.AddSingleton<ITelemetry, SafeTelemetry>();
 builder.Services.AddEntraAuthentication(builder.Configuration);
 builder.Services.AddFaultCodeAuthorization();
 builder.Services.AddFaultCodeMcp(builder.Configuration);
@@ -123,7 +130,16 @@ app.Use(async (context, next) =>
         context.Response.Headers["X-Correlation-ID"] = context.TraceIdentifier;
         return Task.CompletedTask;
     });
-    await next(context);
+    var telemetry = context.RequestServices.GetRequiredService<ITelemetry>();
+    using var operation = telemetry.Begin(TelemetryOperation.Api, context.TraceIdentifier);
+    try
+    {
+        await next(context);
+        operation.Complete(context.Response.StatusCode >= 500 ? TelemetryOutcome.Failed
+            : context.Response.StatusCode >= 400 ? TelemetryOutcome.Rejected : TelemetryOutcome.Success);
+    }
+    catch (OperationCanceledException) { operation.Report(TelemetryError.Cancelled); operation.Complete(TelemetryOutcome.Cancelled); throw; }
+    catch { operation.Report(TelemetryError.Unexpected); throw; }
 });
 app.UseExceptionHandler(handler => handler.Run(context => WriteProblem(context, 500)));
 app.UseStatusCodePages(context => WriteProblem(context.HttpContext, context.HttpContext.Response.StatusCode));
