@@ -58,3 +58,10 @@
 !src/FaultCode.Api/Contracts/IncidentContracts.cs
 !src/FaultCode.Api/Contracts/IncidentDocumentExamples.cs
 !src/FaultCode.Api/Controllers/IncidentsController.cs
+!src/FaultCode.Domain/Ontology.cs
+!src/FaultCode.Application/Ontology/OntologyContracts.cs
+!src/FaultCode.Application/Ontology/OntologyService.cs
+!src/FaultCode.Infrastructure/UnavailableOntologyStore.cs
+!src/FaultCode.Api/Contracts/OntologyContracts.cs
+!src/FaultCode.Api/Controllers/OntologyController.cs
+!src/FaultCode.Api/Contracts/OntologyDocumentExamples.cs

@@ -53,3 +53,7 @@ Design sources: [Microsoft policy authorization](https://learn.microsoft.com/en-
 ## FAU-10 lifecycle access
 
 Production vehicle/driver routes now exist; see [lifecycle contract](vehicle-driver-management.md). They use `drivers.access.read` / `vehicles.access.read` composite entry policies (exact all-read OR Reader+own-read), then tenant/owner-filtered application queries and trusted resource authorization on single GET. These policies add no Entra catalog values. Writes use the unchanged exact write policies; association writes AND both. Owner mappings are immutable in general updates, trusted from storage for reads, and never bound as `DriverResource`. Production storage is deliberately unavailable pending DEC-001; test audit/replay atomicity is not durable production audit. OpenAPI adds `x-faultcode-required-policies` (AND) and `x-faultcode-policy-requirements` (anyOf grants per policy), documenting all alternatives and multi-policy operations precisely.
+
+## FAU-13 ontology access
+
+Draft creation/replacement/read, history and approval require exact knowledge.publish (Engineer or Knowledge.Publish application role). Approved publication read and stored deterministic evaluation require exact knowledge.read (listed read roles or Knowledge.Read.All). No new permissions or implicit Operator/Administrator access. Both stored evaluation and publication are tenant-local; approved reads never expose drafts.
