@@ -14,7 +14,6 @@ import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
 import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideActivity,
   lucideTriangleAlert,
   lucideCar,
   lucideUsers,
@@ -82,7 +81,6 @@ export const areas = [
   ],
   providers: [
     provideIcons({
-      lucideActivity,
       lucideTriangleAlert,
       lucideCar,
       lucideUsers,
@@ -102,19 +100,6 @@ export const areas = [
     >
     <div hlmSidebarWrapper>
       <hlm-sidebar variant="inset" collapsible="icon">
-        <div hlmSidebarHeader>
-          <ul hlmSidebarMenu>
-            <li hlmSidebarMenuItem>
-              <a hlmSidebarMenuButton size="lg" routerLink="/admin/incidents">
-                <ng-icon name="lucideActivity" class="size-5" />
-                <span class="grid"
-                  ><span class="font-semibold">Fault Code</span
-                  ><span class="text-xs text-muted-foreground">Steering intelligence</span></span
-                >
-              </a>
-            </li>
-          </ul>
-        </div>
         <div hlmSidebarContent>
           <div hlmSidebarGroup>
             <div hlmSidebarGroupLabel>Workspace</div>
