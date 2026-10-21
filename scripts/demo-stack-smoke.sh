@@ -22,6 +22,10 @@ cp deploy/demo/{compose.yaml,nginx.conf,browser-config.json} "$temp/"
 openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=faultcodeai.com \
   -addext subjectAltName=DNS:faultcodeai.com,DNS:www.faultcodeai.com \
   -keyout "$temp/tls/privkey.pem" -out "$temp/tls/fullchain.pem" >/dev/null 2>&1
+# Container UID0 has no DAC override and differs from the host runner UID. This
+# disposable test key is readable only through its private0700 parent or the
+# proxy-only bind mount. Production keys remain root-owned0600.
+chmod 644 "$temp/tls/privkey.pem"
 export API_IMAGE="$project-api:ci" WEB_IMAGE="$project-web:ci" QDRANT_IMAGE="$project-qdrant:ci"
 export FAULTCODE_QDRANT_API_KEY="$(openssl rand -hex 32)"
 docker compose -p "$project" -f "$temp/compose.yaml" config --format json > "$temp/compose.json"
