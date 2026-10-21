@@ -1,0 +1,21 @@
+---
+title: "Three synthetic workflows"
+description: "Evidence-backed guidance, dealership recommendations and engineering approval."
+---
+
+## A · Known fault
+An approved definition, applicable pinned rule and canonical citations produce `KnownFault`. Approved remedy text supplies guidance; the model cannot invent a repair. An independently authorized consumer revalidates current evidence and recipient, records a notification and receives a local synthetic acknowledgement in deterministic acceptance.
+
+## B · Approved patch
+An approved applicable patch produces `KnownFaultWithApprovedPatch` with exact dealership-service metadata and supporting citations. The driver receives a recommendation to contact a dealership. **No vehicle software is installed or deployed.** The historical proposal remains immutable; delivery history records current status separately.
+
+## C · Unknown fault
+Confirmed absence of an approved definition yields `UnknownFault`, then an explicitly authorized engineering case. Engineers investigate, approve/publish knowledge and resolve the case against current evidence. A separately authorized consumer records the driver notification. An outage returns retryable 503; it never proves the fault is unknown.
+
+## Evaluation criteria
+Deterministic synthetic acceptance requires 100% expected routing and exact approved citation/rule provenance, zero unsupported guidance and zero unauthorized model actions. Support requires score at least 0.85 and exact canonical approved remedy text. Conflicting, unmapped, unapproved or inapplicable evidence yields `InsufficientEvidence`. Invalid output, injection and dependency failures cannot authorize execution.
+
+The model receives only curated investigation context. Identity, secrets, permission enforcement and execution remain in trusted application code. MCP is an independently authenticated consumer interface; no model tools or environment access are introduced.
+
+CI records the actual A/B/C integration cases plus retry, concurrency, outage, injection, schema, permission and redaction results. These tests use test-only transactional stores, mocked model HTTP and a local synthetic notification sink. Real disposable Qdrant acceptance is separate. [Release readiness](/release) distinguishes this from live durable delivery.
+

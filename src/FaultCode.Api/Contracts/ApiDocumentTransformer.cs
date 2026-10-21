@@ -20,9 +20,12 @@ public sealed class ApiDocumentTransformer : IOpenApiDocumentTransformer
                 Type = SecuritySchemeType.Http,
                 Scheme = "bearer",
                 BearerFormat = "JWT",
-                Description = "Dedicated Entra v2 access token. Protected operations require exact delegated scopes or machine application roles. These public fixtures require neither."
+                Description = "Dedicated Entra v2 access token. Protected operations require exact delegated scopes or machine application roles. Only operations explicitly marked public omit bearer authorization."
             }
         };
+        foreach (var item in document.Paths.Values)
+            foreach (var operation in item.Operations!.Values)
+                operation.Summary ??= System.Text.RegularExpressions.Regex.Replace(operation.OperationId ?? "API operation", "(?<=[a-z0-9])(?=[A-Z])", " ");
         foreach (var description in context.DocumentName == "v1" ? context.DescriptionGroups.SelectMany(g => g.Items) : [])
         {
             var policies = description.ActionDescriptor.EndpointMetadata.OfType<IAuthorizeData>()

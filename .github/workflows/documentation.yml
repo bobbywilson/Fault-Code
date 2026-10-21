@@ -1,0 +1,51 @@
+name: Linux documentation
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  documentation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.22.3'
+          cache: npm
+          cache-dependency-path: mintlify/package-lock.json
+      - run: dotnet restore FaultCode.slnx --locked-mode
+      - run: dotnet build src/FaultCode.Api -c Release --no-restore
+      - run: python3 scripts/check-documentation.py artifacts/openapi/faultcode-v1.json
+      - run: python3 scripts/test-documentation.py
+      - run: python3 scripts/test-release-evidence.py
+      - run: npm ci --no-audit --no-fund
+        working-directory: mintlify
+      - name: Record vendor development-tool audit (not runtime image dependencies)
+        working-directory: mintlify
+        run: |
+          npm audit --json > ../artifacts/mintlify-development-audit.json || audit_status=$?
+          test "${audit_status:-0}" -le 1
+      - run: npm run validate
+        working-directory: mintlify
+      - run: npm run links
+        working-directory: mintlify
+      - run: npx playwright install --with-deps chromium
+        working-directory: mintlify
+      - run: npx playwright test
+        working-directory: mintlify
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: documentation-browser-and-audit
+          path: |
+            mintlify/playwright-report/
+            mintlify/test-results/
+            artifacts/mintlify-development-audit.json

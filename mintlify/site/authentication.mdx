@@ -1,0 +1,26 @@
+---
+title: "Authentication and permissions"
+description: "Public reading; explicit Entra authorization for protected requests."
+---
+
+Documentation is public and requires no login. Protected REST and MCP requests require a dedicated Microsoft Entra v2 access token with the configured issuer, audience, signature and unexpired lifetime. Browser clients use authorization code with PKCE; machine clients use client credentials. Never place a client secret in a browser.
+
+## Scopes and roles
+A delegated token needs each operation's exact scope **and** an allowed human role. Application tokens require explicit granular application roles. There is no Administrator bypass. The reference preserves `x-faultcode-permission`, `x-delegated-scopes`, `x-human-roles` and `x-application-roles`. Compound operations require every listed policy; resource ownership is enforced separately. A permission summary does not grant resource access.
+
+Examples: `faults.read` permits read only with an allowed human role; `knowledge.publish` requires Engineer; `users.manage` requires Administrator. Machine roles such as `Faults.Read.All` and `Knowledge.Publish` are distinct from delegated scopes. Request strings use `api://{approved-api-client-id}/{scope}`; identifiers must come from approved registrations.
+
+## Interactive requests
+The reference currently uses simple mode: no approved API origin or tenant is configured. No live Try It success is claimed. Code samples may display Mintlify's generic `api.example.com` placeholder; it is not a configured deployment. Once an API origin, isolated tenant and CORS policy are approved, configure the generated server and review changing playground display to interactive. Browser-direct transport (`proxy: false`) is mandatory so bearer tokens are not forwarded through Mintlify's proxy. Confirm exact allowed origins, methods and headers without wildcard credential access.
+
+Use your approved client to obtain a least-privilege access token. Send it only in the `Authorization: Bearer` header to that approved API. Never paste tokens into URLs, issue comments, screenshots, examples or logs, and never commit or publish them. No automatic OAuth registration, token capture or saved token is supplied here.
+
+| Result | Meaning |
+| --- | --- |
+| 401 | Missing, invalid, expired, wrong issuer or wrong audience token |
+| 403 | Valid token lacks exact required scope/role or authority |
+| 404 | Resource absent or hidden by ownership/tenant filtering |
+| 503 | Required canonical store/provider unavailable |
+
+A successful local token fixture is not a live Entra tenant test. See [release readiness](/release) for isolated-tenant acceptance.
+

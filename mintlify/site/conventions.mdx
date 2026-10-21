@@ -1,0 +1,28 @@
+---
+title: "API conventions"
+description: "Versioned contracts, pagination, safe errors and replay."
+---
+
+All application consumers use `/api/v1`. Unknown versions return 404. The API reference is copied byte-for-byte from ASP.NET Core Release-generated OpenAPI; schemas, permission extensions and examples are checked in CI. MCP is a separate authenticated consumer interface at `/api/v1/mcp`, not model tools; its five discovery schemas are validated independently.
+
+## Public synthetic requests
+`GET /api/v1/health` reports process health only. `GET /api/v1/examples` returns synthetic EPS, steer-by-wire and steering-ADAS fixtures. `GET /openapi/v1.json` exposes the generated reference. No login is required for these explicit public operations.
+
+## Pagination
+Lists return `items`, `page`, `pageSize` and `totalCount` after access filtering. Pages are one-based; default page size is 20, maximum 100. Empty lists have `items: []`. Unsupported filters and malformed/out-of-range numbers return 400. Use only query fields declared for that operation.
+
+## Conditional mutations and retries
+Read the strong ETag, then supply `If-Match` for conditional writes and `Idempotency-Key` where required by the operation. Keep the same key and identical request when retrying an ambiguous outcome. Changed payload, stale version or incompatible replay returns 409. After an ambiguous failure, inspect recorded history before retrying; a failed response does not prove that no commit occurred. Production replay requires the approved atomic durable adapter.
+
+## Safe errors
+Errors use `application/problem+json` with `type`, `title`, `status`, path-only `instance` and server-generated `correlationId`; validation can add `errors`. `X-Correlation-ID` also appears on successful responses. Do not put credentials or real driver information in requests or support records.
+
+| Status | Handling |
+| --- | --- |
+| 400 | Correct declared input or missing precondition |
+| 401 / 403 | Restore valid authentication or obtain explicit authority |
+| 404 | Check resource identity and authorized visibility |
+| 409 | Refresh current state and resolve the version/replay conflict |
+| 429 | Honor declared Retry-After before bounded retry |
+| 500 / 503 | Inspect safe correlation/history; use bounded retry when appropriate |
+
