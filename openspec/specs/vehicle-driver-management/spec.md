@@ -35,3 +35,9 @@ Associations SHALL use server UTC effective intervals, require active same-tenan
 #### Scenario: Association changes
 - **WHEN** an association is ended or an entity deactivated
 - **THEN** retain prior IDs and effective history and allow no new intake against a closed or inactive association
+
+### Requirement: Immutable incident fleet snapshot
+Incident intake SHALL preserve vehicle/driver identifiers and versions, association identity/effective interval and owner mapping from authoritative active same-tenant records. Intake SHALL reject closed associations and occurrences outside the current half-open interval; later fleet changes SHALL NOT rewrite incident context or ownership.
+#### Scenario: Intake and later reassignment
+- **WHEN** an event is accepted then its association ends or driver deactivates
+- **THEN** retained incident context/history and original access remain unchanged; new intake against the closed association fails

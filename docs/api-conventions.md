@@ -62,3 +62,7 @@ Use a Python virtual environment locally. CI uses Python 3.12, validates OpenAPI
 ## FAU-11 fault operations
 
 [Fault knowledge contracts](fault-code-management.md) add tenant-local management, paginated immutable revision history, engineering publication and approved applicable lookup. Exact faults.read/faults.write/knowledge.publish/knowledge.read policies remain separate. Production store and taxonomy adapters return503; unknown approved lookup404 remains distinct from unavailable503. No production persistence or software deployment is claimed.
+
+## FAU-12 incident operations
+
+[Incident contracts](incident-processing.md) add source-bound intake, historical ownership reads and conditional status/failure/retry. Seven operations bring the protected inventory to29 across21 OpenAPI paths. Production storage/context503; test-only adapters are not durable persistence.

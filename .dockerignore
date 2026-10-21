@@ -51,3 +51,10 @@
 !src/FaultCode.Api/Contracts/KnowledgeContracts.cs
 !src/FaultCode.Api/Controllers/FaultsController.cs
 !src/FaultCode.Api/Contracts/KnowledgeDocumentExamples.cs
+!src/FaultCode.Domain/Incident.cs
+!src/FaultCode.Application/Incidents/IncidentContracts.cs
+!src/FaultCode.Application/Incidents/IncidentService.cs
+!src/FaultCode.Infrastructure/UnavailableIncidentStore.cs
+!src/FaultCode.Api/Contracts/IncidentContracts.cs
+!src/FaultCode.Api/Contracts/IncidentDocumentExamples.cs
+!src/FaultCode.Api/Controllers/IncidentsController.cs

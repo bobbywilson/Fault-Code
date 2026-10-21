@@ -16,6 +16,8 @@ builder.Services.AddScoped<FaultCode.Application.Fleet.FleetService>();
 builder.Services.AddSingleton<FaultCode.Application.Knowledge.IKnowledgeStore, UnavailableKnowledgeStore>();
 builder.Services.AddSingleton<FaultCode.Application.Knowledge.IFaultTaxonomy, UnavailableFaultTaxonomy>();
 builder.Services.AddScoped<FaultCode.Application.Knowledge.KnowledgeService>();
+builder.Services.AddSingleton<FaultCode.Application.Incidents.IIncidentStore, UnavailableIncidentStore>();
+builder.Services.AddScoped<FaultCode.Application.Incidents.IncidentService>();
 
 builder.Services.AddOptions<FoundationOptions>()
     .Bind(builder.Configuration.GetSection(FoundationOptions.SectionName))
@@ -84,6 +86,8 @@ app.UseStatusCodePages(context => WriteProblem(context.HttpContext, context.Http
 app.Use(async (context, next) =>
 {
     try { await next(context); }
+    catch (FaultCode.Application.Incidents.IncidentException error) when (!context.Response.HasStarted)
+    { await WriteProblem(context, error.Status); }
     catch (FaultCode.Application.Knowledge.KnowledgeException error) when (!context.Response.HasStarted)
     { await WriteProblem(context, error.Status); }
     catch (FaultCode.Application.Fleet.FleetException error) when (!context.Response.HasStarted)
