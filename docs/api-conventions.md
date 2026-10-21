@@ -78,3 +78,7 @@ Use a Python virtual environment locally. CI uses Python 3.12, validates OpenAPI
 ## FAU-16 MCP and escalation contracts
 
 The additive POST /api/v1/incidents/{id}/escalations operation requires escalations.write and existing strong version/replay headers. It records a lifecycle marker only; full engineering cases remain FAU-18. The generated REST inventory is47 protected operations across35 paths. POST /api/v1/mcp is a separate authenticated stateless protocol adapter excluded from REST OpenAPI, with all five input/output schemas supplied through SDK discovery and independently validated using actual SDK examples. Previous REST schemas/security remain compatible. See mcp-tools.md.
+
+## FAU-17 investigation contracts
+
+[Investigation creation/history](fault-investigation.md) adds POST/GET /api/v1/incidents/{id}/investigations (49 protected operations across36 paths). POST requires faults.write plus faults.read/vehicles.access.read/knowledge.read and strong If-Match/Idempotency-Key; GET requires the three read policies and original actor/client history filtering. Production storage503; proposed actions are pending only. Previous REST/MCP/advisory schemas remain compatible.

@@ -52,10 +52,10 @@ public sealed class AgentFrameworkProvider : IAgentProvider, IDisposable
                 UseProvidedChatClientAsIs = true,
                 ChatOptions = new ChatOptions
                 {
-                    Instructions = AgentRuntimeService.Instructions,
+                    Instructions = invocation.Purpose == AgentPurpose.Investigation ? FaultCode.Application.Investigations.InvestigationService.Instructions : AgentRuntimeService.Instructions,
                     MaxOutputTokens = invocation.MaxOutputTokens,
                     RawRepresentationFactory = _ => new OpenAI.Chat.ChatCompletionOptions
-                    { ResponseFormat = OpenAI.Chat.ChatResponseFormat.CreateJsonSchemaFormat("fault_code_advice", BinaryData.FromString(Schema), jsonSchemaIsStrict: true) }
+                    { ResponseFormat = OpenAI.Chat.ChatResponseFormat.CreateJsonSchemaFormat("fault_code_advice", BinaryData.FromString(invocation.Purpose == AgentPurpose.Investigation ? FaultCode.Application.Investigations.InvestigationService.Schema : Schema), jsonSchemaIsStrict: true) }
                 }
             });
             var response = await agent.RunAsync(invocation.Input, cancellationToken: ct);

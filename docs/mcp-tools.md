@@ -76,3 +76,5 @@ The protocol endpoint is excluded from REST OpenAPI; SDK discovery is its schema
 Production identity remains disabled/unprovisioned, and canonical production stores still return503 pending DEC-001/003. One-process test storage proves neither durability nor restart/crash/multi-connection behavior. There is no production memory fallback, live Entra verification, paid model call, new provider/credential, deployment, notification or vehicle action. Normal Compose retains its internal network.
 
 Sources checked October21,2026: [official SDK2.3.0](https://github.com/modelcontextprotocol/csharp-sdk/tree/v2.3.0), [versioned transport documentation](https://github.com/modelcontextprotocol/csharp-sdk/blob/v2.3.0/docs/concepts/transports/transports.md), [NuGet SDK versions](https://api.nuget.org/v3-flatcontainer/modelcontextprotocol.aspnetcore/index.json).
+
+FAU-17 uses the same trusted application read services behind these tools to compose curated investigation context. It does not make authenticated HTTP self-calls, attach MCP to the model or infer mutation intent from evidence. See [fault investigation](fault-investigation.md).
