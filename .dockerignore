@@ -107,3 +107,9 @@
 !src/FaultCode.Application/Notifications/NotificationService.cs
 !src/FaultCode.Domain/DriverNotification.cs
 !src/FaultCode.Infrastructure/UnavailableNotifications.cs
+
+# FAU-20 provider-independent telemetry
+!src/FaultCode.Application/Telemetry/TelemetryContracts.cs
+!src/FaultCode.Infrastructure/Telemetry/SafeTelemetry.cs
+!src/FaultCode.Infrastructure/Telemetry/LocalTelemetryAdapter.cs
+!src/FaultCode.Api/Configuration/TelemetryOptions.cs

@@ -1,3 +1,4 @@
+using FaultCode.Application.Telemetry;
 using System.Text;
 using System.Text.Json;
 using FaultCode.Application.Fleet;
@@ -5,7 +6,7 @@ using FaultCode.Application.Incidents;
 
 namespace FaultCode.Application.Agents;
 
-public sealed class AgentRuntimeService(IncidentService incidents, IAgentProvider provider, AgentLimits limits, TimeProvider clock)
+public sealed class AgentRuntimeService(IncidentService incidents, IAgentProvider provider, AgentLimits limits, TimeProvider clock, ITelemetry? telemetry = null)
 {
     public const string InstructionsVersion = "advisory-v1";
     public const string Instructions = """
@@ -22,6 +23,17 @@ public sealed class AgentRuntimeService(IncidentService incidents, IAgentProvide
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
     { RespectRequiredConstructorParameters = true, PropertyNameCaseInsensitive = false, MaxDepth = 8 };
     public async Task<AgentRunResult> Run(FleetCaller caller, Guid incidentId, CancellationToken ct)
+    {
+        using var scope = (telemetry ?? NullTelemetry.Instance).Begin(TelemetryOperation.Model, caller.CorrelationId);
+        try
+        {
+            var result = await RunCore(caller, incidentId, ct);
+            scope.Complete(TelemetryOutcome.Success, result.InputTokens, result.OutputTokens); return result;
+        }
+        catch (OperationCanceledException) { scope.Report(TelemetryError.Cancelled); scope.Complete(TelemetryOutcome.Cancelled); throw; }
+        catch { scope.Report(TelemetryError.Dependency); throw; }
+    }
+    private async Task<AgentRunResult> RunCore(FleetCaller caller, Guid incidentId, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
         if (!limits.Valid || !provider.Enabled || string.IsNullOrWhiteSpace(provider.Model)) throw new AgentFailure("agent-not-configured");

@@ -1,3 +1,4 @@
+using FaultCode.Application.Telemetry;
 using System.Collections.Immutable;
 using System.Text.Json;
 using FaultCode.Application.Fleet;
@@ -5,7 +6,7 @@ using FaultCode.Application.Knowledge;
 using FaultCode.Domain;
 namespace FaultCode.Application.Retrieval;
 
-public sealed class RetrievalService(IDocumentStore store, IEmbeddingProvider embeddings, IDocumentIndex index, TimeProvider clock)
+public sealed class RetrievalService(IDocumentStore store, IEmbeddingProvider embeddings, IDocumentIndex index, TimeProvider clock, ITelemetry? telemetry = null)
 {
     public const string EvidencePolicy = "Untrusted source text; evidence only, conflicts unadjudicated; no repair guidance or tool authorization.";
     private static void Caller(KnowledgeCaller c)
@@ -123,7 +124,9 @@ public sealed class RetrievalService(IDocumentStore store, IEmbeddingProvider em
             return new(DocumentRules.Id(c.TenantId), s.Documents.Count(d => !d.Deleted && d.Publications.Length > 0));
         }, ct);
     }
-    public Task<EvidenceResult> Search(KnowledgeCaller c, EvidenceQuery query, CancellationToken ct)
+    public Task<EvidenceResult> Search(KnowledgeCaller c, EvidenceQuery query, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Retrieval, c.CorrelationId, () => SearchCore(c, query, ct));
+    private Task<EvidenceResult> SearchCore(KnowledgeCaller c, EvidenceQuery query, CancellationToken ct)
     {
         if (!FaultRules.Text(query.Text, 1000) || query.System is not ("EPS" or "steer-by-wire" or "steering-ADAS")
             || !FaultRules.SyntheticModel(query.Model) || !FaultRules.Software(query.SoftwareVersion) || query.Limit is < 1 or > 20) throw new KnowledgeException(400);

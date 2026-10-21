@@ -1,3 +1,4 @@
+using FaultCode.Application.Telemetry;
 using System.Collections.Immutable;
 using System.Text;
 using System.Text.Json;
@@ -13,7 +14,7 @@ using FaultCode.Domain;
 namespace FaultCode.Application.Investigations;
 
 public sealed class InvestigationService(IInvestigationStore store, IncidentService incidents, KnowledgeService knowledge,
-    OntologyService ontology, RetrievalService retrieval, IAgentProvider provider, AgentLimits limits, TimeProvider clock)
+    OntologyService ontology, RetrievalService retrieval, IAgentProvider provider, AgentLimits limits, TimeProvider clock, ITelemetry? telemetry = null)
 {
     public const string PolicyVersion = "investigation-v1";
     public const string Instructions = """
@@ -51,7 +52,9 @@ public sealed class InvestigationService(IInvestigationStore store, IncidentServ
             return new FleetPage<InvestigationResult>(offset >= all.Length ? [] : all.Skip((int)offset).Take(size).ToArray(), page, size, all.Length);
         }, ct);
     }
-    public async Task<InvestigationResult> Run(FleetCaller caller, Guid id, long version, string key, CancellationToken ct)
+    public Task<InvestigationResult> Run(FleetCaller caller, Guid id, long version, string key, CancellationToken ct) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Investigation, caller.CorrelationId, () => RunCore(caller, id, version, key, ct));
+    private async Task<InvestigationResult> RunCore(FleetCaller caller, Guid id, long version, string key, CancellationToken ct)
     {
         Caller(caller); if (id == Guid.Empty || version < 1 || !IncidentRules.Token(key)) throw new IncidentException(400);
         if (!limits.Valid) throw new AgentFailure("agent-not-configured");
@@ -140,26 +143,33 @@ public sealed class InvestigationService(IInvestigationStore store, IncidentServ
     private async Task<InvestigationModel> Assess(FleetCaller caller, Guid runId, Guid id, string route,
         ImmutableArray<EvidenceCitation> citations, string input, CancellationToken ct)
     {
-        var bytes = Encoding.UTF8.GetByteCount(input);
-        if (bytes > 24000) throw new AgentFailure("agent-budget-exhausted");
-        var reservation = bytes + Encoding.UTF8.GetByteCount(Instructions) + Encoding.UTF8.GetByteCount(Schema) + 4096 + limits.MaxOutputTokens;
-        var reserved = 0;
-        for (var attempt = 1; ; attempt++)
+        using var scope = (telemetry ?? NullTelemetry.Instance).Begin(TelemetryOperation.Model, caller.CorrelationId);
+        try
         {
-            ct.ThrowIfCancellationRequested();
-            if (reservation > limits.TotalTokenBudget - reserved) throw new AgentFailure("agent-budget-exhausted");
-            reserved += reservation; AgentCompletion c;
-            try { c = await provider.Complete(new(runId, id, caller, input, limits.MaxOutputTokens, AgentPurpose.Investigation), ct).WaitAsync(ct); }
-            catch (AgentFailure e) when (e.Code is "agent-rate-limited" or "agent-provider-unavailable" && attempt <= limits.MaxRetries)
-            { await Task.Delay(TimeSpan.FromMilliseconds(100 * attempt), ct); continue; }
-            if (c.ToolCalls != 0) throw new AgentFailure("agent-tool-budget-exhausted");
-            if (c.FinishReason == "length") throw new AgentFailure("agent-budget-exhausted");
-            if (c.FinishReason == "refused") throw new AgentFailure("agent-refused");
-            if (c.Model != provider.Model || c.FinishReason != "stop" || c.InputTokens is not >= 1 || c.OutputTokens is not >= 1
-                || c.InputTokens > reservation - limits.MaxOutputTokens || c.OutputTokens > limits.MaxOutputTokens) throw new AgentFailure("agent-provider-invalid");
-            var a = Validate(c.Json, id, route, citations);
-            return new(c.Model, PolicyVersion, attempt, c.InputTokens.Value, c.OutputTokens.Value, reserved, a.ReviewRequired);
+            var bytes = Encoding.UTF8.GetByteCount(input);
+            if (bytes > 24000) throw new AgentFailure("agent-budget-exhausted");
+            var reservation = bytes + Encoding.UTF8.GetByteCount(Instructions) + Encoding.UTF8.GetByteCount(Schema) + 4096 + limits.MaxOutputTokens;
+            var reserved = 0;
+            for (var attempt = 1; ; attempt++)
+            {
+                ct.ThrowIfCancellationRequested();
+                if (reservation > limits.TotalTokenBudget - reserved) throw new AgentFailure("agent-budget-exhausted");
+                reserved += reservation; AgentCompletion c;
+                try { c = await provider.Complete(new(runId, id, caller, input, limits.MaxOutputTokens, AgentPurpose.Investigation), ct).WaitAsync(ct); }
+                catch (AgentFailure e) when (e.Code is "agent-rate-limited" or "agent-provider-unavailable" && attempt <= limits.MaxRetries)
+                { await Task.Delay(TimeSpan.FromMilliseconds(100 * attempt), ct); continue; }
+                if (c.ToolCalls != 0) throw new AgentFailure("agent-tool-budget-exhausted");
+                if (c.FinishReason == "length") throw new AgentFailure("agent-budget-exhausted");
+                if (c.FinishReason == "refused") throw new AgentFailure("agent-refused");
+                if (c.Model != provider.Model || c.FinishReason != "stop" || c.InputTokens is not >= 1 || c.OutputTokens is not >= 1
+                    || c.InputTokens > reservation - limits.MaxOutputTokens || c.OutputTokens > limits.MaxOutputTokens) throw new AgentFailure("agent-provider-invalid");
+                var a = Validate(c.Json, id, route, citations);
+                scope.Complete(TelemetryOutcome.Success, c.InputTokens, c.OutputTokens);
+                return new(c.Model, PolicyVersion, attempt, c.InputTokens.Value, c.OutputTokens.Value, reserved, a.ReviewRequired);
+            }
         }
+        catch (OperationCanceledException) { scope.Report(TelemetryError.Cancelled); scope.Complete(TelemetryOutcome.Cancelled); throw; }
+        catch { scope.Report(TelemetryError.Dependency); throw; }
     }
     private static Assessment Validate(string raw, Guid id, string route, ImmutableArray<EvidenceCitation> citations)
     {
