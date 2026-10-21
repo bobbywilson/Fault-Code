@@ -25,7 +25,7 @@ The 22 stable Linear IDs are preserved. Numbered titles express approved sequenc
 | 19 | [FAU-20](https://linear.app/fault-code/issue/FAU-20) | Implement Observability Provider Abstraction | `openspec/specs/observability/spec.md` | FAU-5 |
 | 20 | [FAU-21](https://linear.app/fault-code/issue/FAU-21) | Integrate OpenTelemetry and Datadog | `openspec/specs/observability/spec.md` | FAU-15, FAU-20 |
 | 21 | [FAU-22](https://linear.app/fault-code/issue/FAU-22) | Build Angular Administration Dashboard | `openspec/specs/administration/spec.md`, `openspec/specs/api-contracts/spec.md`, `openspec/specs/identity/spec.md`, `openspec/specs/authorization/spec.md` | FAU-18, FAU-19, FAU-21 |
-| 22 | [FAU-23](https://linear.app/fault-code/issue/FAU-23) | Implement Mintlify Documentation, Automated Testing, and Deployment | `openspec/specs/documentation-delivery/spec.md`, `openspec/specs/fault-investigation/spec.md` | FAU-6, FAU-19, FAU-21, FAU-22 |
+| 22 | [FAU-23](https://linear.app/fault-code/issue/FAU-23) | Configure Fault Code Linux Demo Deployment, CI/CD, and GoDaddy Domain | `openspec/specs/documentation-delivery/spec.md`, `openspec/specs/fault-investigation/spec.md` | FAU-6, FAU-19, FAU-21, FAU-22 |
 
 ## Milestones
 1. Project and Specification Foundation: 01–03
