@@ -91,7 +91,7 @@ public sealed class McpToolsTests
         Auth(http, keys, "faults.write", ["Operator"]);
         Assert.Equal("incident_status", Assert.Single(await mcp.ListToolsAsync()).Name);
         Result(await mcp.CallToolAsync("knowledge_search", Context()), 403);
-        Auth(http, keys, null, ["Escalations.Write"], true);
+        Auth(http, keys, null, ["Escalations.Write.Application"], true);
         Assert.Equal("incident_escalate", Assert.Single(await mcp.ListToolsAsync()).Name);
         Auth(http, keys, "knowledge.read", ["Administrator"]);
         Result(await mcp.CallToolAsync("incident_escalate", Mutation(null)), 403);
@@ -154,7 +154,7 @@ public sealed class McpToolsTests
         Assert.Contains(results, r => r.GetProperty("correlationId").GetString() == audit.CorrelationId);
         Intent(http, "incident_status", "Resolved"); Result(await mcp.CallToolAsync("incident_status", Mutation("Resolved")), 409);
         Intent(http, "incident_status", key: "stale"); Result(await mcp.CallToolAsync("incident_status", Mutation(key: "stale")), 409);
-        Auth(http, keys, null, ["Escalations.Write"], true);
+        Auth(http, keys, null, ["Escalations.Write.Application"], true);
         Intent(http, "incident_escalate", "Escalated", "escalate", 2);
         Result(await mcp.CallToolAsync("incident_escalate", Mutation(null, "escalate", 2)), 200);
         Result(await mcp.CallToolAsync("incident_escalate", Mutation(null, "escalate", 2)), 200);
@@ -308,7 +308,7 @@ public sealed class McpToolsTests
                 {
                     name = "incident_escalate",
                     arguments = Mutation(null),
-                    _meta = new { workflowIntent = $"incident_escalate/{Id:D}/1/Escalated/retry", tenantId = Tenant, roles = new[] { "Escalations.Write" } }
+                    _meta = new { workflowIntent = $"incident_escalate/{Id:D}/1/Escalated/retry", tenantId = Tenant, roles = new[] { "Escalations.Write.Application" } }
                 }
             })
         };
