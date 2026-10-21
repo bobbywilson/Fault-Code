@@ -23,7 +23,7 @@ Approved 2026-10-20; user requirements are the authority. This file records deci
 - DEC-001: relational database/provider, schema/migration tooling and durable outbox implementation. Do not assume PostgreSQL or another engine.
 - DEC-002: external notification channel/provider and contact/consent policy. Local test sinks may be specified; no external provisioning.
 - DEC-003: deployment target, persistence/object-storage service, retention/backups and operating budget. Linux/Docker does not select hosting.
-- DEC-004 (remaining): Angular/agent-framework/model/embedding versions; record compatibility and model dimensions before use. .NET portion resolved below. OpenSpec CLI remains pinned to 1.14.3.
+- DEC-004 (remaining): Angular/model/embedding versions; record compatibility and model dimensions before use. .NET portion resolved below. OpenSpec CLI remains pinned to 1.14.3.
 - DEC-005: paid-tier limitations (Mintlify interactive OAuth/hosting, Datadog ingestion, Entra features). Prefer free capabilities; request approval before cost or architecture changes.
 
 Secrets belong in environment/secret stores, not specifications, logs, repository files or prompts. No real driver information is part of this setup.
@@ -31,3 +31,7 @@ Secrets belong in environment/secret stores, not specifications, logs, repositor
 ## FAU-5 framework version decision (2026-10-20)
 
 User requested the latest stable version and authorized installing required tooling. Use .NET 10 LTS, C# 14 and SDK 10.0.402; matching ASP.NET Core runtime is 10.0.13. `global.json` pins the feature band with latestPatch roll-forward and previews disabled. Microsoft support policy lists .NET 10 support through November 2028: https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core. SDK/version/checksum source: https://builds.dotnet.microsoft.com/dotnet/release-metadata/10.0/releases.json. No Angular, model or agent SDK version is selected by this decision.
+
+## FAU-15 SDK compatibility (2026-10-21)
+
+Pin Microsoft.Agents.AI.OpenAI1.25.0 / OpenAI2.14.0 / System.ClientModel1.15.0 in Infrastructure, with locked transitive versions and actual net10.0 mocked-HTTP framework tests. This implements ADR-004. Model snapshot and embedding model/dimensions remain unselected under DEC-004; runtime defaults disabled and requires an explicit dated model/secret before activation. See agent-runtime.md. No paid call, credential, provisioning or network-isolation change.

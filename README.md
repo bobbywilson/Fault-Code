@@ -3,6 +3,7 @@
 Independent API-first agentic automotive fault investigation proof of concept. The initial ASP.NET Core backend foundation is implemented; vehicle/driver lifecycle APIs and rules are implemented with production storage unavailable pending DEC-001. Fault knowledge lifecycle APIs and approved versioned ontology management/rule evaluation are implemented with production storage unavailable pending DEC-001. Incident intake/lifecycle APIs are implemented with production transactional storage/context unavailable pending DEC-001. Other business workflows remain specified for later tickets.
 
 ## Start here
+- [Bounded advisory agent runtime](docs/agent-runtime.md)
 - [Approved document ingestion and traditional retrieval](docs/knowledge-retrieval.md)
 - [Automotive ontology and deterministic rules](docs/automotive-ontology.md)
 - [Incident processing and retry contracts](docs/incident-processing.md)

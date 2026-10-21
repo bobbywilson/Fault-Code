@@ -10,6 +10,19 @@ using FaultCode.Api.Authorization;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEntraAuthentication(builder.Configuration);
 builder.Services.AddFaultCodeAuthorization();
+builder.Services.AddOptions<AgentOptions>().Bind(builder.Configuration.GetSection("Agents"))
+    .Validate(o => o.Valid, "Agents configuration requires bounded limits and, when enabled, an explicit model snapshot and ApiKey.").ValidateOnStart();
+builder.Services.AddHttpClient("agent-runtime").RemoveAllLoggers()
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+builder.Services.AddTransient<FaultCode.Application.Agents.IAgentProvider>(s =>
+{
+    var o = s.GetRequiredService<IOptions<AgentOptions>>().Value;
+    var http = s.GetRequiredService<IHttpClientFactory>().CreateClient("agent-runtime");
+    http.Timeout = Timeout.InfiniteTimeSpan;
+    return new AgentFrameworkProvider(http, o.Enabled, o.Model, o.ApiKey);
+});
+builder.Services.AddSingleton(s => s.GetRequiredService<IOptions<AgentOptions>>().Value.Limits);
+builder.Services.AddScoped<FaultCode.Application.Agents.AgentRuntimeService>();
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddSingleton<FaultCode.Application.Fleet.IFleetStore, UnavailableFleetStore>();
 builder.Services.AddScoped<FaultCode.Application.Fleet.FleetService>();
@@ -108,6 +121,8 @@ app.UseStatusCodePages(context => WriteProblem(context.HttpContext, context.Http
 app.Use(async (context, next) =>
 {
     try { await next(context); }
+    catch (FaultCode.Application.Agents.AgentFailure error) when (!context.Response.HasStarted)
+    { await WriteProblem(context, error.Status, error.Code); }
     catch (FaultCode.Application.Incidents.IncidentException error) when (!context.Response.HasStarted)
     { await WriteProblem(context, error.Status); }
     catch (FaultCode.Application.Knowledge.KnowledgeException error) when (!context.Response.HasStarted)
@@ -127,7 +142,9 @@ static Task WriteProblem(HttpContext context, int status, string? failureCode = 
 {
     var extensions = new Dictionary<string, object?> { ["correlationId"] = context.TraceIdentifier };
     if (failureCode is "document-storage-unavailable" or "embedding-unavailable" or "vector-index-unavailable"
-        or "collection-incompatible" or "embedding-profile-invalid" or "embedding-response-invalid" or "approved-evidence-unindexed")
+        or "collection-incompatible" or "embedding-profile-invalid" or "embedding-response-invalid" or "approved-evidence-unindexed" or "agent-not-configured" or "agent-rate-limited" or "agent-timeout"
+        or "agent-invalid-output" or "agent-refused" or "agent-provider-invalid" or "agent-budget-exhausted"
+        or "agent-tool-budget-exhausted" or "agent-provider-unavailable" or "agent-provider-rejected")
         extensions["failureCode"] = failureCode;
     return Results.Problem(statusCode: status,
         title: Microsoft.AspNetCore.WebUtilities.ReasonPhrases.GetReasonPhrase(status), type: "about:blank",
