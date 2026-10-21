@@ -49,6 +49,9 @@ curl "${curl_flags[@]}" --fail --silent --show-error "https://faultcodeai.com:$p
 curl "${curl_flags[@]}" --fail --silent --show-error "https://faultcodeai.com:$port/api/v1/health" >/dev/null
 status=$(curl "${curl_flags[@]}" --silent --output /dev/null --write-out '%{http_code}' "https://faultcodeai.com:$port/api/v1/authorization/me")
 test "$status" = 401
+if curl "${curl_flags[@]}" --fail --silent -H 'Host: unrelated.invalid' "https://faultcodeai.com:$port/" >/dev/null; then
+  echo 'Unrelated hostname unexpectedly accepted' >&2; exit 1
+fi
 for service in api administration qdrant; do
   container=$(docker compose -p "$project" -f "$temp/compose.json" ps -q "$service")
   test "$(docker inspect "$container" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$source_sha"

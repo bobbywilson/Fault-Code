@@ -29,6 +29,13 @@ runner_restarts=$(systemctl show lalai-runner.service -p NRestarts --value)
 exec 9>/run/lock/faultcode-demo-deploy.lock
 flock -n 9 || { echo 'Fault Code deployment already running' >&2; exit 75; }
 mkdir -p releases
+prior_release=''
+if [[ -f current.env || -f current-release ]]; then
+  [[ -f current.env && -f current-release ]] || { echo 'Incomplete accepted release state' >&2; exit 65; }
+  prior_release=$(cat current-release)
+  [[ "$prior_release" =~ ^[0-9a-f]{40}-[0-9a-f]{64}$ ]] || exit 65
+  [[ -s "releases/$prior_release/manifest.env" ]] || exit 65
+fi
 authdir=$(mktemp -d /run/faultcode-registry.XXXXXX)
 trap 'rm -rf -- "$authdir"' EXIT
 # Short-lived read-only job token arrives on stdin, never in arguments or logs.
@@ -52,25 +59,47 @@ verify() {
 }
 rollback() {
   trap - ERR HUP INT TERM
-  if [[ -f current.env ]]; then
-    if compose current.env up -d --wait --wait-timeout 180 && verify; then
+  if [[ -n "$prior_release" ]]; then
+    for file in compose.yaml nginx.conf browser-config.json runtime.env; do
+      cp -p "releases/$prior_release/$file" "$file"
+    done
+    cp "releases/$prior_release/manifest.env" current.env
+    printf '%s\n' "$prior_release" > current-release
+    printf '%s\n' "${prior_release%%-*}" > current-source
+    if compose current.env up -d --remove-orphans --wait --wait-timeout 180 &&
+       compose current.env exec -T proxy nginx -t &&
+       compose current.env exec -T proxy nginx -s reload && verify; then
       echo 'Candidate failed; previous Fault Code release restored and verified' >&2
     else echo 'Fault Code rollback needs operator attention; LALAI untouched by deployment commands' >&2; fi
   else
     compose "$candidate" down || true
+    rm -f current.env current-source current-release
     echo 'First candidate failed; no prior release exists; Fault Code volumes retained' >&2
   fi
   exit 1
 }
 trap rollback ERR HUP INT TERM
 compose "$candidate" up -d --wait --wait-timeout 180
+compose "$candidate" exec -T proxy nginx -t
+compose "$candidate" exec -T proxy nginx -s reload
 verify
 for service in api administration qdrant; do
   container=$(compose "$candidate" ps -q "$service")
   [[ -n "$container" && $(docker inspect "$container" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}') == "$source_sha" ]]
 done
-if [[ -f current.env ]]; then cp current.env previous.env; fi
-cp "$candidate" "releases/$source_sha.env"
+configuration=$(sha256sum compose.yaml nginx.conf browser-config.json runtime.env | sha256sum | awk '{print $1}')
+release_id="$source_sha-$configuration"
+mkdir -p "releases/$release_id"
+for file in compose.yaml nginx.conf browser-config.json runtime.env; do
+  cp -p "$file" "releases/$release_id/$file"
+done
+cp "$candidate" "releases/$release_id/manifest.env"
+if [[ -n "$prior_release" && "$prior_release" != "$release_id" ]]; then
+  cp current.env previous.env
+  printf '%s\n' "$prior_release" > previous-release
+fi
 mv "$candidate" current.env
 printf '%s\n' "$source_sha" > current-source
+printf '%s\n' "$release_id" > current-release.next
+mv current-release.next current-release
 printf 'Fault Code deployed source=%s; runner PID/restarts unchanged\n' "$source_sha"
