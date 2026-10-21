@@ -84,3 +84,10 @@
 
 !src/FaultCode.Api/Mcp/McpTools.cs
 !src/FaultCode.Api/Mcp/McpTransport.cs
+
+!src/FaultCode.Api/Contracts/InvestigationDocumentExamples.cs
+!src/FaultCode.Api/Contracts/InvestigationContracts.cs
+!src/FaultCode.Api/Controllers/InvestigationsController.cs
+!src/FaultCode.Infrastructure/UnavailableInvestigationStore.cs
+!src/FaultCode.Application/Investigations/InvestigationService.cs
+!src/FaultCode.Application/Investigations/InvestigationContracts.cs

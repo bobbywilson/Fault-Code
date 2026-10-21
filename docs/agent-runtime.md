@@ -33,3 +33,7 @@ Same service/provider, one synthetic unknown-knowledge incident in test-only mem
 ## FAU-16 interface isolation
 
 The MCP transport is implemented separately from this runtime. No MCP tools are registered with the model, MaxToolCalls stays0, automatic invocation stays disabled and returned tool calls still fail closed. Entra tokens, provider credentials, filesystem/shell/general network capabilities and consumer intent headers never enter model context. See mcp-tools.md.
+
+## FAU-17 investigation assessment
+
+The additive [investigation API](fault-investigation.md) composes trusted approved knowledge/rules/RAG and stores bounded structured assessment separately. Its fixed investigation schema is selected by trusted application code; existing advisory endpoint/schema remains unchanged. MCP tools remain disconnected from the model. No environment/credential/execution capability is added. Production investigation storage503 pending DEC-001/003.
