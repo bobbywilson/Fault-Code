@@ -89,6 +89,13 @@ public sealed class IncidentService(IIncidentStore store, TimeProvider clock)
             return i with { Status = status, Work = work };
         }, null, ct);
     }
+    // Lifecycle marker only; FAU-18 owns engineering investigation cases.
+    public Task<MutationResult> Escalate(FleetCaller c, Guid id, long version, string key, CancellationToken ct) =>
+        Mutate(c, id, "escalate", new { status = "Escalated", version }, version, key, (i, _) =>
+        {
+            if (!IncidentRules.CanTransition(i.Status, "Escalated") || i.Work.Any(w => w.State == "Failed")) throw new IncidentException(409);
+            return i with { Status = "Escalated", Work = [.. i.Work.Select(w => w.State == "Pending" ? w with { State = "Completed" } : w)] };
+        }, null, ct);
     public Task<MutationResult> Fail(FleetCaller c, Guid id, string failure, long version, string key, CancellationToken ct)
     {
         if (!IncidentRules.Failure(failure)) throw new IncidentException(400);

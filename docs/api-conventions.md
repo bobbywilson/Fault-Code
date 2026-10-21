@@ -74,3 +74,7 @@ Use a Python virtual environment locally. CI uses Python 3.12, validates OpenAPI
 ## FAU-14 document operations
 
 [Traditional retrieval contracts](knowledge-retrieval.md) add eight protected operations (45 across33 OpenAPI paths): document create/draft/update/approval/withdrawal/index, tenant reindex and approved evidence search. Exact knowledge.publish manages; knowledge.read searches. Explicit source/page/version/checksum/approval citations are untrusted evidence. Canonical storage503 pending DEC-001/003; configured embedding model/dimensions remain a separate DEC-004 choice. No production memory fallback or model-generated advice.
+
+## FAU-16 MCP and escalation contracts
+
+The additive POST /api/v1/incidents/{id}/escalations operation requires escalations.write and existing strong version/replay headers. It records a lifecycle marker only; full engineering cases remain FAU-18. The generated REST inventory is47 protected operations across35 paths. POST /api/v1/mcp is a separate authenticated stateless protocol adapter excluded from REST OpenAPI, with all five input/output schemas supplied through SDK discovery and independently validated using actual SDK examples. Previous REST schemas/security remain compatible. See mcp-tools.md.

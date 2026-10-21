@@ -59,3 +59,7 @@ Reads use page1/pageSize20/max100 and deterministic incident-ID order; list acce
 ## Required production acceptance
 
 Test-only copy-on-write adapter proves one-process behavior; it is not durable production persistence. An approved DEC-001 adapter must coordinate fleet/knowledge locking/snapshots and enforce cross-process uniqueness/version isolation, crash-before/after-commit, cancellation, restart recovery, migrations, retained replay/audit/history, safe retention and durable outbox dispatch/consumer deduplication. Pending work contracts do not constitute an implemented durable outbox. No database/provider/schema/migration was selected, no live Entra tenant was provisioned and no cloud deployment was performed.
+
+## FAU-16 lifecycle escalation adapter
+
+POST /api/v1/incidents/{id}/escalations requires exact escalations.write (Engineer or Escalations.Write application role), strong If-Match and Idempotency-Key. It shares one service operation/replay namespace with the MCP incident_escalate tool and records the existing legal Investigating -> Escalated transition, history and safe audit. This lifecycle marker is not FAU-18 engineering case management. Production storage remains503. See mcp-tools.md for separate MCP consumer intent and model isolation.

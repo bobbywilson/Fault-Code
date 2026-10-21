@@ -81,3 +81,6 @@
 !src/FaultCode.Application/Agents/AgentRuntimeService.cs
 !src/FaultCode.Application/Agents/AgentContracts.cs
 !src/FaultCode.Api/Contracts/AgentDocumentExamples.cs
+
+!src/FaultCode.Api/Mcp/McpTools.cs
+!src/FaultCode.Api/Mcp/McpTransport.cs

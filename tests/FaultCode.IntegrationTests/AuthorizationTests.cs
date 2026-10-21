@@ -164,6 +164,13 @@ public sealed class AuthorizationTests
         foreach (var endpoint in endpoints)
         {
             if (endpoint.Metadata.GetMetadata<IAllowAnonymous>() is not null) continue;
+            if (endpoint is RouteEndpoint mcp && mcp.RoutePattern.RawText?.StartsWith("/api/v1/mcp", StringComparison.Ordinal) == true)
+            {
+                Assert.All(endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>(), p => Assert.Equal("mcp.access", p.Policy));
+                Assert.NotEmpty(endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>());
+                Assert.False(json.RootElement.GetProperty("paths").TryGetProperty("/api/v1/mcp", out _));
+                continue;
+            }
             var policies = endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>();
             Assert.NotEmpty(policies);
             foreach (var policy in policies)
@@ -204,7 +211,7 @@ public sealed class AuthorizationTests
             }
             protectedCount++;
         }
-        Assert.Equal(46, protectedCount);
+        Assert.Equal(47, protectedCount);
     }
 
     [Fact]

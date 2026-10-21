@@ -31,6 +31,7 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install -r scripts/requirements-contracts.txt
       - run: python scripts/check-api-contract.py artifacts/openapi/faultcode-v1.json contracts/openapi-v1.json
+      - run: python scripts/check-mcp-contract.py artifacts/mcp-contracts.json
       - name: Compare against base branch contract
         if: github.event_name == 'pull_request'
         shell: bash
@@ -45,5 +46,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: openapi-${{ matrix.os }}
-          path: artifacts/openapi/faultcode-v1.json
+          path: |
+            artifacts/openapi/faultcode-v1.json
+            artifacts/mcp-contracts.json
       - run: dotnet format FaultCode.slnx --verify-no-changes --no-restore

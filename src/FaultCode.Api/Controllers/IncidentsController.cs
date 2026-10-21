@@ -17,7 +17,7 @@ public sealed class IncidentsController(IncidentService service, IAuthorizationS
             throw new IncidentException(404);
         return incident;
     }
-    private static IncidentResponse MapIncident(Incident i) => new(i.Id, i.SourceClientId, i.SourceEventId, i.Code, i.System, i.Model,
+    internal static IncidentResponse MapIncident(Incident i) => new(i.Id, i.SourceClientId, i.SourceEventId, i.Code, i.System, i.Model,
         i.SoftwareVersion, i.OccurredAt, i.ReceivedAt, i.IntakeCorrelationId,
         new(i.Fleet.VehicleId, i.Fleet.VehicleIdentifier, i.Fleet.VehicleVersion, i.Fleet.DriverId, i.Fleet.DriverIdentifier,
             i.Fleet.DriverVersion, i.Fleet.Association.Id, i.Fleet.Association.From, i.Fleet.Association.Until),
@@ -67,4 +67,9 @@ public sealed class IncidentsController(IncidentService service, IAuthorizationS
     public async Task<ActionResult<MutationResponse>> Retry(Guid id, [FromHeader(Name = "If-Match")] string version,
         [FromHeader(Name = "Idempotency-Key")] string key, CancellationToken ct) =>
         Mutation(await service.Retry(Caller, id, Version(version), Key(key), ct), false, "");
+    [HttpPost("{id:guid}/escalations", Name = "EscalateIncident"), Authorize(Policy = "escalations.write")]
+    [ProducesResponseType<MutationResponse>(200)]
+    public async Task<ActionResult<MutationResponse>> Escalate(Guid id, [FromHeader(Name = "If-Match")] string version,
+        [FromHeader(Name = "Idempotency-Key")] string key, CancellationToken ct) =>
+        Mutation(await service.Escalate(Caller, id, Version(version), Key(key), ct), false, "");
 }
