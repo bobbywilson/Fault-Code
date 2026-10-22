@@ -15,7 +15,7 @@ public sealed class FleetRulesTests
     [InlineData("DRV-X!", "DRV-")]
     public void Rejects_invalid_identifiers(string input, string prefix) => Assert.Throws<ArgumentException>(() => FleetRules.Identifier(input, prefix));
     [Fact]
-    public void Association_requires_active_same_tenant_owned_entities_and_no_open_interval()
+    public void Association_requires_active_same_tenant_owned_entities_and_unique_active_pair()
     {
         const string tenant = "11111111-1111-4111-8111-111111111111";
         var d = new Driver(Guid.NewGuid(), tenant, "DRV-001", tenant, "Synthetic", null, false, true, 1);
@@ -28,5 +28,7 @@ public sealed class FleetRulesTests
         Assert.False(FleetRules.CanAssociate(v, d with { OwnerObjectId = "" }, []));
         Assert.False(FleetRules.CanAssociate(v, d, [a]));
         Assert.True(FleetRules.CanAssociate(v, d, [a with { Until = DateTimeOffset.UtcNow }]));
+        Assert.True(FleetRules.CanAssociate(v, d with { Id = Guid.NewGuid() }, [a]));
+        Assert.True(FleetRules.CanAssociate(v with { Id = Guid.NewGuid() }, d, [a]));
     }
 }

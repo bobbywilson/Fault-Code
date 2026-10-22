@@ -9,6 +9,13 @@ namespace FaultCode.Api.Controllers;
 [Authorize(Policy = "faults.read"), Authorize(Policy = "vehicles.access.read"), Authorize(Policy = "drivers.access.read"), Authorize(Policy = "knowledge.read")]
 public sealed class NotificationsController(NotificationService service) : FleetControllerBase
 {
+    [HttpGet("notifications", Name = "ListDriverNotifications")]
+    [ProducesResponseType<PageResponse<DriverNotificationSummaryResponse>>(200)]
+    public async Task<ActionResult<PageResponse<DriverNotificationSummaryResponse>>> All([FromQuery] FleetPageQuery query, [FromQuery] Guid? driverId, [FromQuery] Guid? incidentId, CancellationToken ct)
+    {
+        var p = await service.ListAll(Caller, driverId, query.Page, query.PageSize, ct, incidentId);
+        return Ok(new PageResponse<DriverNotificationSummaryResponse>(p.Items.Select(DriverNotificationSummaryResponse.From).ToArray(), p.Page, p.PageSize, p.TotalCount));
+    }
     [HttpGet("incidents/{id:guid}/notifications", Name = "ListIncidentNotifications")]
     [ProducesResponseType<PageResponse<NotificationResponse>>(200)]
     public async Task<ActionResult<PageResponse<NotificationResponse>>> List(Guid id, [FromQuery] FleetPageQuery query, CancellationToken ct)

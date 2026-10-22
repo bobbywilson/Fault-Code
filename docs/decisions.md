@@ -62,3 +62,37 @@ The user clarified ADR-002: use the official spartan.ng styled Helm components t
 ## FAU-22 fault-code ontology presentation (2026-10-21)
 
 The user clarified that Ontology should display the fault-code domain and its incident, vehicle, driver and notification relationships in a table, rather than offer catalog creation on entry. This changes administration presentation to a read-only model reference. It does not replace or relax the approved versioned taxonomy, classification/rule validation, engineering publication APIs or durable-storage decisions.
+
+
+## Later October 21 workflow and demo data clarification
+
+The latest user instructions supersede conflicting earlier editable-ontology/full-admin-page requirements: use a read-only ontology table; remove Fault definitions, Documents, Engineering, Agent activity and Operational health pages from navigation while preserving backend processing services. Vehicles lists associated drivers and submits fault events; Drivers lists emails. Microsoft 365 is the selected email provider (DEC-002 provider selection is resolved; mailbox permissions, consent and actual delivery remain unverified). Exact approved-code Qdrant lookup leads to agent-drafted email, while unknown faults create investigations and resolution triggers follow-up. See `docs/audit/simplified-workflow.md` for the complete clarification.
+
+The user selected synthetic Chevrolet Silverado/GMC Sierra demo vehicles and fictional drivers. `DemoFleetFactory` and `DemoFleetSeeder` prepare four vehicles, four drivers and six many-to-many links, with reserved `.invalid` emails and notifications disabled. They create no real Entra accounts or consent records and send no email. Seeding is explicit, validated, audited and repeatable through the existing application service, never an in-memory production fallback. DEC-001 remains pending: no relational engine or EF Core provider is selected by this seed implementation. Real persistent loading/restart verification must follow database approval and adapter implementation.
+
+
+## DEC-001 approved: SQL Server (2026-10-21)
+
+The user explicitly instructed: "Use sqlsver for the database." Adopt the previously recommended SQL Server 2025 Express free edition with Microsoft EF Core SQL Server 10.0.13 and migrations. Database-engine selection is resolved. Fleet persistence is the first normalized adapter; other canonical stores/outbox remain incomplete and must not be described as durable. Use an isolated Fault Code database/volume/network, separate least-privilege application and migration credentials, explicit migrations/seeding and no startup auto-provisioning or memory fallback. The SQL overlay is local only; deployment remains paused and shared-server installation is not approved by this database choice.
+
+Local live testing is blocked by capacity: the existing x86 Linux VM reports1966MiB total RAM and currently hosts other development services. SQL Server requires at least2GiB and the proposed container cap is3GiB. No VM restart/resize or shared-host installation has been performed. New EF tooling brought a vulnerable transitive Pkcs9.0.11 dependency; explicitly pin System.Security.Cryptography.Pkcs10.0.13 instead of suppressing NuGet security warnings.
+
+
+### Local capacity approval and architecture correction
+
+The user subsequently approved the local VM resize/restart. Parallels and Homestead now configure4GiB, and nginx/mysql/php8.3-fpm were active afterward. Fresh inspection showed the VM/Docker engine are ARM64, correcting the earlier unverified x86 assumption. SQL Server's official x64 container failed to execute; it was stopped without deleting its dedicated volume. Local live SQL loading remains blocked by CPU architecture, not database approval or RAM. Use a real x64 GitHub CI integration test for verification; its fixture database is not local production/demo data. Shared hosted-server installation remains separately unapproved and deployment paused.
+
+
+### User-authorized existing SQL container takeover
+
+The user then supplied Docker Desktop's existing `sql2022` and explicitly said its old data was not needed and to take it over. The instance runs SQL Server2022 Developer16.0.4225.2, free for local development/testing. This approved local-container reuse supersedes local capacity-blocked status for fleet verification; no claim of native ARM support or Developer production licensing is made. Dedicated FaultCode databases/scoped logins/migration/seeds are verified, including actual SQL restart and real Entra Angular reads. Hosted SQL Server2025 Express remains the intended free production edition and deployment stays paused. The existing container has no mounted persistent volume; container-removal durability/backup remains a deployment prerequisite.
+
+
+## Demo-only fleet and Mailpit clarification
+
+The user requested test data only (no vehicle/driver management UI), plain names, separate email columns, left-aligned tables, example.com addresses and one driver per vehicle on the demo table. Seed upgrades preserve original v1 replay inputs, update only matching demo profiles, and end superseded associations rather than deleting history. Current main data:4vehicles/4drivers/4active links,7history intervals,22audit events; rerun creates no additional mutations.
+
+Mailpit is now the selected local/Linux demo capture provider, superseding Microsoft365 delivery for the test environment. Use official pinned v1.31.6, private UI/SMTP, own network/volume/resource limits and no relay. Local real HTTP capture adapter and SMTP tests passed. Linux Compose overlay is prepared but not installed while deployment is paused. Future real external email still requires consent, directory/mailbox permissions and an approved delivery transport; capture is not external delivery. Stable Message-ID is not durable exactly-once dispatch.
+
+## Final demo email and presentation clarification — October21,2026
+Microsoft365 email is cancelled. Mailpit capture is required locally and on Linux, with no relay and example.com recipients; Linux Compose includes it by default, but deployment stays paused. Datadog remains mandatory and actual ingestion remains an acceptance gap. Navigation is Incidents, Vehicles, Drivers, Notifications, Users & roles, Ontology. Users lists API-backed names/roles. The account uses a Spartan photo-avatar dropdown; protected/authenticated pills and standalone sign-out are removed. The user approved the dedicated Fault Code Operator grant and supplied the avatar image. No Graph scope or paid service was added.

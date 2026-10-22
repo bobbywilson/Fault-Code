@@ -1,9 +1,17 @@
+import { HlmAvatar, HlmAvatarImage, HlmAvatarFallback } from '@spartan-ng/helm/avatar';
+import {
+  HlmDropdownMenu,
+  HlmDropdownMenuTrigger,
+  HlmDropdownMenuItem,
+  HlmDropdownMenuLabel,
+  HlmDropdownMenuSeparator,
+} from '@spartan-ng/helm/dropdown-menu';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { Component, Input, inject, signal, computed, effect } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ActivatedRoute, RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HlmTableImports } from '@spartan-ng/helm/table';
-import { ontologyRelationships } from './ontology-model';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -26,8 +34,7 @@ import {
   lucideFlaskConical,
   lucideBot,
   lucideBell,
-  lucidePlug,
-  lucideShieldCheck,
+  lucideHeartPulse,
   lucideArrowUpRight,
 } from '@ng-icons/lucide';
 import { Auth } from './auth';
@@ -52,14 +59,9 @@ export const areas = [
   ['Incidents', 'incidents'],
   ['Vehicles', 'vehicles'],
   ['Drivers', 'drivers'],
-  ['Fault definitions', 'faults'],
-  ['Ontology', 'ontology'],
-  ['Documents', 'documents'],
-  ['Engineering', 'engineering'],
-  ['Agent activity', 'activity'],
   ['Notifications', 'notifications'],
   ['Users & roles', 'users'],
-  ['Integrations', 'integrations'],
+  ['Ontology', 'ontology'],
 ];
 @Component({
   selector: 'app-workspace',
@@ -69,6 +71,14 @@ export const areas = [
     RouterLinkActive,
     FormsModule,
     HlmButton,
+    HlmAvatar,
+    HlmAvatarImage,
+    HlmAvatarFallback,
+    HlmDropdownMenu,
+    HlmDropdownMenuTrigger,
+    HlmDropdownMenuItem,
+    HlmDropdownMenuLabel,
+    HlmDropdownMenuSeparator,
     HlmTableImports,
     HlmSidebarImports,
     HlmCardImports,
@@ -95,8 +105,7 @@ export const areas = [
       lucideFlaskConical,
       lucideBot,
       lucideBell,
-      lucidePlug,
-      lucideShieldCheck,
+      lucideHeartPulse,
       lucideArrowUpRight,
     }),
   ],
@@ -142,11 +151,6 @@ export const areas = [
                   ><ng-icon name="lucideArrowUpRight" /><span>API reference</span></a
                 >
               </li>
-              <li hlmSidebarMenuItem>
-                <span hlmBadge variant="outline" class="m-2"
-                  ><ng-icon name="lucideShieldCheck" class="mr-1 size-3" />Protected workspace</span
-                >
-              </li>
             </ul>
           </div>
         </hlm-sidebar>
@@ -167,14 +171,35 @@ export const areas = [
               </ol>
             </nav>
           </div>
-          <div class="flex items-center gap-3">
-            <span hlmBadge variant="outline">{{
-              auth.state() === 'signed-in' ? 'Authenticated' : 'Secure access'
-            }}</span>
-            @if (auth.state() === 'signed-in') {
-              <button hlmBtn variant="ghost" size="sm" (click)="logout()">Sign out</button>
-            }
-          </div>
+          @if (auth.state() === 'signed-in') {
+            <button
+              hlmBtn
+              variant="ghost"
+              size="icon"
+              class="rounded-full"
+              [hlmDropdownMenuTrigger]="accountMenu"
+              align="end"
+            >
+              <span class="sr-only">Account menu for {{ auth.profileName() }}</span>
+              <hlm-avatar>
+                @if (auth.profilePhoto()) {
+                  <img
+                    hlmAvatarImage
+                    [src]="auth.profilePhoto()"
+                    [alt]="auth.profileName() + ' profile picture'"
+                  />
+                }
+                <span hlmAvatarFallback class="text-foreground">{{ accountInitials() }}</span>
+              </hlm-avatar>
+            </button>
+            <ng-template #accountMenu>
+              <hlm-dropdown-menu class="min-w-44" aria-label="Account">
+                <div hlmDropdownMenuLabel>{{ auth.profileName() || 'Account' }}</div>
+                <div hlmDropdownMenuSeparator></div>
+                <button hlmDropdownMenuItem (triggered)="logout()">Sign out</button>
+              </hlm-dropdown-menu>
+            </ng-template>
+          }
         </header>
         <div class="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 p-4 md:p-8">
           <div class="space-y-2">
@@ -214,26 +239,144 @@ export const areas = [
               <button hlmBtn class="w-fit" (click)="login()">Sign in with Microsoft</button>
             </section>
           } @else {
-            @if (group() === 'Users & roles' || group() === 'Integrations') {
-              <p hlmAlert role="note">
-                These actions manage local administration records. External identity grants and
-                provider activation require separate configuration.
-              </p>
-            }
-            @if (group() === 'Agent activity') {
-              <p hlmAlert role="note">
-                Activity shows recorded investigations. Model usage and performance are unavailable
-                when not recorded.
-              </p>
-            }
-            @if (group() === 'Incidents' && !incidentReview()) {
-              <section hlmCard class="gap-4 p-6" aria-label="Unmatched vehicle incidents">
+            @if ((group() === 'Vehicles' || group() === 'Drivers') && !fleetEditing()) {
+              <section hlmCard class="gap-4 p-6" [attr.aria-label]="group() + ' list'">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h2 hlmCardTitle>
+                    {{ fleetIsVehicles() ? 'Vehicle fleet' : 'Driver directory' }}
+                  </h2>
+                  <div class="flex gap-2">
+                    <button
+                      hlmBtn
+                      variant="outline"
+                      [disabled]="busy() || permissionsLoading()"
+                      (click)="reloadFleet()"
+                    >
+                      Refresh
+                    </button>
+                  </div>
+                </div>
+                @if (busy() || permissionsLoading()) {
+                  <p role="status">Loading {{ group().toLowerCase() }}…</p>
+                } @else if (error()) {
+                  <div hlmAlert variant="destructive" role="alert">{{ message() }}</div>
+                } @else if (fleetRows().length === 0) {
+                  <p>No {{ group().toLowerCase() }} recorded.</p>
+                } @else {
+                  <div class="overflow-x-auto">
+                    <table hlmTable class="text-left" [attr.aria-label]="group() + ' records'">
+                      <thead hlmTHead>
+                        <tr hlmTr>
+                          @if (fleetIsVehicles()) {
+                            <th hlmTh>Vehicle</th>
+                            <th hlmTh>System</th>
+                          }
+                          <th hlmTh>{{ fleetIsVehicles() ? 'Driver' : 'Name' }}</th>
+                          <th hlmTh>Email</th>
+                          @if (!fleetIsVehicles()) {
+                            <th hlmTh>Notifications</th>
+                          }
+                          @if (fleetIsVehicles()) {
+                            <th hlmTh>Status</th>
+                            <th hlmTh>Actions</th>
+                          }
+                        </tr>
+                      </thead>
+                      <tbody hlmTBody>
+                        @for (row of fleetRows(); track row.id) {
+                          <tr hlmTr>
+                            @if (fleetIsVehicles()) {
+                              <td hlmTd>{{ vehicleName(row) }}</td>
+                              <td hlmTd>{{ row.system }}</td>
+                            }
+                            <td hlmTd>
+                              @if (fleetIsVehicles()) {
+                                @if (row.associationError) {
+                                  <span>Driver associations unavailable</span>
+                                } @else if (!row.drivers.length) {
+                                  <span>No active drivers</span>
+                                }
+                                @for (driver of row.drivers; track driver.id) {
+                                  <div>{{ driverName(driver) }}</div>
+                                }
+                              } @else {
+                                {{ driverName(row) }}
+                              }
+                            </td>
+                            <td hlmTd>
+                              @if (fleetIsVehicles()) {
+                                @if (row.associationError) {
+                                  <span>Unavailable</span>
+                                } @else if (!row.drivers.length) {
+                                  <span>—</span>
+                                }
+                                @for (driver of row.drivers; track driver.id) {
+                                  <div>{{ driver.email || 'No email recorded' }}</div>
+                                }
+                              } @else {
+                                {{ row.email || 'No email recorded' }}
+                              }
+                            </td>
+                            @if (!fleetIsVehicles()) {
+                              <td hlmTd>
+                                <a
+                                  hlmBtn
+                                  variant="outline"
+                                  routerLink="/admin/notifications"
+                                  [queryParams]="{ driverId: row.id }"
+                                  >View notifications</a
+                                >
+                              </td>
+                            }
+                            @if (fleetIsVehicles()) {
+                              <td hlmTd>{{ row.active ? 'Active' : 'Inactive' }}</td>
+                              <td hlmTd>
+                                <button
+                                  hlmBtn
+                                  variant="outline"
+                                  [disabled]="
+                                    !row.active ||
+                                    !canDispatch() ||
+                                    row.associationError ||
+                                    !row.drivers.length
+                                  "
+                                  (click)="dispatchFault(row)"
+                                >
+                                  Dispatch fault code
+                                </button>
+                              </td>
+                            }
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                }
+                <div class="flex items-center gap-3">
+                  <button
+                    hlmBtn
+                    variant="outline"
+                    [disabled]="busy() || fleetPage() <= 1"
+                    (click)="reloadFleet(fleetPage() - 1)"
+                  >
+                    Previous</button
+                  ><span>Page {{ fleetPage() }} · {{ fleetTotal() }} records</span
+                  ><button
+                    hlmBtn
+                    variant="outline"
+                    [disabled]="busy() || fleetPage() * 20 >= fleetTotal()"
+                    (click)="reloadFleet(fleetPage() + 1)"
+                  >
+                    Next
+                  </button>
+                </div>
+              </section>
+            } @else if (group() === 'Incidents' && !incidentReview()) {
+              <section hlmCard class="gap-4 p-6" aria-label="Vehicle incidents">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                   <div class="space-y-2">
-                    <h2 hlmCardTitle>Unmatched vehicle reports</h2>
-                    <p hlmCardDescription>
-                      Vehicle-reported faults with no approved catalog match at intake.
-                    </p>
+                    <h2 hlmCardTitle>Incidents</h2>
+                    <p hlmCardDescription>Incidents created from vehicle fault reports.</p>
                   </div>
                   <button
                     hlmBtn
@@ -252,25 +395,15 @@ export const areas = [
                     vehicles.
                   </p>
                 }
-                @if (message() && error()) {
-                  <div hlmAlert variant="destructive">
-                    {{ message() }}
-                    @if (correlation()) {
-                      <small>Reference: {{ correlation() }}</small>
-                    }
-                  </div>
-                }
-                @if (hasPage()) {
+                <ng-container>
                   <div hlmTableContainer>
-                    <table hlmTable>
+                    <table hlmTable aria-label="Incidents records">
                       <caption hlmCaption>
-                        {{
-                          data().totalCount
-                        }}
-                        unmatched vehicle reports · page
-                        {{
-                          data().page
-                        }}
+                        @if (hasPage()) {
+                          {{ data().totalCount }} incidents · page {{ data().page }}
+                        } @else {
+                          Vehicle-reported incidents
+                        }
                       </caption>
                       <thead hlmTHead>
                         <tr hlmTr>
@@ -280,15 +413,33 @@ export const areas = [
                           <th hlmTh scope="col">System</th>
                           <th hlmTh scope="col">Reported (UTC)</th>
                           <th hlmTh scope="col">Status</th>
-                          <th hlmTh scope="col"><span class="sr-only">Review incident</span></th>
+                          <th hlmTh scope="col">Actions</th>
                         </tr>
                       </thead>
                       <tbody hlmTBody>
-                        @for (incident of data().items; track incident.id) {
+                        @for (incident of data()?.items ?? []; track incident.id) {
                           <tr hlmTr>
                             <th hlmTh scope="row" class="text-foreground">{{ incident.code }}</th>
-                            <td hlmTd>{{ incident.fleet?.vehicleIdentifier ?? 'Unavailable' }}</td>
-                            <td hlmTd>{{ incident.fleet?.driverIdentifier ?? 'Unavailable' }}</td>
+                            <td hlmTd>
+                              <a
+                                hlmBtn
+                                variant="link"
+                                routerLink="/admin/vehicles"
+                                [queryParams]="{ vehicleId: incident.fleet.vehicleId }"
+                                >{{
+                                  vehicleName({ identifier: incident.fleet.vehicleIdentifier })
+                                }}</a
+                              >
+                            </td>
+                            <td hlmTd>
+                              <a
+                                hlmBtn
+                                variant="link"
+                                routerLink="/admin/drivers"
+                                [queryParams]="{ driverId: incident.fleet.driverId }"
+                                >{{ incident.fleet.driverIdentifier }}</a
+                              >
+                            </td>
                             <td hlmTd>{{ incident.system }}</td>
                             <td hlmTd>{{ incident.occurredAt | date: 'medium' : 'UTC' }}</td>
                             <td hlmTd>
@@ -304,22 +455,13 @@ export const areas = [
                               >
                                 Review <ng-icon name="lucideArrowUpRight" />
                               </button>
-                            </td>
-                          </tr>
-                        } @empty {
-                          <tr hlmTr>
-                            <td hlmTd colspan="7">
-                              <div hlmEmpty>
-                                <div hlmEmptyHeader>
-                                  <div hlmEmptyMedia variant="icon">
-                                    <ng-icon name="lucideTriangleAlert" />
-                                  </div>
-                                  <p hlmEmptyTitle>No unmatched incidents</p>
-                                  <p hlmEmptyDescription>
-                                    Vehicle reports without a known fault match will appear here.
-                                  </p>
-                                </div>
-                              </div>
+                              <a
+                                hlmBtn
+                                variant="ghost"
+                                routerLink="/admin/notifications"
+                                [queryParams]="{ incidentId: incident.id }"
+                                >Notifications</a
+                              >
                             </td>
                           </tr>
                         }
@@ -330,25 +472,168 @@ export const areas = [
                     <button
                       hlmBtn
                       variant="outline"
-                      (click)="reloadIncidents(data().page - 1)"
-                      [disabled]="busy() || data().page <= 1"
+                      (click)="reloadIncidents((data()?.page ?? 1) - 1)"
+                      [disabled]="!hasPage() || busy() || (data()?.page ?? 1) <= 1"
                     >
                       Previous</button
                     ><button
                       hlmBtn
                       variant="outline"
-                      (click)="reloadIncidents(data().page + 1)"
-                      [disabled]="busy() || data().page * data().pageSize >= data().totalCount"
+                      (click)="reloadIncidents((data()?.page ?? 1) + 1)"
+                      [disabled]="
+                        !hasPage() ||
+                        busy() ||
+                        (data()?.page ?? 1) * (data()?.pageSize ?? 20) >= (data()?.totalCount ?? 0)
+                      "
                     >
                       Next
                     </button>
                   </div>
+                </ng-container>
+              </section>
+            } @else if (group() === 'Notifications') {
+              <section hlmCard class="gap-4 p-6" aria-label="Driver notifications list">
+                <div class="flex items-center justify-between">
+                  <h2 class="font-semibold">Notifications</h2>
+                  <button
+                    hlmBtn
+                    variant="outline"
+                    [disabled]="busy()"
+                    (click)="reloadNotifications()"
+                  >
+                    Refresh
+                  </button>
+                </div>
+                @if (notificationDriver() || incidentFilter()) {
+                  <a hlmBtn variant="outline" routerLink="/admin/notifications"
+                    >Show all notifications</a
+                  >
                 }
+                @if (busy()) {
+                  <p role="status">Loading notifications…</p>
+                } @else if (error()) {
+                  <p role="alert">{{ message() }}</p>
+                } @else if (!notificationRows().length) {
+                  <p>No driver notifications recorded.</p>
+                } @else {
+                  <div class="overflow-x-auto">
+                    <table hlmTable class="text-left" aria-label="Driver notifications records">
+                      <thead hlmTHead>
+                        <tr hlmTr>
+                          <th hlmTh>Driver</th>
+                          <th hlmTh>Email</th>
+                          <th hlmTh>Message</th>
+                          <th hlmTh>Status</th>
+                          <th hlmTh>Created</th>
+                          <th hlmTh>Attempts</th>
+                        </tr>
+                      </thead>
+                      <tbody hlmTBody>
+                        @for (row of notificationRows(); track row.id) {
+                          <tr hlmTr>
+                            <td hlmTd>{{ row.driverName }}</td>
+                            <td hlmTd>{{ row.email }}</td>
+                            <td hlmTd class="max-w-lg whitespace-normal">{{ row.message }}</td>
+                            <td hlmTd>{{ row.state }}</td>
+                            <td hlmTd>{{ row.createdAt | date: 'medium' }}</td>
+                            <td hlmTd>{{ row.attemptCount ?? 0 }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                }
+                <div class="flex items-center gap-3">
+                  <button
+                    hlmBtn
+                    variant="outline"
+                    [disabled]="busy() || notificationPage() <= 1"
+                    (click)="reloadNotifications(notificationPage() - 1)"
+                  >
+                    Previous</button
+                  ><span>Page {{ notificationPage() }} · {{ notificationTotal() }} records</span
+                  ><button
+                    hlmBtn
+                    variant="outline"
+                    [disabled]="busy() || notificationPage() * 20 >= notificationTotal()"
+                    (click)="reloadNotifications(notificationPage() + 1)"
+                  >
+                    Next
+                  </button>
+                </div>
+              </section>
+            } @else if (group() === 'Users & roles') {
+              <section hlmCard class="gap-4 p-6" aria-label="Users and roles list">
+                <div class="flex items-center justify-between">
+                  <h2 class="font-semibold">Users & roles</h2>
+                  <button hlmBtn variant="outline" [disabled]="busy()" (click)="reloadUsers()">
+                    Refresh
+                  </button>
+                </div>
+                @if (busy()) {
+                  <p role="status">Loading users…</p>
+                }
+                @if (error()) {
+                  <p role="alert">{{ message() }}</p>
+                }
+                <div hlmTableContainer>
+                  <table hlmTable class="text-left" aria-label="Users and roles records">
+                    <thead hlmTHead>
+                      <tr hlmTr>
+                        <th hlmTh>Name</th>
+                        <th hlmTh>Roles</th>
+                      </tr>
+                    </thead>
+                    <tbody hlmTBody>
+                      @for (user of userRows(); track user.id) {
+                        <tr hlmTr>
+                          <td hlmTd>{{ user.displayName }}</td>
+                          <td hlmTd>
+                            @for (role of user.roles; track role) {
+                              <span hlmBadge variant="secondary" class="mr-1">{{ role }}</span>
+                            } @empty {
+                              No roles assigned
+                            }
+                          </td>
+                        </tr>
+                      } @empty {
+                        @if (!busy() && !error()) {
+                          <tr hlmTr>
+                            <td hlmTd colspan="2">No users recorded.</td>
+                          </tr>
+                        }
+                      }
+                    </tbody>
+                  </table>
+                </div>
+                <div class="flex items-center gap-3">
+                  <button
+                    hlmBtn
+                    variant="outline"
+                    [disabled]="busy() || error() || userPage() <= 1"
+                    (click)="reloadUsers(userPage() - 1)"
+                  >
+                    Previous</button
+                  ><span>
+                    @if (!error()) {
+                      Page {{ userPage() }} · {{ userTotal() }} records
+                    }</span
+                  ><button
+                    hlmBtn
+                    variant="outline"
+                    [disabled]="busy() || error() || userPage() * 20 >= userTotal()"
+                    (click)="reloadUsers(userPage() + 1)"
+                  >
+                    Next
+                  </button>
+                </div>
               </section>
             } @else if (group() === 'Ontology') {
               <section hlmCard class="gap-4 p-6" aria-label="Fault code ontology">
                 <div class="space-y-2">
-                  <h2 hlmCardTitle>Model relationships</h2>
+                  <div class="flex flex-wrap items-center justify-between gap-3">
+                    <h2 hlmCardTitle>Model relationships</h2>
+                  </div>
                   <p hlmCardDescription>
                     Explore how fault codes connect to incidents, vehicles, drivers and
                     notifications.
@@ -365,6 +650,9 @@ export const areas = [
                     (ngModelChange)="ontologyQuery.set($event)"
                   />
                 </div>
+                @if (ontologyError()) {
+                  <p role="alert">{{ ontologyError() }}</p>
+                }
                 <div hlmTableContainer>
                   <table hlmTable>
                     <caption hlmCaption>
@@ -395,19 +683,21 @@ export const areas = [
                           </td>
                           <td hlmTd class="min-w-64 whitespace-normal">{{ row.detail }}</td>
                           <td hlmTd>
-                            <a
-                              hlmBtn
-                              variant="ghost"
-                              size="sm"
-                              [routerLink]="'/admin/' + row.route"
-                              [attr.aria-label]="
-                                'Browse ' +
-                                row.to.toLowerCase() +
-                                ' records for ' +
-                                row.from.toLowerCase()
-                              "
-                              >Browse <ng-icon name="lucideArrowUpRight"
-                            /></a>
+                            @if (row.route) {
+                              <a
+                                hlmBtn
+                                variant="ghost"
+                                size="sm"
+                                [routerLink]="'/admin/' + row.route"
+                                [attr.aria-label]="
+                                  'Browse ' +
+                                  row.to.toLowerCase() +
+                                  ' records for ' +
+                                  row.from.toLowerCase()
+                                "
+                                >Browse <ng-icon name="lucideArrowUpRight"
+                              /></a>
+                            }
                           </td>
                         </tr>
                       } @empty {
@@ -422,6 +712,11 @@ export const areas = [
                 </div>
               </section>
             } @else {
+              @if (group() === 'Vehicles' || group() === 'Drivers') {
+                <button hlmBtn variant="outline" class="w-fit" (click)="reloadFleet()">
+                  Back to {{ group().toLowerCase() }}
+                </button>
+              }
               @if (group() === 'Incidents') {
                 <button hlmBtn variant="outline" class="w-fit" (click)="reloadIncidents()">
                   Back to incidents
@@ -453,7 +748,28 @@ export const areas = [
                   <form (ngSubmit)="execute()" class="grid max-w-3xl gap-5">
                     <app-fields [schema]="parameterSchema()" [model]="parameters" prefix="params" />
                     @if (action.body) {
-                      <app-fields [schema]="action.body" [model]="body" prefix="body" />
+                      @if (group() === 'Vehicles' && action.id === 'CreateIncident') {
+                        <p>
+                          Dispatch a fault event for <strong>{{ dispatchVehicle() }}</strong
+                          >. This submits an event; it does not confirm email delivery.
+                        </p>
+                        <div hlmField>
+                          <label hlmFieldLabel for="dispatch-driver">Driver *</label
+                          ><hlm-native-select
+                            selectId="dispatch-driver"
+                            [(ngModel)]="body.driverId"
+                            name="dispatchDriver"
+                          >
+                            <option value="">Select an associated driver</option>
+                            @for (driver of dispatchDrivers(); track driver.id) {
+                              <option [value]="driver.id">
+                                {{ driverName(driver) }}
+                              </option>
+                            }
+                          </hlm-native-select>
+                        </div>
+                      }
+                      <app-fields [schema]="bodyFields(action)" [model]="body" prefix="body" />
                     }
                     @if (action.headers.includes('If-Match')) {
                       <div hlmField>
@@ -569,7 +885,7 @@ export const areas = [
         </div>
         <footer class="border-t px-4 py-4 text-xs text-muted-foreground md:px-8">
           <p>
-            Fault Code · Synthetic steering investigation proof of concept. Approved remedies are
+            Fault Code · Steering investigation proof of concept. Approved remedies are
             recommendations for dealership service.
           </p>
         </footer>
@@ -578,13 +894,24 @@ export const areas = [
 })
 export class Workspace {
   auth = inject(Auth);
+  accountInitials = computed(() =>
+    (this.auth.profileName() || 'Account')
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join('')
+      .toUpperCase(),
+  );
   private api = inject(Api);
   areas = areas;
   incidentReview = signal(false);
+  ontologyRows = signal<any[]>([]);
+  ontologyError = signal('');
   ontologyQuery = signal('');
   filteredRelationships = computed(() => {
     const query = this.ontologyQuery().trim().toLowerCase();
-    return ontologyRelationships.filter((row) =>
+    return this.ontologyRows().filter((row) =>
       [row.from, row.relationship, row.to, row.detail].some((value) =>
         value.toLowerCase().includes(query),
       ),
@@ -594,22 +921,38 @@ export class Workspace {
     'lucideTriangleAlert',
     'lucideCar',
     'lucideUsers',
-    'lucideWrench',
-    'lucideNetwork',
-    'lucideFiles',
-    'lucideFlaskConical',
-    'lucideBot',
     'lucideBell',
     'lucideUsers',
-    'lucidePlug',
+    'lucideNetwork',
   ];
+  incidentFilter = signal('');
+  fleetFilter = signal('');
+  userRows = signal<any[]>([]);
+  userPage = signal(1);
+  userTotal = signal(0);
+  notificationRows = signal<any[]>([]);
+  notificationPage = signal(1);
+  notificationTotal = signal(0);
+  notificationDriver = signal('');
+  fleetEditing = signal(false);
+  dispatchDrivers = signal<any[]>([]);
+  dispatchVehicle = signal('');
+  fleetRows = signal<any[]>([]);
+  fleetPage = signal(1);
+  fleetTotal = signal(0);
+  fleetIsVehicles = computed(() => this.group() === 'Vehicles');
+  private route = inject(ActivatedRoute);
   private routeArea = signal('incidents');
   @Input() set area(value: string) {
     this.routeArea.set(value ?? 'incidents');
   }
   group = computed(() => areas.find((a) => a[1] === this.routeArea())?.[0] ?? 'Incidents');
   actions = computed(() =>
-    ops.filter((o) => o.group === this.group() && o.id !== 'CreateIncident'),
+    this.group() === 'Vehicles'
+      ? ops.filter((o) => o.id === 'CreateIncident')
+      : this.group() === 'Drivers'
+        ? []
+        : ops.filter((o) => o.group === this.group() && o.id !== 'CreateIncident'),
   );
   op = signal<Operation | undefined>(undefined);
   permissions = signal<string[]>([]);
@@ -628,11 +971,21 @@ export class Workspace {
   private fingerprint = '';
   private key = '';
   constructor() {
+    this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
+      this.notificationDriver.set(params.get('driverId') ?? '');
+      this.incidentFilter.set(params.get('incidentId') ?? '');
+      this.fleetFilter.set(params.get('vehicleId') ?? params.get('driverId') ?? '');
+    });
     effect(() => {
       this.group();
+      this.notificationDriver();
+      this.incidentFilter();
+      this.fleetFilter();
       this.reset();
       this.ontologyQuery.set('');
       this.incidentReview.set(false);
+      this.fleetEditing.set(false);
+      this.fleetRows.set([]);
       const a = this.group() === 'Ontology' ? [] : this.actions();
       this.choose(
         a.find((o) => o.method === 'GET' && !o.parameters.some((p) => p.where === 'path')) ?? a[0],
@@ -645,6 +998,30 @@ export class Workspace {
           !this.permissionsLoading()
         )
           void this.reloadIncidents();
+        if (
+          this.group() === 'Users & roles' &&
+          this.auth.state() === 'signed-in' &&
+          !this.permissionsLoading()
+        )
+          void this.reloadUsers();
+        if (
+          this.group() === 'Ontology' &&
+          this.auth.state() === 'signed-in' &&
+          !this.permissionsLoading()
+        )
+          void this.reloadOntology();
+        if (
+          this.group() === 'Notifications' &&
+          this.auth.state() === 'signed-in' &&
+          !this.permissionsLoading()
+        )
+          void this.reloadNotifications();
+        if (
+          ['Vehicles', 'Drivers'].includes(this.group()) &&
+          this.auth.state() === 'signed-in' &&
+          !this.permissionsLoading()
+        )
+          void this.reloadFleet();
       });
     });
     effect(() => {
@@ -661,8 +1038,8 @@ export class Workspace {
       {
         Incidents:
           'Investigate vehicle-reported fault codes that were not found in the approved fault catalog.',
-        Vehicles: 'Manage the steering fleet and driver associations.',
-        Drivers: 'Manage driver records and local notification preferences.',
+        Vehicles: 'View vehicles, their drivers and dispatch fault codes.',
+        Drivers: 'View drivers and their email addresses.',
         Engineering: 'Track escalations, evidence and approved resolutions.',
         Notifications: 'Review recorded notification history and delivery status.',
         Documents: 'Manage approved technical documents and search grounded evidence.',
@@ -671,6 +1048,8 @@ export class Workspace {
         'Agent activity': 'Inspect recorded advisory and investigation activity.',
         'Users & roles': 'Review local users and least-privilege role assignments.',
         Integrations: 'Review authorized integration registrations.',
+        'Operational health':
+          'Inspect application readiness and distinguish configured services from verified integrations.',
       } as Record<string, string>
     )[this.group()];
   }
@@ -685,11 +1064,204 @@ export class Workspace {
       this.permissionsLoading.set(false);
       if (this.group() === 'Incidents' && this.auth.state() === 'signed-in')
         void this.reloadIncidents();
+      if (this.group() === 'Users & roles' && this.auth.state() === 'signed-in')
+        void this.reloadUsers();
+      if (this.group() === 'Ontology' && this.auth.state() === 'signed-in')
+        void this.reloadOntology();
+      if (this.group() === 'Notifications' && this.auth.state() === 'signed-in')
+        void this.reloadNotifications();
+      if (['Vehicles', 'Drivers'].includes(this.group()) && this.auth.state() === 'signed-in')
+        void this.reloadFleet();
+    }
+  }
+  driverName(driver: any): string {
+    return (driver.displayName || 'Driver details unavailable').replace(/^Synthetic\s+/, '');
+  }
+  vehicleName(vehicle: any): string {
+    const match = /^SYN-(SILVERADO|SIERRA)-(\d+)$/.exec(vehicle.identifier ?? '');
+    return match
+      ? match[1] === 'SILVERADO'
+        ? 'Chevrolet Silverado'
+        : 'GMC Sierra'
+      : vehicle.identifier;
+  }
+  bodyFields(action: Operation): Schema {
+    if (this.group() !== 'Vehicles' || action.id !== 'CreateIncident') return action.body!;
+    return {
+      ...action.body!,
+      properties: Object.fromEntries(
+        Object.entries(action.body?.properties ?? {}).filter(
+          ([key]) => !['vehicleId', 'driverId'].includes(key),
+        ),
+      ),
+      required: action.body?.required?.filter((key) => !['vehicleId', 'driverId'].includes(key)),
+    };
+  }
+  canDispatch() {
+    const operation = ops.find((o) => o.id === 'CreateIncident');
+    return !!operation && this.allowed(operation);
+  }
+  dispatchFault(vehicle: any) {
+    if (
+      !vehicle.active ||
+      !this.canDispatch() ||
+      vehicle.associationError ||
+      !vehicle.drivers?.length
+    )
+      return;
+    this.reset();
+    this.fleetEditing.set(true);
+    this.choose(ops.find((o) => o.id === 'CreateIncident'));
+    this.dispatchDrivers.set(vehicle.drivers);
+    this.dispatchVehicle.set(this.vehicleName(vehicle));
+    this.body = {
+      ...this.body,
+      vehicleId: vehicle.id,
+      driverId: vehicle.drivers.length === 1 ? vehicle.drivers[0].id : '',
+      system: vehicle.system,
+      sourceEventId: crypto.randomUUID(),
+      occurredAt: new Date().toISOString(),
+    };
+  }
+  async reloadFleet(page = 1) {
+    if (this.auth.state() !== 'signed-in' || this.permissionsLoading()) return;
+    this.reset();
+    this.fleetEditing.set(false);
+    this.fleetRows.set([]);
+    const vehicles = this.fleetIsVehicles();
+    const operation = ops.find((o) => o.id === (vehicles ? 'ListVehicles' : 'ListDrivers'))!;
+    if (!this.allowed(operation)) {
+      this.error.set(true);
+      this.message.set('Access denied. This action requires additional permissions.');
+      return;
+    }
+    const epoch = ++this.epoch;
+    this.busy.set(true);
+    try {
+      const filter = this.fleetFilter();
+      const result = filter
+        ? {
+            data: {
+              items: [
+                (await this.api.request(operation.path + '/' + encodeURIComponent(filter))).data,
+              ],
+              totalCount: 1,
+            },
+          }
+        : await this.api.request(operation.path + '?page=' + page + '&pageSize=20');
+      const rows = result.data.items ?? [];
+      const enriched = vehicles
+        ? await Promise.all(
+            rows.map(async (row: any) => {
+              try {
+                const associations: any[] = [];
+                let associationPage = 1;
+                let total = 0;
+                do {
+                  const response = await this.api.request(
+                    '/api/v1/vehicles/' +
+                      encodeURIComponent(row.id) +
+                      '/associations?page=' +
+                      associationPage +
+                      '&pageSize=100',
+                  );
+                  associations.push(...(response.data.items ?? []));
+                  total = response.data.totalCount ?? associations.length;
+                  if (!response.data.items?.length) break;
+                  associationPage++;
+                } while (associations.length < total);
+                const drivers = await Promise.all(
+                  associations
+                    .filter((a) => !a.until)
+                    .map(async (a) => {
+                      try {
+                        return (
+                          await this.api.request(
+                            '/api/v1/drivers/' + encodeURIComponent(a.driverId),
+                          )
+                        ).data;
+                      } catch {
+                        return { id: a.driverId };
+                      }
+                    }),
+                );
+                return { ...row, drivers };
+              } catch {
+                return { ...row, drivers: [], associationError: true };
+              }
+            }),
+          )
+        : rows;
+      if (epoch !== this.epoch || this.auth.state() !== 'signed-in') return;
+      this.fleetRows.set(enriched);
+      this.fleetPage.set(page);
+      this.fleetTotal.set(result.data.totalCount ?? rows.length);
+    } catch (e) {
+      if (epoch === this.epoch) this.fail(e);
+    } finally {
+      if (epoch === this.epoch) this.busy.set(false);
     }
   }
   incidentAllowed() {
     const operation = ops.find((o) => o.id === 'ListIncidents');
     return !!operation && this.allowed(operation);
+  }
+  async reloadUsers(page = 1) {
+    if (this.auth.state() !== 'signed-in' || this.permissionsLoading()) return;
+    const epoch = ++this.epoch;
+    this.userRows.set([]);
+    this.busy.set(true);
+    this.error.set(false);
+    try {
+      const result = await this.api.request('/api/v1/admin/users?page=' + page + '&pageSize=20');
+      if (epoch !== this.epoch || this.auth.state() !== 'signed-in') return;
+      this.userRows.set(result.data.items ?? []);
+      this.userPage.set(page);
+      this.userTotal.set(result.data.totalCount ?? 0);
+    } catch (e) {
+      if (epoch === this.epoch) this.fail(e);
+    } finally {
+      if (epoch === this.epoch) this.busy.set(false);
+    }
+  }
+  async reloadOntology() {
+    const epoch = this.epoch;
+    this.ontologyRows.set([]);
+    this.ontologyError.set('');
+    try {
+      const result = await this.api.request('/api/v1/ontology/relationships');
+      if (epoch === this.epoch && this.auth.state() === 'signed-in')
+        this.ontologyRows.set(result.data.items ?? []);
+    } catch {
+      if (epoch === this.epoch) this.ontologyError.set('The relationship model is unavailable.');
+    }
+  }
+  async reloadNotifications(page = 1) {
+    if (this.auth.state() !== 'signed-in' || this.permissionsLoading()) return;
+    const epoch = ++this.epoch;
+    this.busy.set(true);
+    this.error.set(false);
+    this.notificationRows.set([]);
+    try {
+      const driverId = this.route.snapshot.queryParamMap.get('driverId') ?? '';
+      this.notificationDriver.set(driverId);
+      const result = await this.api.request(
+        '/api/v1/notifications?page=' +
+          page +
+          '&pageSize=20' +
+          (driverId ? '&driverId=' + encodeURIComponent(driverId) : '') +
+          (this.incidentFilter() ? '&incidentId=' + encodeURIComponent(this.incidentFilter()) : ''),
+      );
+      const rows = result.data.items ?? [];
+      if (epoch !== this.epoch || this.auth.state() !== 'signed-in') return;
+      this.notificationRows.set(rows);
+      this.notificationPage.set(page);
+      this.notificationTotal.set(result.data.totalCount ?? rows.length);
+    } catch (e) {
+      if (epoch === this.epoch) this.fail(e);
+    } finally {
+      if (epoch === this.epoch) this.busy.set(false);
+    }
   }
   async reloadIncidents(page = 1) {
     if (this.auth.state() !== 'signed-in' || this.permissionsLoading()) return;

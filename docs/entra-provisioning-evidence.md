@@ -44,3 +44,6 @@ Focused verification on 2026-10-21: `dotnet test tests/FaultCode.IntegrationTest
 ## Completion gate
 
 Follow active openspec/changes/fau-8-live-entra-integration/tasks.md. Keep relevant Linear issues open and this change active until real registrations, local environment configuration and applicable live checks are verified. Do not commit credentials, private keys, sign-in codes, financial verification details or bearer tokens. Entra Free is not a premium trial; tenant availability remains subject to Microsoft's service and inactivity lifecycle policies.
+
+## Approved Operator grant — October 21, 2026
+Microsoft Entra confirmed Bobby Wilson / User / Operator on enterprise application Fault Code API (4879e2da-af2f-46c8-9d78-aad24aefc4e5) in tenant c0ff26e9-dd24-4e59-b395-1e9b48354aad after explicit user approval. Fresh real API token evaluation enabled all four vehicle dispatch buttons; selecting one opened the correct vehicle/driver form. Incident persistence is still unavailable, so this is not successful ingestion or notification evidence. LALAI was not modified. No Graph profile-photo consent was granted; the user instead supplied an image for the avatar.

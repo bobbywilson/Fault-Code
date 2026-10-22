@@ -126,3 +126,17 @@
 !src/FaultCode.Api/Controllers/AdministrationController.cs
 
 !src/FaultCode.Api/Contracts/AdministrationDocumentExamples.cs
+
+# SQL fleet persistence and audited readiness API
+!src/FaultCode.Api/Controllers/OperationalHealthController.cs
+!src/FaultCode.Application/Demo/DemoFleetFactory.cs
+!src/FaultCode.Infrastructure/Persistence/FleetDbContext.cs
+!src/FaultCode.Infrastructure/Persistence/Migrations/20261022010002_InitialFleet.Designer.cs
+!src/FaultCode.Infrastructure/Persistence/Migrations/20261022010002_InitialFleet.cs
+!src/FaultCode.Infrastructure/Persistence/Migrations/FleetDbContextModelSnapshot.cs
+!src/FaultCode.Infrastructure/Persistence/SqlServerFleetStore.cs
+
+!src/FaultCode.Infrastructure/MailpitNotificationDelivery.cs
+!src/FaultCode.Api/Configuration/NotificationOptions.cs
+
+!src/FaultCode.Application/Ontology/DomainOntology.cs

@@ -15,7 +15,10 @@ public sealed record DriverNotification(Guid Id, string TenantId, Guid IncidentI
 public static class NotificationRules
 {
     public const string Template = "driver-notification-v1";
-    public static bool Contact(string? value) => value is { Length: <= 60 } && value.StartsWith("SYN-", StringComparison.Ordinal)
+    public static bool Contact(string? value) => EmailContact(value) || SyntheticContact(value);
+    private static bool EmailContact(string? value) => value is { Length: <= 150 }
+        && System.Text.RegularExpressions.Regex.IsMatch(value, "^[a-zA-Z0-9._+-]+@example\\.com$", System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+    private static bool SyntheticContact(string? value) => value is { Length: <= 60 } && value.StartsWith("SYN-", StringComparison.Ordinal)
         && value.Length > 4 && value.All(c => char.IsAsciiLetterOrDigit(c) || c == '-');
     public static string Render(Guid incident, string kind, FaultRemedy remedy) =>
         $"Synthetic incident {incident:D}. {remedy.Description}"

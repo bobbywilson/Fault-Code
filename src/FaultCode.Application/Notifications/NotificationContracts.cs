@@ -36,3 +36,5 @@ public interface INotificationDelivery
 {
     Task<DeliveryAcknowledgement> Send(LocalDelivery message, CancellationToken ct);
 }
+
+public sealed record DriverNotificationSummary(DriverNotification Notification, string DriverName, string? Email);

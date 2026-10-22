@@ -1,5 +1,19 @@
 # Administration workspace
 
+## Approved focused demo UI
+
+Navigation: Incidents, Vehicles, Drivers, Notifications, Users & roles, Ontology. The generic logo/name and Protected workspace badge are removed. All pages use Spartan/Tailwind and Lucide; centered tables share the standard content width. Fleet is seed-only, with separate name/email columns and no management controls. Vehicle labels show Chevrolet Silverado or GMC Sierra without numeric suffixes.
+
+Incidents is a vehicle-originated investigation table with links to vehicle, driver and notification records. Drivers links to filtered notifications. Notifications lists all visible driver messages and delivery statuses as a data table, using the new authenticated list endpoint rather than requiring an incident ID form.
+
+Ontology reads the application-owned versioned relationship model from `GET /api/v1/ontology/relationships`; Angular no longer owns a duplicate production model. This reference is non-editable and is distinct from internal versioned knowledge publications used by the investigation engine. Links to removed workspaces are absent. Fault definitions, Documents, Engineering, Agent activity and Operational health remain omitted from navigation; their former URLs redirect to Incidents. Backend services required for processing remain protected.
+
+All operations use API permissions; the signed-in Reader cannot dispatch without write permission. Service errors remain visible; no fake records substitute for unavailable storage.
+
+## Earlier implementation reference
+
+# Administration workspace
+
 Part of FAU-22. Angular/TypeScript, official Spartan Helm Nova components with the neutral theme and Lucide icons, Tailwind4 and maintained MSAL Angular/browser. This is an API client: no database, Qdrant, model SDK, generic URL editor or MCP/model tool is exposed to the browser. All73 business operations (74 protected REST operations including caller permissions) remain described in generated OpenAPI metadata. Operational views expose their named actions; Ontology is now a read-only domain-model browser. Existing five MCP schemas and model context remain unchanged.
 
 ## Linux Docker
@@ -88,4 +102,17 @@ Verified: production build, ten browser regressions including relationship searc
 
 ## Unmatched vehicle reports
 
-Incidents now defaults to a permission-aware, automatically loaded unmatched-at-intake vehicle report table rather than the generic action selector. Refresh/paging use the server-filtered queue; Review opens protected incident details/actions and Back to incidents returns to the queue. Manual incident creation is absent from the UI. The real local API still reports storage unavailable pending DEC-001; automated fixture rows demonstrate rendering only and are not seeded production records.
+Incidents now defaults to a permission-aware, automatically loaded unmatched-at-intake vehicle report table rather than the generic action selector. Refresh/paging use the server-filtered queue; Review opens protected incident details/actions and Back to incidents returns to the queue. Manual incident creation is absent from the UI. The real local API still reports storage unavailable pending its approved SQL Server adapter; automated fixture rows demonstrate rendering only and are not seeded production records.
+
+## Required backend providers
+Integrations is removed from navigation and its old URL redirects to Incidents. Datadog and Mailpit are required server-managed integrations, not optional UI features. They require external configuration and actual ingestion/delivery evidence. Administrative integration metadata alone does not configure either provider. Mailpit is retained for local testing. Local Mailpit capture is verified; Linux capture deployment and real Datadog ingestion remain unverified.
+
+## Users table
+Users & roles automatically lists the authenticated `/api/v1/admin/users` resource, with Name and assigned Roles columns, paging, refresh and explicit unavailable/forbidden states. There is no generic action selector or role-mutation form. These are local managed-user records; the unavailable administration store and lack of Entra directory synchronization remain blockers. The table does not fabricate directory users from driver seed records.
+
+## Account control and current role verification
+The header uses generated Spartan Avatar and Dropdown Menu components. The supplied Bobby Wilson image is mapped to his exact dedicated-tenant object ID in browser configuration; other accounts show their own configured picture or initials. No Graph User.Read permission or mailbox access was added. The previous authentication badge and standalone sign-out link are removed; Sign out is an accessible dropdown item. Profile mappings affect presentation only, never permissions. The workspace route is lazy loaded to keep new UI code outside the initial bundle budget.
+
+After explicit user approval, Microsoft confirmed Bobby Wilson's Operator role on the Fault Code API enterprise application in the dedicated tenant. The application refreshes its first API token on startup so changed roles are evaluated without trusting local role flags. The real signed-in Vehicles page then enabled Dispatch fault code and opened a form preselected with the clicked vehicle and its driver. This verifies permissions and form navigation, not persisted intake, agent execution or email capture of an incident.
+
+Incidents no longer renders a large service-unavailable alert or correlation reference. The user requested a records-only table without unavailable/load-error text. Failed API requests remain failures and do not create rows or a successful empty count; the UI keeps the header and disables paging.

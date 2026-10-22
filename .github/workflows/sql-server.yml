@@ -1,0 +1,65 @@
+name: SQL Server fleet integration
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sql-server:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Start isolated free SQL Server Express
+        shell: bash
+        run: |
+          password="Fc1!$(openssl rand -hex 24)"
+          echo "::add-mask::$password"
+          echo "MSSQL_SA_PASSWORD=$password" >> "$GITHUB_ENV"
+          export MSSQL_SA_PASSWORD="$password"
+          docker run -d --name faultcode-sql-ci --memory 3g --cpus 2 \
+            -p 127.0.0.1:11433:1433 -e ACCEPT_EULA=Y -e MSSQL_PID=Express \
+            -e MSSQL_SA_PASSWORD -e MSSQL_MEMORY_LIMIT_MB=2048 \
+            mcr.microsoft.com/mssql/server:2025-RTM-ubuntu-22.04@sha256:54b23ca766287dab5f6f55162923325f07cdec6ccb42108f37c55c87e7688ebd
+          echo "FAULTCODE_SQL_TEST_CONNECTION=Server=127.0.0.1,11433;Database=FaultCode_Test_ci;User ID=sa;Password=$password;Encrypt=True;TrustServerCertificate=True" >> "$GITHUB_ENV"
+      - name: Wait for SQL and create isolated test database
+        shell: bash
+        run: |
+          export SQLCMDPASSWORD="$MSSQL_SA_PASSWORD"
+          ready=false
+          for attempt in {1..60}; do
+            if docker exec -e SQLCMDPASSWORD faultcode-sql-ci /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -Q 'SELECT 1' -b -o /dev/null; then ready=true; break; fi
+            sleep 2
+          done
+          test "$ready" = true
+          docker exec -e SQLCMDPASSWORD faultcode-sql-ci /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -Q 'CREATE DATABASE FaultCode_Test_ci' -b
+      - name: Start private Mailpit capture
+        run: |
+          docker run -d --name faultcode-mail-ci --memory 128m --cpus 0.25 -p 127.0.0.1:8025:8025 -e MP_SMTP_RELAY_ALL=false axllent/mailpit:v1.31.6@sha256:23fe39e81bde596a918000b3135c0f85dc8bb4c9ea6be274b051143f3e300387
+          echo "FAULTCODE_MAILPIT_TEST_URL=http://127.0.0.1:8025/" >> "$GITHUB_ENV"
+          curl --retry 20 --retry-connrefused --retry-delay 1 --max-time 2 -fsS http://127.0.0.1:8025/api/v1/info -o /dev/null
+      - run: dotnet restore FaultCode.slnx --locked-mode
+      - name: Test real SQL migration, seed, replay, reconnect, isolation and rollback
+        run: dotnet test tests/FaultCode.IntegrationTests --configuration Release --no-restore --filter "FullyQualifiedName~SqlServerFleetTests|FullyQualifiedName~MailpitDeliveryTests" --logger trx --results-directory artifacts/sql-tests
+      - name: Restart only isolated SQL test container
+        run: docker restart faultcode-sql-ci
+      - name: Verify records after database process restart
+        shell: bash
+        run: |
+          export SQLCMDPASSWORD="$MSSQL_SA_PASSWORD"
+          for attempt in {1..60}; do
+            if docker exec -e SQLCMDPASSWORD faultcode-sql-ci /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -d FaultCode_Test_ci -b -Q "IF (SELECT COUNT(*) FROM Drivers) <> 4 THROW 51000, 'Driver persistence check failed', 1; IF (SELECT COUNT(*) FROM Vehicles) <> 4 THROW 51000, 'Vehicle persistence check failed', 1; IF (SELECT COUNT(*) FROM DriverVehicleAssociations WHERE Until IS NULL) <> 4 THROW 51000, 'Association persistence check failed', 1; SELECT CAST(SERVERPROPERTY('Edition') AS nvarchar(100)) AS Edition; SELECT COUNT(*) AS Drivers FROM Drivers; SELECT COUNT(*) AS Vehicles FROM Vehicles; SELECT COUNT(*) AS Associations FROM DriverVehicleAssociations;"; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sql-server-test-results
+          path: artifacts/sql-tests/*.trx
+          if-no-files-found: warn

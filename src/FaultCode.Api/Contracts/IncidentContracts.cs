@@ -26,4 +26,9 @@ public sealed record IncidentHistoryResponse(long Version, string Status, string
     string CorrelationId, DateTimeOffset At, string? FailureCode);
 public sealed record IncidentResponse(Guid Id, string SourceClientId, string SourceEventId, string Code, string System,
     string Model, string SoftwareVersion, DateTimeOffset OccurredAt, DateTimeOffset ReceivedAt, string IntakeCorrelationId,
-    IncidentFleetResponse Fleet, IncidentKnowledgeResponse? Knowledge, string Status, long Version, IncidentWorkResponse[] Work);
+    IncidentFleetResponse Fleet, IncidentKnowledgeResponse? Knowledge, string Status, long Version, IncidentWorkResponse[] Work)
+{
+    public IncidentLinksResponse Links => new($"/api/v1/vehicles/{Fleet.VehicleId:D}",
+        $"/api/v1/drivers/{Fleet.DriverId:D}", $"/api/v1/incidents/{Id:D}/notifications");
+}
+public sealed record IncidentLinksResponse(string Vehicle, string Driver, string Notifications);

@@ -9,7 +9,7 @@ internal static class NotificationDocumentExamples
 {
     internal static void Decorate(OpenApiOperation operation, string path)
     {
-        operation.Description += " Explicit synthetic local notifications only; production503 pending DEC-001/002/003. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.";
+        operation.Description += " Tenant-local driver notifications with driver/incident-filtered reads. Durable joined persistence remains unavailable; configured Mailpit capture alone is not workflow completion. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.";
         var id = Guid.Parse("55555555-5555-4555-8555-555555555555");
         var at = DateTimeOffset.Parse("2026-10-21T00:00:00Z", System.Globalization.CultureInfo.InvariantCulture);
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
@@ -36,7 +36,7 @@ internal static class NotificationDocumentExamples
             if (response is not OpenApiResponse r || r.Content is null) continue;
             var success = status is "200" or "201"; r.Headers ??= new Dictionary<string, IOpenApiHeader>();
             r.Headers["X-Correlation-ID"] = new OpenApiHeader { Schema = new OpenApiSchema { Type = JsonSchemaType.String } };
-            if (success && operation.OperationId is not ("ListIncidentNotifications" or "NotificationHistory"))
+            if (success && operation.OperationId is not ("ListDriverNotifications" or "ListIncidentNotifications" or "NotificationHistory"))
                 r.Headers["ETag"] = new OpenApiHeader { Schema = new OpenApiSchema { Type = JsonSchemaType.String } };
             if (status == "201") r.Headers["Location"] = new OpenApiHeader { Schema = new OpenApiSchema { Type = JsonSchemaType.String } };
             foreach (var media in r.Content.Keys.ToArray()) if (media != (success ? "application/json" : "application/problem+json")) r.Content.Remove(media);
@@ -44,6 +44,7 @@ internal static class NotificationDocumentExamples
                 ? new JsonObject { ["type"] = "about:blank", ["title"] = "Request failed", ["status"] = int.Parse(status, System.Globalization.CultureInfo.InvariantCulture), ["instance"] = path, ["correlationId"] = "synthetic-correlation" }
                 : operation.OperationId switch
                 {
+                    "ListDriverNotifications" => Page(Node(new DriverNotificationSummaryResponse(id, id, id, "Alex Morgan", "alex.morgan@example.com", "Investigation update", "Pending", at, null, 0, null))),
                     "ListIncidentNotifications" => Page(Node(NotificationResponse.From(n))),
                     "GetNotification" => Node(NotificationResponse.From(n)),
                     "NotificationHistory" => Page(Node(new NotificationHistoryResponse(1, "Pending", "enqueued", at, "33333333-3333-4333-8333-333333333333", "44444444-4444-4444-8444-444444444444", "synthetic-correlation"))),

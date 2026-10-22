@@ -11,6 +11,21 @@ namespace FaultCode.IntegrationTests;
 
 public sealed class AdministrationTests
 {
+    [Fact]
+    public async Task Operational_health_is_admin_scoped_and_does_not_claim_missing_integrations_ready()
+    {
+        using var keys = new Discovery(); await using var factory = CreateFactory(keys); using var client = factory.CreateClient();
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/v1/admin/health")).StatusCode);
+        client.DefaultRequestHeaders.Authorization = new("Bearer", AuthorizationTests.Token(keys.Key, "integrations.manage", ["Driver"]));
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/v1/admin/health")).StatusCode);
+        client.DefaultRequestHeaders.Authorization = new("Bearer", AuthorizationTests.Token(keys.Key, "integrations.manage", ["Administrator"]));
+        var response = await client.GetAsync("/api/v1/admin/health"); Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
+        Assert.False(json.GetProperty("ready").GetBoolean());
+        Assert.Contains(json.GetProperty("capabilities").EnumerateArray(), item => item.GetProperty("component").GetString() == "transactional-storage" && item.GetProperty("status").GetString() == "not-configured");
+        Assert.DoesNotContain("ApiKey", json.ToString()); Assert.DoesNotContain("Endpoint", json.ToString());
+    }
+
     [Theory]
     [InlineData("users", "users.manage", "Users.Manage.Application")]
     [InlineData("integrations", "integrations.manage", "Integrations.Manage.Application")]

@@ -4,6 +4,18 @@ namespace FaultCode.Domain.Tests;
 
 public sealed class OntologyRulesTests
 {
+    [Fact]
+    public void Cause_edges_require_typed_same_system_targets()
+    {
+        var content = new OntologyContent([
+            new("SYN-CAUSE", "cause", "EPS", "Synthetic cause", []),
+            new("SYN-SYMPTOM", "symptom", "EPS", "Synthetic symptom", [])],
+            [new("SYN-EDGE", "causes", "SYN-CAUSE", "SYN-SYMPTOM")], []);
+        OntologyRules.Validate(content);
+        Assert.Throws<ArgumentException>(() => OntologyRules.Validate(content with { Relationships = [new("SYN-EDGE", "causes", "SYN-SYMPTOM", "SYN-CAUSE")] }));
+        Assert.Throws<ArgumentException>(() => OntologyRules.Validate(content with { Concepts = [content.Concepts[0], content.Concepts[1] with { System = "steer-by-wire" }] }));
+    }
+
     private static OntologyContent Content => new([
         new("SYN-SUB", "subsystem", "EPS", "Synthetic EPS", []), new("SYN-COMP", "component", "EPS", "Synthetic component", []),
         new("SYN-SYM", "symptom", "EPS", "Synthetic symptom", []), new("SYN-CLASS", "classification", "EPS", "Synthetic classification", ["dealership"]),

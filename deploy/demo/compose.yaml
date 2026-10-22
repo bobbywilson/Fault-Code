@@ -1,7 +1,7 @@
 name: faultcode-demo
 x-runtime: &runtime
   restart: unless-stopped
-  security_opt: [no-new-privileges:true]
+  security_opt: ["no-new-privileges:true"]
   logging:
     driver: json-file
     options: {max-size: 10m, max-file: "3"}
@@ -25,6 +25,8 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       AllowedHosts: "faultcodeai.com;localhost;127.0.0.1;[::1]"
       FaultCode__ApplicationName: Fault Code
+      Notifications__Provider: Mailpit
+      Notifications__Endpoint: http://mailpit:8025/
       Entra__Enabled: "true"
       Entra__TenantId: c0ff26e9-dd24-4e59-b395-1e9b48354aad
       Entra__ClientId: ce48cbc2-5349-4228-b5ea-365c9df1e2af
@@ -33,6 +35,7 @@ services:
       Qdrant__ApiKey: ${FAULTCODE_QDRANT_API_KEY:?Server-managed secret required}
     depends_on:
       qdrant: {condition: service_healthy}
+      mailpit: {condition: service_started}
     networks: [application, data]
   administration:
     <<: *runtime
@@ -62,6 +65,19 @@ services:
       - qdrant-storage:/qdrant/storage
       - qdrant-snapshots:/qdrant/snapshots
     networks: [data]
+  mailpit:
+    image: axllent/mailpit:v1.31.6@sha256:23fe39e81bde596a918000b3135c0f85dc8bb4c9ea6be274b051143f3e300387
+    ports: ["127.0.0.1:8025:8025"]
+    environment:
+      MP_DATABASE: /data/mailpit.db
+      MP_MAX_MESSAGES: "500"
+      MP_SMTP_RELAY_ALL: "false"
+    volumes: [mailpit-data:/data]
+    networks: [data]
+    cpus: 0.25
+    mem_limit: 256m
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
   proxy:
     <<: *runtime
     image: nginx:1.28.0-alpine@sha256:30f1c0d78e0ad60901648be663a710bdadf19e4c10ac6782c235200619158284
@@ -92,3 +108,4 @@ networks:
 volumes:
   qdrant-storage: {}
   qdrant-snapshots: {}
+  mailpit-data: {}

@@ -23,8 +23,10 @@ public sealed class FleetService(IFleetStore store, TimeProvider clock)
     public static Driver? VehicleOwner(FleetState state, FleetCaller caller, Vehicle vehicle)
     {
         if (vehicle.TenantId != caller.TenantId) return null;
-        var association = state.Associations.SingleOrDefault(a => a.VehicleId == vehicle.Id && a.Until is null);
-        return association is null ? null : state.Drivers.SingleOrDefault(d => d.Id == association.DriverId && d.TenantId == caller.TenantId);
+        // Choose a mapping the caller may read, not an arbitrary first driver. Multiple active drivers are valid.
+        return state.Associations.Where(a => a.VehicleId == vehicle.Id && a.Until is null)
+            .Select(a => state.Drivers.SingleOrDefault(d => d.Id == a.DriverId && d.TenantId == caller.TenantId))
+            .FirstOrDefault(d => d is not null && CanRead(caller, d, true));
     }
     private async Task<FleetState> Read(FleetCaller caller, CancellationToken ct)
     { ValidateCaller(caller); return await store.ReadAsync(caller.TenantId, ct); }
@@ -165,6 +167,6 @@ public sealed class FleetService(IFleetStore store, TimeProvider clock)
     {
         if (string.IsNullOrWhiteSpace(name) || name.Length > 100 || name.Any(char.IsControl)) throw new FleetException(400);
         if (notifications && email is null) throw new FleetException(400);
-        if (email is not null && (email.Length > 150 || !System.Text.RegularExpressions.Regex.IsMatch(email.Trim(), "^[a-zA-Z0-9._+-]+@example\\.invalid$", System.Text.RegularExpressions.RegexOptions.CultureInvariant))) throw new FleetException(400);
+        if (email is not null && (email.Length > 150 || !System.Text.RegularExpressions.Regex.IsMatch(email.Trim(), "^[a-zA-Z0-9._+-]+@example\\.(?:invalid|com)$", System.Text.RegularExpressions.RegexOptions.CultureInvariant))) throw new FleetException(400);
     }
 }

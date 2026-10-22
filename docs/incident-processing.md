@@ -1,6 +1,18 @@
+# Vehicle incident processing
+
+## Current demo requirements
+
+Incidents is a paginated data table of vehicle-originated unknown-fault investigations. There is no standalone incident creation form on this page. Fault dispatch starts from Vehicles and posts to the authenticated `POST /api/v1/incidents` ingestion boundary. Backend validation requires a nonzero vehicle and driver, active same-tenant records and their authoritative association; client-supplied identifiers cannot bypass ownership or association checks.
+
+Each row links to its vehicle, driver and notification history. One incident may have several delivery records, including investigation-pending and resolution follow-up. Adding knowledge is not evidence of vehicle repair. Known-fault ingestion reports remain historical application records; the Incidents UI selects `unmatchedOnly=true` for the investigation list. A later processing reconciliation must distinguish ingestion reports from investigation lifecycle records consistently rather than deleting known-fault history.
+
+**Current blocker:** fleet SQL persistence works, but the incident/knowledge joined durable adapter remains unavailable. Fault intake and incident listing therefore return503 rather than pretending to persist or send email. Table headers remain visible alongside the error; no unavailable count is reported as a successful empty result.
+
+## Existing application contracts
+
 # Fault incident processing
 
-Part of FAU-12. Seven production API operations and provider-independent domain/application contracts are implemented. The production `UnavailableIncidentStore` always returns503. There is no production database, durable outbox, worker, external notification provider or fallback memory store. DEC-001 remains unresolved.
+Part of FAU-12. Seven production API operations and provider-independent domain/application contracts are implemented. The production `UnavailableIncidentStore` always returns503. SQL Server is approved and the fleet adapter works locally, but the durable incident/knowledge/outbox adapters and worker remain missing; there is no fallback memory store. Local Mailpit capture is configured separately.
 
 | Route | Method / policies |
 |---|---|
@@ -70,4 +82,4 @@ The user clarified that the Incidents entry page should list vehicle reports who
 
 `unmatchedOnly` is optional and defaults false for existing clients. It filters `Knowledge == null` before accessible totals/paging: no approved catalog match at intake, including unpublished/retired definitions. This preserves the intake snapshot after later catalog changes. Lookup/storage unavailability stays503; it is never recorded or displayed as unknown/empty success. The UI does not locally filter a partially paginated full list.
 
-Nine synthetic steering fault drafts and classification concepts are prepared in `data/demo/nexteer-steering-faults.json`, with public product-scope provenance and explicit non-OEM labeling. They pass existing ontology/fault validators. They are **not loaded, published or persisted**: DEC-001 engine choice is pending the user's response. No production in-memory fallback was added. Nexteer driveline scope has also been asked explicitly; preparation currently stays within approved EPS/SbW/steering-ADAS boundaries. The scoped OpenSpec change stays active until actual database seeding and restart/idempotency verification complete.
+Nine synthetic steering fault drafts and classification concepts are prepared in `data/demo/steering-faults.json`, with public product-scope provenance and explicit non-OEM labeling. They pass existing ontology/fault validators. They are **not loaded, published or persisted**: DEC-001 engine choice is pending the user's response. No production in-memory fallback was added. Nexteer driveline scope has also been asked explicitly; preparation currently stays within approved EPS/SbW/steering-ADAS boundaries. The scoped OpenSpec change stays active until actual database seeding and restart/idempotency verification complete.

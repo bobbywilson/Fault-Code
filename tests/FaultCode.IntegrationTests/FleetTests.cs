@@ -67,6 +67,31 @@ public sealed class FleetTests
         return json.RootElement.Clone();
     }
     [Fact]
+    public async Task Many_to_many_pairs_preserve_independent_history_and_reject_duplicate_pairs()
+    {
+        using var keys = new Discovery(); var store = new TestFleetStore();
+        await using var factory = CreateFactory(keys).WithWebHostBuilder(b => b.ConfigureServices(s => s.Replace(ServiceDescriptor.Singleton<IFleetStore>(store))));
+        using var client = factory.CreateClient(); Authenticate(client, keys);
+        var first = await Create(client, "drivers", DriverBody("DRV-101"), "driver-101");
+        var second = await Create(client, "drivers", DriverBody("DRV-102", Other), "driver-102");
+        var vehicle = await Create(client, "vehicles", new VehicleRequest("SYN-101", "EPS"), "vehicle-101");
+        var otherVehicle = await Create(client, "vehicles", new VehicleRequest("SYN-102", "EPS"), "vehicle-102");
+        using (var request = Request(HttpMethod.Post, $"/api/v1/vehicles/{vehicle.Id}/associations", new AssociationRequest(first.Id), "\"1\"", "pair-1")) await Json(await client.SendAsync(request), 201);
+        using (var request = Request(HttpMethod.Post, $"/api/v1/vehicles/{vehicle.Id}/associations", new AssociationRequest(second.Id), "\"2\"", "pair-2")) await Json(await client.SendAsync(request), 201);
+        using (var request = Request(HttpMethod.Post, $"/api/v1/vehicles/{otherVehicle.Id}/associations", new AssociationRequest(first.Id), "\"1\"", "pair-3")) await Json(await client.SendAsync(request), 201);
+        using (var request = Request(HttpMethod.Post, $"/api/v1/vehicles/{vehicle.Id}/associations", new AssociationRequest(first.Id), "\"3\"", "duplicate")) await Json(await client.SendAsync(request), 409);
+        var before = await store.ReadAsync(Tenant, default); Assert.Equal(3, before.Associations.Count);
+        var pair = before.Associations.Single(a => a.VehicleId == vehicle.Id && a.DriverId == first.Id);
+        var service = new FleetService(store, TimeProvider.System);
+        await service.EndAssociation(new(Tenant, Actor, Client, "many-to-many", true, false, true, false), vehicle.Id, pair.Id, 3, default);
+        var after = await store.ReadAsync(Tenant, default);
+        Assert.NotNull(after.Associations.Single(a => a.Id == pair.Id).Until);
+        Assert.Equal(2, after.Associations.Count(a => a.Until is null));
+        Assert.Contains(after.Associations, a => a.VehicleId == vehicle.Id && a.DriverId == second.Id && a.Until is null);
+        Assert.Contains(after.Associations, a => a.VehicleId == otherVehicle.Id && a.DriverId == first.Id && a.Until is null);
+    }
+
+    [Fact]
     public async Task Crud_replay_concurrency_and_history_preserve_atomic_audit()
     {
         using var keys = new Discovery(); var store = new TestFleetStore();
@@ -164,7 +189,7 @@ public sealed class FleetTests
     [Theory]
     [InlineData("real-vin", Actor, "driver@example.invalid", true)]
     [InlineData("DRV-001", "not-an-owner", "driver@example.invalid", true)]
-    [InlineData("DRV-001", Actor, "private@example.com", true)]
+    [InlineData("DRV-001", Actor, "private@customer.invalid", true)]
     [InlineData("DRV-001", Actor, null, true)]
     public async Task Invalid_synthetic_driver_input_returns_safe_validation(string identifier, string owner, string? email, bool notify)
     {

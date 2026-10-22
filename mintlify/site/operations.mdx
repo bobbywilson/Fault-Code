@@ -21,3 +21,13 @@ Provider-independent OpenTelemetry supports an explicitly configured same-host D
 
 See [release and rollback](/release) before loading or promoting an image.
 
+
+## Focused demo tables and relationship navigation
+
+The demo uses preloaded Silverado/Sierra vehicles and fictional example.com drivers. Fleet management controls are absent; fault intake begins from a vehicle. `POST /api/v1/incidents` requires an authorized vehicle, driver and active association. Incidents link to their vehicle, driver and all related notifications through the response `links` object.
+
+`GET /api/v1/notifications` returns a paginated driver-notification summary table. Optional `driverId` and `incidentId` filters combine; tenant/ownership filtering precedes page counts. Summary rows include driver name/email, message, state, attempt count, next retry and last failure. Listing never sends email. `GET /api/v1/incidents/{id}/notifications` remains the incident history collection.
+
+`GET /api/v1/ontology/relationships` supplies the versioned, non-editable domain relationship reference. It is separate from internal approved knowledge publications. No frontend-only copy is used as the system of record.
+
+Local Mailpit captures transport test email without external relay. Linux Mailpit is prepared but not deployed. Incident and notification canonical persistence is still unavailable; 503 is a blocker, not an empty inbox or successful workflow. No captured configuration message is presented as a real incident notification.

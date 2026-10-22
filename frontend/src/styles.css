@@ -89,3 +89,18 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Consistent affordances across Spartan controls and workspace tables. */
+a[href],
+button:not(:disabled),
+[role='button']:not([aria-disabled='true']),
+[role='menuitem']:not([aria-disabled='true']),
+tbody tr {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled='true'],
+[data-disabled='true'] {
+  cursor: not-allowed;
+}

@@ -31,7 +31,8 @@ internal static class AdministrationDocumentExamples
             var item = path.Contains("users", StringComparison.Ordinal) ? user : integration;
             foreach (var media in concrete.Content.Values)
                 media.Example = !success ? new JsonObject { ["type"] = "about:blank", ["title"] = "Request failed", ["status"] = int.Parse(status, System.Globalization.CultureInfo.InvariantCulture), ["instance"] = path, ["correlationId"] = "5ce0d2ac05434c56980a058cfd2e8fa7" }
-                    : operation.OperationId == "ListAdministrationRoles" ? JsonNode.Parse("""{"roles":["Reader","Operator","Engineer","Administrator"]}""")
+                    : operation.OperationId == "GetOperationalHealth" ? JsonNode.Parse("""{"ready":false,"capturedAt":"2026-10-21T12:00:00Z","capabilities":[{"component":"transactional-storage","status":"not-configured","detail":"Durable persistence is not configured."}]}""")
+                    : operation.OperationId == "ListAdministrationRoles" ? JsonNode.Parse("""{"roles":["Reader","Operator","Engineer","Administrator","Driver"]}""")
                     : operation.OperationId!.StartsWith("List", StringComparison.Ordinal) ? new JsonObject { ["items"] = new JsonArray(item.DeepClone()), ["page"] = 1, ["pageSize"] = 20, ["totalCount"] = 1 } : item.DeepClone();
         }
     }

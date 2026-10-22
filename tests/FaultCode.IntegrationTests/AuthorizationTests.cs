@@ -39,7 +39,8 @@ public sealed class AuthorizationTests
         {
             var expectedRoles = permission.Name switch
             {
-                "drivers.read.own" or "vehicles.read.own" => new[] { "Reader" },
+                "authorization.read" => new[] { "Reader", "Operator", "Engineer", "Administrator", "Driver" },
+                "drivers.read.own" or "vehicles.read.own" => new[] { "Reader", "Driver" },
                 "drivers.write" or "vehicles.write" or "faults.write" => ["Operator"],
                 "knowledge.publish" or "escalations.write" => ["Engineer"],
                 "integrations.manage" or "users.manage" => ["Administrator"],
@@ -47,7 +48,7 @@ public sealed class AuthorizationTests
             };
             Assert.Equal(permission.Name, permission.Scope);
             Assert.Equal(expectedRoles, permission.HumanRoles);
-            foreach (var role in new[] { "Reader", "Operator", "Engineer", "Administrator", "Agent", "reader" })
+            foreach (var role in new[] { "Reader", "Operator", "Engineer", "Administrator", "Driver", "Agent", "reader" })
             {
                 await Check(permission.Name, Token(keys.Key, permission.Scope, [role]), expectedRoles.Contains(role));
                 await Check(permission.Name, Token(keys.Key, permission.Scope + ".extra", [role]), false);
@@ -87,6 +88,9 @@ public sealed class AuthorizationTests
         await using var factory = CreateFactory(keys);
         using var client = factory.CreateClient();
         await Check(Token(keys.Key, area + ".read.own", ["Reader"]), "own", true);
+        await Check(Token(keys.Key, area + ".read.own", ["Driver"]), "own", true);
+        await Check(Token(keys.Key, area + ".read.own", ["Driver"], actor: Client), "own", false);
+        await Check(Token(keys.Key, area + ".read", ["Driver"]), "own", false);
         await Check(Token(keys.Key, area + ".read.own", ["Reader"], actor: Client), "own", false);
         await Check(Token(keys.Key, area + ".read.own", ["Administrator"]), "own", false);
         await Check(Token(keys.Key, area + ".read", ["Operator"]), "other", true);
@@ -199,7 +203,7 @@ public sealed class AuthorizationTests
                 if (readArea is not null)
                 {
                     Assert.Equal(readArea + ".read.own", alternatives[1].GetProperty("scope").GetString());
-                    Assert.Equal(new[] { "Reader" }, alternatives[1].GetProperty("humanRoles").EnumerateArray().Select(x => x.GetString()));
+                    Assert.Equal(new[] { "Reader", "Driver" }, alternatives[1].GetProperty("humanRoles").EnumerateArray().Select(x => x.GetString()));
                     Assert.Equal(JsonValueKind.Null, alternatives[1].GetProperty("applicationRole").ValueKind);
                 }
                 if (policies.Count == 1)
@@ -213,7 +217,7 @@ public sealed class AuthorizationTests
             }
             protectedCount++;
         }
-        Assert.Equal(74, protectedCount);
+        Assert.Equal(77, protectedCount);
     }
 
     [Fact]

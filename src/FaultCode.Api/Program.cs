@@ -1,3 +1,5 @@
+using FaultCode.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using FaultCode.Application.Telemetry;
 using FaultCode.Infrastructure.Telemetry;
 using FaultCode.Api.Mcp;
@@ -54,11 +56,29 @@ builder.Services.AddScoped<FaultCode.Application.Investigations.InvestigationSer
 builder.Services.AddSingleton<FaultCode.Application.Escalations.IEscalationStore, UnavailableEscalationStore>();
 builder.Services.AddScoped<FaultCode.Application.Escalations.EscalationService>();
 builder.Services.AddSingleton<FaultCode.Application.Notifications.INotificationStore, UnavailableNotificationStore>();
-builder.Services.AddSingleton<FaultCode.Application.Notifications.INotificationDelivery, UnavailableNotificationDelivery>();
+builder.Services.AddOptions<NotificationOptions>().Bind(builder.Configuration.GetSection("Notifications"))
+    .Validate(o => o.Valid, "Notifications must use private Mailpit capture.").ValidateOnStart();
+builder.Services.AddHttpClient("mailpit").RemoveAllLoggers()
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+builder.Services.AddTransient<FaultCode.Application.Notifications.INotificationDelivery>(s =>
+{
+    var options = s.GetRequiredService<IOptions<NotificationOptions>>().Value;
+    var http = s.GetRequiredService<IHttpClientFactory>().CreateClient("mailpit");
+    http.BaseAddress = new Uri(options.Endpoint); http.Timeout = TimeSpan.FromSeconds(15);
+    return new MailpitNotificationDelivery(http);
+});
 builder.Services.AddScoped<FaultCode.Application.Notifications.NotificationService>();
 builder.Services.AddSingleton<FaultCode.Application.Administration.IAdministrationStore, UnavailableAdministrationStore>();
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
-builder.Services.AddSingleton<FaultCode.Application.Fleet.IFleetStore, UnavailableFleetStore>();
+var fleetConnection = builder.Configuration.GetConnectionString("FaultCode");
+if (string.IsNullOrWhiteSpace(fleetConnection))
+    builder.Services.AddSingleton<FaultCode.Application.Fleet.IFleetStore, UnavailableFleetStore>();
+else
+{
+    var fleetOptions = new DbContextOptionsBuilder<FleetDbContext>().UseSqlServer(fleetConnection).Options;
+    builder.Services.AddSingleton(fleetOptions);
+    builder.Services.AddSingleton<FaultCode.Application.Fleet.IFleetStore, SqlServerFleetStore>();
+}
 builder.Services.AddScoped<FaultCode.Application.Fleet.FleetService>();
 builder.Services.AddSingleton<FaultCode.Application.Knowledge.IKnowledgeStore, UnavailableKnowledgeStore>();
 builder.Services.AddSingleton<FaultCode.Application.Ontology.IOntologyStore, UnavailableOntologyStore>();
@@ -140,6 +160,39 @@ builder.Services.AddHttpClient<QdrantReadinessCheck>()
 builder.Services.AddHealthChecks().AddCheck<QdrantReadinessCheck>("qdrant", tags: ["ready"]);
 
 var app = builder.Build();
+// Explicit local/operator command only. Never migrates or seeds automatically during serving startup.
+var databaseCommand = builder.Configuration["Database:Command"];
+if (!string.IsNullOrWhiteSpace(databaseCommand))
+{
+    try
+    {
+        if (string.IsNullOrWhiteSpace(fleetConnection)) throw new InvalidOperationException();
+        if (databaseCommand == "migrate")
+        {
+            var migrationConnection = builder.Configuration.GetConnectionString("FaultCodeMigration") ?? fleetConnection;
+            await using var db = new FleetDbContext(new DbContextOptionsBuilder<FleetDbContext>().UseSqlServer(migrationConnection).Options);
+            await db.Database.MigrateAsync();
+        }
+        else if (databaseCommand == "seed-demo-fleet")
+        {
+            using var scope = app.Services.CreateScope();
+            var caller = new FaultCode.Application.Fleet.FleetCaller(builder.Configuration["Entra:TenantId"] ?? "",
+                builder.Configuration["Database:SeedActorId"] ?? "", builder.Configuration["Database:SeedClientId"] ?? "",
+                Guid.NewGuid().ToString("D"), true, false, true, false);
+            await new FaultCode.Application.Demo.DemoFleetSeeder(scope.ServiceProvider.GetRequiredService<FaultCode.Application.Fleet.FleetService>())
+                .SeedAsync(caller, default);
+        }
+        else throw new InvalidOperationException();
+        Console.WriteLine("Explicit database command completed. No web server was started.");
+    }
+    catch (Exception) // Do not print raw connection/provider exceptions or secret-bearing configuration.
+    {
+        Console.Error.WriteLine("Database command failed. Verify command, identity, permissions, connectivity and migrations; no production fallback was used.");
+        Environment.ExitCode = 1;
+    }
+    await app.DisposeAsync();
+    return;
+}
 app.Use(async (context, next) =>
 {
     context.TraceIdentifier = Guid.NewGuid().ToString("N");

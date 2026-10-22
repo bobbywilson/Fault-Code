@@ -2,6 +2,8 @@
 import { Injectable, signal } from '@angular/core';
 @Injectable({ providedIn: 'root' })
 export class Auth {
+  profileName = signal('Bobby Wilson');
+  profilePhoto = signal('');
   state = signal<'loading' | 'unconfigured' | 'signed-out' | 'signed-in' | 'expired' | 'error'>(
     'loading',
   );

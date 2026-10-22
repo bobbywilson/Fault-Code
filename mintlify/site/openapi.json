@@ -202,7 +202,8 @@
                     "Reader",
                     "Operator",
                     "Engineer",
-                    "Administrator"
+                    "Administrator",
+                    "Driver"
                   ]
                 }
               }
@@ -2300,7 +2301,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -2330,7 +2332,7 @@
           "Authorization"
         ],
         "summary": "Get Caller Permissions",
-        "description": " Requires authorization.read. Delegated: exact scope authorization.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Authorization.Read.Application. Caller kind: Either.",
+        "description": " Requires authorization.read. Delegated: exact scope authorization.read AND one of roles Reader, Operator, Engineer, Administrator, Driver. Application: exact role Authorization.Read.Application. Caller kind: Either.",
         "operationId": "GetCallerPermissions",
         "responses": {
           "200": {
@@ -2421,7 +2423,8 @@
           "Reader",
           "Operator",
           "Engineer",
-          "Administrator"
+          "Administrator",
+          "Driver"
         ],
         "x-application-roles": [
           "Authorization.Read.Application"
@@ -2436,7 +2439,8 @@
                   "Reader",
                   "Operator",
                   "Engineer",
-                  "Administrator"
+                  "Administrator",
+                  "Driver"
                 ],
                 "applicationRole": "Authorization.Read.Application"
               }
@@ -4981,7 +4985,8 @@
               {
                 "scope": "drivers.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -5545,7 +5550,8 @@
               {
                 "scope": "drivers.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -6418,7 +6424,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -6776,7 +6783,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -7099,7 +7107,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -7455,7 +7464,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -7811,7 +7821,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -8172,7 +8183,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -8530,7 +8542,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -8888,7 +8901,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -9321,7 +9335,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -9673,7 +9688,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -12893,6 +12909,13 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "unmatchedOnly",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -13184,7 +13207,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -13514,7 +13538,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -13849,7 +13874,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -15425,7 +15451,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -15790,7 +15817,266 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
+                ],
+                "applicationRole": null
+              }
+            ]
+          },
+          {
+            "policy": "knowledge.read",
+            "anyOf": [
+              {
+                "scope": "knowledge.read",
+                "humanRoles": [
+                  "Reader",
+                  "Operator",
+                  "Engineer",
+                  "Administrator"
+                ],
+                "applicationRole": "Knowledge.Read.All"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "/api/v1/notifications": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "List Driver Notifications",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either.",
+        "operationId": "ListDriverNotifications",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "driverId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "incidentId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseOfDriverNotificationSummaryResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseOfDriverNotificationSummaryResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseOfDriverNotificationSummaryResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "EntraBearer": [ ]
+          }
+        ],
+        "x-faultcode-required-policies": [
+          "faults.read",
+          "vehicles.access.read",
+          "drivers.access.read",
+          "knowledge.read"
+        ],
+        "x-faultcode-permission": "faults.read AND vehicles.access.read AND drivers.access.read AND knowledge.read",
+        "x-delegated-scopes": [
+          "faults.read",
+          "vehicles.read",
+          "drivers.read",
+          "knowledge.read",
+          "vehicles.read.own",
+          "drivers.read.own"
+        ],
+        "x-human-roles": [
+          "Reader",
+          "Operator",
+          "Engineer",
+          "Administrator"
+        ],
+        "x-application-roles": [
+          "Faults.Read.All",
+          "Vehicles.Read.All",
+          "Drivers.Read.All",
+          "Knowledge.Read.All"
+        ],
+        "x-faultcode-policy-requirements": [
+          {
+            "policy": "faults.read",
+            "anyOf": [
+              {
+                "scope": "faults.read",
+                "humanRoles": [
+                  "Reader",
+                  "Operator",
+                  "Engineer",
+                  "Administrator"
+                ],
+                "applicationRole": "Faults.Read.All"
+              }
+            ]
+          },
+          {
+            "policy": "vehicles.access.read",
+            "anyOf": [
+              {
+                "scope": "vehicles.read",
+                "humanRoles": [
+                  "Reader",
+                  "Operator",
+                  "Engineer",
+                  "Administrator"
+                ],
+                "applicationRole": "Vehicles.Read.All"
+              },
+              {
+                "scope": "vehicles.read.own",
+                "humanRoles": [
+                  "Reader",
+                  "Driver"
+                ],
+                "applicationRole": null
+              }
+            ]
+          },
+          {
+            "policy": "drivers.access.read",
+            "anyOf": [
+              {
+                "scope": "drivers.read",
+                "humanRoles": [
+                  "Reader",
+                  "Operator",
+                  "Engineer",
+                  "Administrator"
+                ],
+                "applicationRole": "Drivers.Read.All"
+              },
+              {
+                "scope": "drivers.read.own",
+                "humanRoles": [
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -15820,7 +16106,7 @@
           "Notifications"
         ],
         "summary": "List Incident Notifications",
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Synthetic incident workflow. Production storage/context unavailable (503) pending DEC-001. Source client is validated azp; tenant/client/event replay is independent of actor/key. Reads require immutable intake owner or exact vehicle all-read plus faults.read and knowledge.read. Status/failure/retry record authorized workflow reports; no external investigation or notification delivery is performed. Strong version and replay key required on conditional mutations. Explicit synthetic local notifications only; production503 pending DEC-001/002/003. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Synthetic incident workflow. Production storage/context unavailable (503) pending DEC-001. Source client is validated azp; tenant/client/event replay is independent of actor/key. Reads require immutable intake owner or exact vehicle all-read plus faults.read and knowledge.read. Status/failure/retry record authorized workflow reports; no external investigation or notification delivery is performed. Strong version and replay key required on conditional mutations. Tenant-local driver notifications with driver/incident-filtered reads. Durable joined persistence remains unavailable; configured Mailpit capture alone is not workflow completion. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
         "operationId": "ListIncidentNotifications",
         "parameters": [
           {
@@ -16145,7 +16431,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -16167,7 +16454,8 @@
               {
                 "scope": "drivers.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -16195,7 +16483,7 @@
           "Notifications"
         ],
         "summary": "Enqueue Incident Notification",
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Synthetic incident workflow. Production storage/context unavailable (503) pending DEC-001. Source client is validated azp; tenant/client/event replay is independent of actor/key. Reads require immutable intake owner or exact vehicle all-read plus faults.read and knowledge.read. Status/failure/retry record authorized workflow reports; no external investigation or notification delivery is performed. Strong version and replay key required on conditional mutations. Explicit synthetic local notifications only; production503 pending DEC-001/002/003. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Synthetic incident workflow. Production storage/context unavailable (503) pending DEC-001. Source client is validated azp; tenant/client/event replay is independent of actor/key. Reads require immutable intake owner or exact vehicle all-read plus faults.read and knowledge.read. Status/failure/retry record authorized workflow reports; no external investigation or notification delivery is performed. Strong version and replay key required on conditional mutations. Tenant-local driver notifications with driver/incident-filtered reads. Durable joined persistence remains unavailable; configured Mailpit capture alone is not workflow completion. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
         "operationId": "EnqueueIncidentNotification",
         "parameters": [
           {
@@ -16523,7 +16811,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -16545,7 +16834,8 @@
               {
                 "scope": "drivers.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -16587,7 +16877,7 @@
           "Notifications"
         ],
         "summary": "Get Notification",
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Explicit synthetic local notifications only; production503 pending DEC-001/002/003. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Tenant-local driver notifications with driver/incident-filtered reads. Durable joined persistence remains unavailable; configured Mailpit capture alone is not workflow completion. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
         "operationId": "GetNotification",
         "parameters": [
           {
@@ -16877,7 +17167,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -16899,7 +17190,8 @@
               {
                 "scope": "drivers.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -16929,7 +17221,7 @@
           "Notifications"
         ],
         "summary": "Notification History",
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Explicit synthetic local notifications only; production503 pending DEC-001/002/003. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Tenant-local driver notifications with driver/incident-filtered reads. Durable joined persistence remains unavailable; configured Mailpit capture alone is not workflow completion. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
         "operationId": "NotificationHistory",
         "parameters": [
           {
@@ -17237,7 +17529,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -17259,7 +17552,8 @@
               {
                 "scope": "drivers.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -17289,7 +17583,7 @@
           "Notifications"
         ],
         "summary": "Dispatch Notification",
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Explicit synthetic local notifications only; production503 pending DEC-001/002/003. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Tenant-local driver notifications with driver/incident-filtered reads. Durable joined persistence remains unavailable; configured Mailpit capture alone is not workflow completion. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
         "operationId": "DispatchNotification",
         "parameters": [
           {
@@ -17598,7 +17892,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -17620,7 +17915,8 @@
               {
                 "scope": "drivers.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -17662,7 +17958,7 @@
           "Notifications"
         ],
         "summary": "Cancel Notification",
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Explicit synthetic local notifications only; production503 pending DEC-001/002/003. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Tenant-local driver notifications with driver/incident-filtered reads. Durable joined persistence remains unavailable; configured Mailpit capture alone is not workflow completion. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
         "operationId": "CancelNotification",
         "parameters": [
           {
@@ -17971,7 +18267,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -17993,7 +18290,8 @@
               {
                 "scope": "drivers.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -18035,7 +18333,7 @@
           "NotificationPreferences"
         ],
         "summary": "Get Notification Preferences",
-        "description": " Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Storage returns 503 until DEC-001 durable persistence is approved/configured. Read access accepts exact all-read permission OR Reader+own-read scope, then applies trusted tenant/owner filtering before count/page. All x-faultcode-required-policies are ANDed. Writes require strong If-Match where declared; create replay is actor/client/operation/payload scoped. DELETE soft-deactivates or ends an association. Unowned vehicles are excluded from reads. Explicit synthetic local notifications only; production503 pending DEC-001/002/003. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
+        "description": " Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Storage returns 503 until DEC-001 durable persistence is approved/configured. Read access accepts exact all-read permission OR Reader+own-read scope, then applies trusted tenant/owner filtering before count/page. All x-faultcode-required-policies are ANDed. Writes require strong If-Match where declared; create replay is actor/client/operation/payload scoped. DELETE soft-deactivates or ends an association. Unowned vehicles are excluded from reads. Tenant-local driver notifications with driver/incident-filtered reads. Durable joined persistence remains unavailable; configured Mailpit capture alone is not workflow completion. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
         "operationId": "GetNotificationPreferences",
         "parameters": [
           {
@@ -18285,7 +18583,8 @@
               {
                 "scope": "drivers.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -18298,7 +18597,7 @@
           "NotificationPreferences"
         ],
         "summary": "Update Notification Preferences",
-        "description": " Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.write. Delegated: exact scope drivers.write AND one of roles Operator. Application: exact role Drivers.Write.All. Caller kind: Either. Storage returns 503 until DEC-001 durable persistence is approved/configured. Read access accepts exact all-read permission OR Reader+own-read scope, then applies trusted tenant/owner filtering before count/page. All x-faultcode-required-policies are ANDed. Writes require strong If-Match where declared; create replay is actor/client/operation/payload scoped. DELETE soft-deactivates or ends an association. Unowned vehicles are excluded from reads. Explicit synthetic local notifications only; production503 pending DEC-001/002/003. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
+        "description": " Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.write. Delegated: exact scope drivers.write AND one of roles Operator. Application: exact role Drivers.Write.All. Caller kind: Either. Storage returns 503 until DEC-001 durable persistence is approved/configured. Read access accepts exact all-read permission OR Reader+own-read scope, then applies trusted tenant/owner filtering before count/page. All x-faultcode-required-policies are ANDed. Writes require strong If-Match where declared; create replay is actor/client/operation/payload scoped. DELETE soft-deactivates or ends an association. Unowned vehicles are excluded from reads. Tenant-local driver notifications with driver/incident-filtered reads. Durable joined persistence remains unavailable; configured Mailpit capture alone is not workflow completion. Every write requires strong If-Match and scoped Idempotency-Key. Enqueue matches incident version; preferences driver version; dispatch/cancellation notification version. Stable source deduplication; current approval, evidence, recipient and local preference revalidated before dispatch. Sent means acknowledged; no exactly-once external delivery claim. No vehicle control or model tools.",
         "operationId": "UpdateNotificationPreferences",
         "parameters": [
           {
@@ -18596,7 +18895,8 @@
               {
                 "scope": "drivers.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -18611,6 +18911,250 @@
                   "Operator"
                 ],
                 "applicationRole": "Drivers.Write.All"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "/api/v1/ontology/relationships": {
+      "get": {
+        "tags": [
+          "Ontology"
+        ],
+        "summary": "List Ontology Relationships",
+        "description": " Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Tenant-local synthetic ontology. Draft replacement manages concepts, relationships and rules as one validated aggregate; omission removes draft entries only. knowledge.publish manages drafts/history/approval; knowledge.read reads approved versions and evaluates. Evaluation requires an explicit approved publicationVersion and stores the immutable result with a server ID. Priority then specificity then ordinal rule ID determines precedence. No-match is explicit; results are rule evidence, not driver guidance. Production store503 pending DEC-001. Strong versions and actor/client/operation/canonical-payload replay keys apply where declared.",
+        "operationId": "ListOntologyRelationships",
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "headers": {
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 400,
+                  "instance": "/api/v1/ontology/relationships",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 401,
+                  "instance": "/api/v1/ontology/relationships",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "headers": {
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 403,
+                  "instance": "/api/v1/ontology/relationships",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "headers": {
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 404,
+                  "instance": "/api/v1/ontology/relationships",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "headers": {
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 409,
+                  "instance": "/api/v1/ontology/relationships",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "headers": {
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 503,
+                  "instance": "/api/v1/ontology/relationships",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 500,
+                  "instance": "/api/v1/ontology/relationships",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DomainOntologyResponse"
+                },
+                "example": {
+                  "id": "55555555-5555-4555-8555-555555555555",
+                  "version": 1
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "EntraBearer": [ ]
+          }
+        ],
+        "x-faultcode-required-policies": [
+          "knowledge.read"
+        ],
+        "x-faultcode-permission": "knowledge.read",
+        "x-delegated-scopes": [
+          "knowledge.read"
+        ],
+        "x-human-roles": [
+          "Reader",
+          "Operator",
+          "Engineer",
+          "Administrator"
+        ],
+        "x-application-roles": [
+          "Knowledge.Read.All"
+        ],
+        "x-faultcode-policy-requirements": [
+          {
+            "policy": "knowledge.read",
+            "anyOf": [
+              {
+                "scope": "knowledge.read",
+                "humanRoles": [
+                  "Reader",
+                  "Operator",
+                  "Engineer",
+                  "Administrator"
+                ],
+                "applicationRole": "Knowledge.Read.All"
               }
             ]
           }
@@ -21198,6 +21742,83 @@
         ]
       }
     },
+    "/api/v1/admin/health": {
+      "get": {
+        "tags": [
+          "OperationalHealth"
+        ],
+        "summary": "Get Operational Health",
+        "description": " Requires integrations.manage. Delegated: exact scope integrations.manage AND one of roles Administrator. Application: exact role Integrations.Manage.Application. Caller kind: Either. Local administration metadata only; no Entra grant or external provider activation. Production adapter unavailable503 pending approved persistence and identity/provider integration. Mutations atomically store trusted tenant/actor/client/correlation audit and scoped replay; strong If-Match and Idempotency-Key required.",
+        "operationId": "GetOperationalHealth",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationalHealthResponse"
+                },
+                "example": {
+                  "ready": false,
+                  "capturedAt": "2026-10-21T12:00:00Z",
+                  "capabilities": [
+                    {
+                      "component": "transactional-storage",
+                      "status": "not-configured",
+                      "detail": "Durable persistence is not configured."
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "EntraBearer": [ ]
+          }
+        ],
+        "x-faultcode-required-policies": [
+          "integrations.manage"
+        ],
+        "x-faultcode-permission": "integrations.manage",
+        "x-delegated-scopes": [
+          "integrations.manage"
+        ],
+        "x-human-roles": [
+          "Administrator"
+        ],
+        "x-application-roles": [
+          "Integrations.Manage.Application"
+        ],
+        "x-faultcode-policy-requirements": [
+          {
+            "policy": "integrations.manage",
+            "anyOf": [
+              {
+                "scope": "integrations.manage",
+                "humanRoles": [
+                  "Administrator"
+                ],
+                "applicationRole": "Integrations.Manage.Application"
+              }
+            ]
+          }
+        ]
+      }
+    },
     "/api/v1/vehicles": {
       "get": {
         "tags": [
@@ -21483,7 +22104,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -22036,7 +22658,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -22878,7 +23501,8 @@
               {
                 "scope": "vehicles.read.own",
                 "humanRoles": [
-                  "Reader"
+                  "Reader",
+                  "Driver"
                 ],
                 "applicationRole": null
               }
@@ -23839,6 +24463,25 @@
           }
         }
       },
+      "CapabilityHealth": {
+        "required": [
+          "component",
+          "status",
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "component": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      },
       "ConceptRequest": {
         "required": [
           "id",
@@ -24131,6 +24774,128 @@
             ]
           },
           "indexedProfile": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "DomainOntologyResponse": {
+        "required": [
+          "version",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DomainRelationship"
+            }
+          }
+        }
+      },
+      "DomainRelationship": {
+        "required": [
+          "from",
+          "relationship",
+          "to",
+          "detail",
+          "route",
+          "source"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "relationship": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "route": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "source": {
+            "type": "string"
+          }
+        }
+      },
+      "DriverNotificationSummaryResponse": {
+        "required": [
+          "id",
+          "incidentId",
+          "driverId",
+          "driverName",
+          "email",
+          "message",
+          "state",
+          "createdAt",
+          "nextAttemptAt",
+          "attemptCount",
+          "lastFailureCode"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "incidentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "driverId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "driverName": {
+            "type": "string"
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "nextAttemptAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "attemptCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "lastFailureCode": {
             "type": [
               "null",
               "string"
@@ -25113,6 +25878,25 @@
           }
         }
       },
+      "IncidentLinksResponse": {
+        "required": [
+          "vehicle",
+          "driver",
+          "notifications"
+        ],
+        "type": "object",
+        "properties": {
+          "vehicle": {
+            "type": "string"
+          },
+          "driver": {
+            "type": "string"
+          },
+          "notifications": {
+            "type": "string"
+          }
+        }
+      },
       "IncidentResponse": {
         "required": [
           "id",
@@ -25195,6 +25979,9 @@
             "items": {
               "$ref": "#/components/schemas/IncidentWorkResponse"
             }
+          },
+          "links": {
+            "$ref": "#/components/schemas/IncidentLinksResponse"
           }
         }
       },
@@ -26068,6 +26855,29 @@
           }
         }
       },
+      "OperationalHealthResponse": {
+        "required": [
+          "ready",
+          "capturedAt",
+          "capabilities"
+        ],
+        "type": "object",
+        "properties": {
+          "ready": {
+            "type": "boolean"
+          },
+          "capturedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CapabilityHealth"
+            }
+          }
+        }
+      },
       "PageResponseOfAssociationResponse": {
         "required": [
           "items",
@@ -26081,6 +26891,47 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/AssociationResponse"
+            }
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "totalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "PageResponseOfDriverNotificationSummaryResponse": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "totalCount"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DriverNotificationSummaryResponse"
             }
           },
           "page": {
@@ -27113,6 +27964,9 @@
     },
     {
       "name": "Ontology"
+    },
+    {
+      "name": "OperationalHealth"
     },
     {
       "name": "Vehicles"

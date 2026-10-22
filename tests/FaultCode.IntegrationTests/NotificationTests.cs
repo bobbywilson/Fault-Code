@@ -113,6 +113,27 @@ public sealed class NotificationTests
     private static async Task Error(int status, Func<Task> action) => Assert.Equal(status, (await Assert.ThrowsAsync<IncidentException>(action)).Status);
 
     [Fact]
+    public async Task All_driver_list_filters_by_driver_and_respects_incident_visibility()
+    {
+        var (store, source) = await Engineering();
+        var queued = await Queue(store, source);
+        var service = Service(store);
+        var all = await service.ListAll(Caller, null, 1, 20, default);
+        Assert.Equal(queued.Id, Assert.Single(all.Items).Notification.Id);
+        Assert.Equal("Synthetic driver", all.Items[0].DriverName);
+        Assert.Equal("synthetic@example.test", all.Items[0].Email);
+        Assert.Single((await service.ListAll(Caller, null, 1, 20, default, IncidentId)).Items);
+        await Error(400, () => service.ListAll(Caller, null, 1, 20, default, Guid.Empty));
+        await Error(404, () => service.ListAll(Caller, null, 1, 20, default, Guid.NewGuid()));
+        var driverId = store.Snapshot().Incidents.Incidents[0].Fleet.DriverId;
+        Assert.Single((await service.ListAll(Caller, driverId, 1, 20, default)).Items);
+        Assert.Empty((await service.ListAll(Caller with { AllVehicles = false, OwnVehicles = false }, null, 1, 20, default)).Items);
+        await Error(400, () => service.ListAll(Caller, Guid.Empty, 1, 20, default));
+        await Error(404, () => service.ListAll(Caller, Guid.NewGuid(), 1, 20, default));
+        await Error(400, () => service.ListAll(Caller, null, 0, 20, default));
+    }
+
+    [Fact]
     public async Task Handled_delivery_failure_exports_actionable_failure_without_contact_or_exception()
     {
         var (store, source) = await Engineering(); await using var receiver = await OtlpTelemetryTests.Receiver.Start();

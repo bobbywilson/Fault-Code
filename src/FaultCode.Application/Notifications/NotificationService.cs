@@ -39,6 +39,24 @@ public sealed class NotificationService(INotificationStore store, INotificationD
         Caller(c); return store.Execute(c.TenantId, tx =>
         { Incident(tx, c, incidentId); return Page(tx.Notifications.Messages.Where(n => n.TenantId == c.TenantId && n.IncidentId == incidentId).OrderBy(n => n.CreatedAt).ThenBy(n => n.Id).ToArray(), page, size); }, ct);
     }
+    public Task<FleetPage<DriverNotificationSummary>> ListAll(FleetCaller c, Guid? driverId, int page, int size, CancellationToken ct, Guid? incidentId = null) =>
+        (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Notification, c.CorrelationId, () =>
+        {
+            Caller(c);
+            return store.Execute(c.TenantId, tx =>
+            {
+                if (incidentId == Guid.Empty) throw new IncidentException(400);
+                if (incidentId.HasValue) Incident(tx, c, incidentId.Value);
+                if (driverId == Guid.Empty) throw new IncidentException(400);
+                if (driverId.HasValue) Driver(tx, c, driverId.Value);
+                var visible = tx.Context.Incidents.Incidents.Where(i => Visible(i, c)).Select(i => i.Id).ToHashSet();
+                return Page(tx.Notifications.Messages.Where(n => n.TenantId == c.TenantId
+                    && visible.Contains(n.IncidentId) && (!driverId.HasValue || n.DriverId == driverId.Value)
+                    && (!incidentId.HasValue || n.IncidentId == incidentId.Value))
+                    .OrderByDescending(n => n.CreatedAt).ThenBy(n => n.Id)
+                    .Select(n => { var d = Driver(tx, c, n.DriverId); return new DriverNotificationSummary(n, d.DisplayName, d.Email); }).ToArray(), page, size);
+            }, ct);
+        });
     public Task<DriverNotification> Get(FleetCaller c, Guid id, CancellationToken ct) =>
         (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Notification, c.CorrelationId, () => GetCore(c, id, ct));
     private Task<DriverNotification> GetCore(FleetCaller c, Guid id, CancellationToken ct)

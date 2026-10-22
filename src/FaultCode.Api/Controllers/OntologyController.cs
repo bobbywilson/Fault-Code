@@ -10,6 +10,10 @@ namespace FaultCode.Api.Controllers;
 [Route("api/v1/ontology")]
 public sealed class OntologyController(OntologyService service) : FleetControllerBase
 {
+    [HttpGet("relationships", Name = "ListOntologyRelationships"), Authorize(Policy = "knowledge.read")]
+    [ProducesResponseType<DomainOntologyResponse>(200)]
+    public ActionResult<DomainOntologyResponse> Relationships() => Ok(new DomainOntologyResponse(DomainOntology.Version, DomainOntology.Relationships));
+
     private KnowledgeCaller Identity => new(PermissionHandler.Identifier(User, "tid") ?? "", PermissionHandler.Identifier(User, "oid") ?? "",
         PermissionHandler.Identifier(User, "azp") ?? "", HttpContext.TraceIdentifier);
     [HttpGet("draft", Name = "GetOntologyDraft"), Authorize(Policy = "knowledge.publish")]
@@ -56,3 +60,5 @@ public sealed class OntologyController(OntologyService service) : FleetControlle
     public async Task<ActionResult<OntologyEvaluationResponse>> Evaluation(Guid id, CancellationToken ct)
     { var result = await service.Evaluation(Identity, id, ct); ETag(result.PublicationVersion); return Ok(OntologyResponses.Evaluation(result)); }
 }
+
+public sealed record DomainOntologyResponse(string Version, IReadOnlyList<DomainRelationship> Items);

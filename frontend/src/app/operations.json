@@ -2453,6 +2453,81 @@
     ]
   },
   {
+    "id": "ListDriverNotifications",
+    "label": "List Driver Notifications",
+    "group": "Notifications",
+    "method": "GET",
+    "path": "/api/v1/notifications",
+    "parameters": [
+      {
+        "name": "Page",
+        "where": "query",
+        "required": false,
+        "schema": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "pattern": "^-?(?:0|[1-9]\\d*)$",
+          "type": [
+            "integer",
+            "string"
+          ],
+          "format": "int32"
+        }
+      },
+      {
+        "name": "PageSize",
+        "where": "query",
+        "required": false,
+        "schema": {
+          "maximum": 100,
+          "minimum": 1,
+          "pattern": "^-?(?:0|[1-9]\\d*)$",
+          "type": [
+            "integer",
+            "string"
+          ],
+          "format": "int32"
+        }
+      },
+      {
+        "name": "driverId",
+        "where": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "name": "incidentId",
+        "where": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "headers": [],
+    "body": null,
+    "policies": [
+      [
+        "faults.read"
+      ],
+      [
+        "vehicles.read",
+        "vehicles.read.own"
+      ],
+      [
+        "drivers.read",
+        "drivers.read.own"
+      ],
+      [
+        "knowledge.read"
+      ]
+    ]
+  },
+  {
     "id": "ListIncidentNotifications",
     "label": "List Incident Notifications",
     "group": "Notifications",
@@ -2841,6 +2916,21 @@
       ],
       [
         "drivers.write"
+      ]
+    ]
+  },
+  {
+    "id": "ListOntologyRelationships",
+    "label": "List Ontology Relationships",
+    "group": "Ontology",
+    "method": "GET",
+    "path": "/api/v1/ontology/relationships",
+    "parameters": [],
+    "headers": [],
+    "body": null,
+    "policies": [
+      [
+        "knowledge.read"
       ]
     ]
   },
@@ -3327,6 +3417,21 @@
     "policies": [
       [
         "knowledge.read"
+      ]
+    ]
+  },
+  {
+    "id": "GetOperationalHealth",
+    "label": "Get Operational Health",
+    "group": "Operational health",
+    "method": "GET",
+    "path": "/api/v1/admin/health",
+    "parameters": [],
+    "headers": [],
+    "body": null,
+    "policies": [
+      [
+        "integrations.manage"
       ]
     ]
   },

@@ -38,3 +38,15 @@ public sealed record NotificationHistoryResponse(long Version, string State, str
 {
     public static NotificationHistoryResponse From(NotificationHistory h) => new(h.Version, h.State, h.Action, h.At, h.ActorId, h.ClientId, h.CorrelationId);
 }
+
+public sealed record DriverNotificationSummaryResponse(Guid Id, Guid IncidentId, Guid DriverId, string DriverName,
+    string? Email, string Message, string State, DateTimeOffset CreatedAt, DateTimeOffset? NextAttemptAt,
+    int AttemptCount, string? LastFailureCode)
+{
+    public static DriverNotificationSummaryResponse From(FaultCode.Application.Notifications.DriverNotificationSummary item)
+    {
+        var n = item.Notification;
+        return new(n.Id, n.IncidentId, n.DriverId, item.DriverName, item.Email, n.Message, n.State, n.CreatedAt,
+            n.NextAttemptAt, n.Attempts.Length, n.Attempts.LastOrDefault()?.FailureCode);
+    }
+}

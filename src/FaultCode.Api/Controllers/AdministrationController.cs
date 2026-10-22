@@ -18,7 +18,7 @@ public sealed record RoleCatalogResponse(string[] Roles);
 [Route("api/v1/admin")]
 public sealed class AdministrationController(IAdministrationStore store) : FleetControllerBase
 {
-    internal static readonly string[] Roles = ["Reader", "Operator", "Engineer", "Administrator"];
+    internal static readonly string[] Roles = ["Reader", "Operator", "Engineer", "Administrator", "Driver"];
     private AdministrationAudit Audit => new(Caller.TenantId, Caller.ActorId, Caller.ClientId, HttpContext.TraceIdentifier);
     private static string Replay(string key) => key is { Length: >= 1 and <= 100 } && key.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_') ? key : throw new FleetException(400);
 

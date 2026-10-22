@@ -37,7 +37,7 @@ public static class OntologyRules
         Require(!c.Concepts.IsDefault && c.Concepts.Length is >= 1 and <= 200 && !c.Relationships.IsDefault
             && c.Relationships.Length <= 400 && !c.Rules.IsDefault && c.Rules.Length <= 100);
         Require(c.Concepts.All(x => x is not null && Id(x.Id) && System(x.System) && FaultRules.Text(x.Label, 200)
-            && x.Kind is "subsystem" or "component" or "symptom" or "classification" or "severity" or "applicability" or "remedy"
+            && x.Kind is "subsystem" or "component" or "symptom" or "cause" or "classification" or "severity" or "applicability" or "remedy"
             && Kinds(x.AllowedRemedyKinds) && (x.Kind == "classification" || x.AllowedRemedyKinds.Length == 0)));
         Require(c.Concepts.Select(x => x.Id).Distinct(StringComparer.Ordinal).Count() == c.Concepts.Length);
         var concepts = c.Concepts.ToDictionary(x => x.Id, StringComparer.Ordinal);
@@ -53,6 +53,7 @@ public static class OntologyRules
                 "is-a" => from.Kind == to.Kind,
                 "part-of" => from.Kind is "component" or "subsystem" && to.Kind == "subsystem",
                 "indicates" => from.Kind == "symptom" && to.Kind == "classification",
+                "causes" => from.Kind == "cause" && to.Kind is "symptom" or "classification",
                 "classifies" => from.Kind == "component" && to.Kind == "classification",
                 "mitigates" => from.Kind == "remedy" && to.Kind == "classification",
                 "applies-to" => from.Kind == "applicability" && to.Kind is "component" or "subsystem",
