@@ -8,7 +8,7 @@ trap 'echo "Administration smoke failed at line $LINENO" >&2; docker ps -a --fil
 docker build --target runtime -t "$name-api" .
 docker build -t "$name-web" frontend
 docker network create "$name" >/dev/null
-docker run -d --name "$name-api" --network "$name" --network-alias api "$name-api" >/dev/null
+docker run -d --name "$name-api" --network "$name" --network-alias api -e ApiTesting__Enabled=true "$name-api" >/dev/null
 docker run -d --name "$name-web" --network "$name" -p 127.0.0.1::8080 "$name-web" >/dev/null
 port=$(docker inspect --format '{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' "$name-web")
 for attempt in {1..40}; do
@@ -36,6 +36,6 @@ assert all(scope.startswith('api://' + config['apiClientId'] + '/') for scope in
 assert 'clientSecret' not in config
 PY
 node frontend/tools/production-smoke.mjs "http://127.0.0.1:$port"
-# Test identity and synthetic token cannot be packaged.
-if docker exec "$name-web" sh -c 'grep -R -E "synthetic-test-token|__test/session" /usr/share/nginx/html'; then exit 1; fi
+# Test identity and demo token cannot be packaged.
+if docker exec "$name-web" sh -c 'grep -R -E "demo-test-token|__test/session" /usr/share/nginx/html'; then exit 1; fi
 printf 'Non-root Linux SPA, public registration configuration, fixture exclusion and protected API401 passed.\n'

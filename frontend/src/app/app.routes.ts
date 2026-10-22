@@ -1,8 +1,13 @@
 import { Routes } from '@angular/router';
-import { Workspace } from './workspace';
+const workspace = () => import('./workspace').then((module) => module.Workspace);
 export const routes: Routes = [
-  { path: 'auth/callback', component: Workspace },
-  { path: 'admin/:area', component: Workspace },
+  { path: 'auth/callback', loadComponent: workspace },
+  ...['faults', 'documents', 'engineering', 'activity', 'health', 'integrations'].map((area) => ({
+    path: 'admin/' + area,
+    redirectTo: 'admin/incidents',
+    pathMatch: 'full' as const,
+  })),
+  { path: 'admin/:area', loadComponent: workspace },
   { path: '', redirectTo: 'admin/incidents', pathMatch: 'full' },
   { path: '**', redirectTo: 'admin/incidents' },
 ];

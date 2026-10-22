@@ -8,7 +8,7 @@ Every HTTP request goes through the existing Entra v2 JWT middleware. An unauthe
 
 The application takes tenant/actor/client exclusively from validated `tid`/`oid`/`azp`, and generates a fresh correlation ID. It never accepts those values, roles or scopes in tool arguments. Machine consumers use their explicitly assigned application roles; delegated consumers require the existing exact scope plus allowed human role. Resource reads retain the immutable incident intake owner and tenant checks. No service privileges are combined with the requesting consumer's permissions.
 
-This interface is separate from the model. FAU-15 still supplies only selected synthetic incident metadata and approved intake references to a fresh bounded model conversation, has no registered tools and rejects returned tool calls. The model receives no Entra token, provider key, environment inventory, shell, filesystem or general network capability. This ticket does not connect MCP tools to automatic model execution. FAU-17 must explicitly preserve that boundary when composing investigation context.
+This interface is separate from the model. FAU-15 still supplies only selected demo incident metadata and approved intake references to a fresh bounded model conversation, has no registered tools and rejects returned tool calls. The model receives no Entra token, provider key, environment inventory, shell, filesystem or general network capability. This ticket does not connect MCP tools to automatic model execution. FAU-17 must explicitly preserve that boundary when composing investigation context.
 
 ## Discovery and contracts
 
@@ -22,7 +22,7 @@ This interface is separate from the model. FAU-15 still supplies only selected s
 
 The exact human/app-role mappings remain in authorization.md. For example, fault lookup/search permit an assigned `Knowledge.Read.All` machine role. Status requires `Faults.Write.All`; escalation requires `Escalations.Write.Application`. Human Operator and Engineer roles do not imply each other's permissions.
 
-Each listed tool advertises `inputSchema`, `outputSchema` and read-only/destructive/idempotent/closed-world annotations. Annotations are descriptive hints; server validation and authorization enforce behavior. All inputs are JSON objects with exact case-sensitive property names, required fields and `additionalProperties: false`. Unknown/missing/null/wrong-type fields, noncanonical/empty GUIDs, invalid enums/versions/keys or bounds reject before service execution. Synthetic code/system/model/software validation also uses the existing domain rules. There is no arbitrary SQL, file, URL, command, publication, identity-management or vehicle operation tool.
+Each listed tool advertises `inputSchema`, `outputSchema` and read-only/destructive/idempotent/closed-world annotations. Annotations are descriptive hints; server validation and authorization enforce behavior. All inputs are JSON objects with exact case-sensitive property names, required fields and `additionalProperties: false`. Unknown/missing/null/wrong-type fields, noncanonical/empty GUIDs, invalid enums/versions/keys or bounds reject before service execution. Demo code/system/model/software validation also uses the existing domain rules. There is no arbitrary SQL, file, URL, command, publication, identity-management or vehicle operation tool.
 
 Approved fault prose, incident prose and retrieved document text are marked untrusted evidence. Source instructions do not authorize another operation, establish an unknown fault, approve a remedy or become executable repair guidance. Missing approved fault returns404; dependency outage503 remains distinct. Retrieval retains canonical approval/applicability/access filters before ranking and authoritative citation revalidation.
 
@@ -34,10 +34,10 @@ The authenticated HTTP consumer must independently attach exactly one `X-FaultCo
 toolName/id/expectedVersion/targetStatus/idempotencyKey
 ```
 
-For example, arguments `{"id":"55555555-5555-4555-8555-555555555555","expectedVersion":1,"idempotencyKey":"synthetic-status","status":"Investigating"}` require:
+For example, arguments `{"id":"55555555-5555-4555-8555-555555555555","expectedVersion":1,"idempotencyKey":"demo-status","status":"Investigating"}` require:
 
 ```text
-X-FaultCode-Workflow-Intent: incident_status/55555555-5555-4555-8555-555555555555/1/Investigating/synthetic-status
+X-FaultCode-Workflow-Intent: incident_status/55555555-5555-4555-8555-555555555555/1/Investigating/demo-status
 ```
 
 For `incident_escalate`, the target status is always `Escalated`. Missing, multiple or mismatched intent yields tool403 before mutation, even for an Engineer or privileged machine. The intent is never read from arguments, protocol `_meta`, source text or model output. The header is explicit consumer intent, not a cryptographic human approval or an additional permission grant. An authorized application capable of constructing headers is responsible for deciding whether its requested automation is authorized. Do not give a model a header-construction or HTTP capability and then treat its text as independent intent.
@@ -64,7 +64,7 @@ Known invocation logs record safe tool name, outcome, validated actor/client and
 
 ## Verification and activation limits
 
-`McpToolsTests` uses the actual SDK client and actual production JWT middleware with synthetic signing/discovery keys. It verifies discovery/schemas, invocation, delegated/machine/owner/tenant checks, independent intent, metadata/source injection, concurrent replay/conflicts, rollback, safe failures, request bounds and cancellation/deadline. The suite exports all five actual SDK schemas and success/error examples to ignored `artifacts/mcp-contracts.json`; the Python validator checks those contracts:
+`McpToolsTests` uses the actual SDK client and actual production JWT middleware with demo signing/discovery keys. It verifies discovery/schemas, invocation, delegated/machine/owner/tenant checks, independent intent, metadata/source injection, concurrent replay/conflicts, rollback, safe failures, request bounds and cancellation/deadline. The suite exports all five actual SDK schemas and success/error examples to ignored `artifacts/mcp-contracts.json`; the Python validator checks those contracts:
 
 ```sh
 dotnet test tests/FaultCode.IntegrationTests -c Release --filter FullyQualifiedName~McpToolsTests

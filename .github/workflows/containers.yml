@@ -3,24 +3,35 @@ on:
   push:
     branches: [main, development]
   pull_request:
+    branches: [development]
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   smoke:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, faultcode-ci]
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Validate scoped deployment and certificate script syntax
-        run: bash -n deploy/demo/deploy.sh deploy/demo/ssh-receiver.sh deploy/demo/tls-install.sh deploy/demo/tls-renew.sh scripts/demo-stack-smoke.sh
+        run: bash -n deploy/demo/deploy.sh deploy/demo/ssh-receiver.sh deploy/demo/tls-install.sh deploy/demo/tls-renew.sh deploy/demo/monitor.sh scripts/demo-stack-smoke.sh
       - name: Validate isolated demo configuration without starting services
         env:
           API_IMAGE: ghcr.io/bobbywilson/fault-code-api@sha256:0000000000000000000000000000000000000000000000000000000000000000
+          DOCS_IMAGE: isolated-docs:configuration-check
+          FAULTCODE_SQL_CONNECTION: isolated-configuration-check
+          FAULTCODE_SQL_SA_PASSWORD: isolated-configuration-check
+          FAULTCODE_AGENT_MODEL: isolated-configuration-check
+          FAULTCODE_EMBEDDING_MODEL: isolated-configuration-check
+          FAULTCODE_OPENAI_KEY: isolated-configuration-check
+          FAULTCODE_DATADOG_INCIDENT_TOKEN: isolated-configuration-check
           WEB_IMAGE: ghcr.io/bobbywilson/fault-code-administration@sha256:0000000000000000000000000000000000000000000000000000000000000000
           QDRANT_IMAGE: ghcr.io/bobbywilson/fault-code-qdrant@sha256:0000000000000000000000000000000000000000000000000000000000000000
-          FAULTCODE_QDRANT_API_KEY: synthetic-config-validation-only
+          FAULTCODE_QDRANT_API_KEY: isolated-config-validation-only
         run: docker compose --project-name faultcode-demo-configcheck --file deploy/demo/compose.yaml config --quiet
       - name: Build and verify isolated container lifecycle
         run: bash scripts/container-smoke.sh
@@ -28,13 +39,13 @@ jobs:
         run: bash scripts/demo-stack-smoke.sh
 
   retrieval:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, faultcode-ci]
     timeout-minutes: 10
     services:
       qdrant:
         image: qdrant/qdrant:v1.19.2@sha256:b7b0444c4c351c970b98e90a6f89c2ee4287c65b44e52b4cb503fa5b2aa927ad
         env:
-          QDRANT__SERVICE__API_KEY: synthetic-ci-disposable-key
+          QDRANT__SERVICE__API_KEY: isolated-ci-disposable-key
           QDRANT__TELEMETRY_DISABLED: 'true'
         ports:
           - 6333:6333
@@ -48,7 +59,7 @@ jobs:
       - name: Wait for disposable authenticated Qdrant
         run: |
           for attempt in {1..30}; do
-            if curl --fail --silent -H 'api-key: synthetic-ci-disposable-key' http://localhost:6333/collections > /dev/null; then exit 0; fi
+            if curl --fail --silent -H 'api-key: isolated-ci-disposable-key' http://localhost:6333/collections > /dev/null; then exit 0; fi
             sleep 1
           done
           exit 1
@@ -57,7 +68,7 @@ jobs:
         run: dotnet test tests/FaultCode.IntegrationTests -c Release --no-restore --filter FullyQualifiedName~Disposable_real_Qdrant_acceptance --logger trx
         env:
           FAULTCODE_TEST_QDRANT: http://localhost:6333
-          FAULTCODE_TEST_QDRANT_KEY: synthetic-ci-disposable-key
+          FAULTCODE_TEST_QDRANT_KEY: isolated-ci-disposable-key
       - uses: actions/upload-artifact@v4
         if: always()
         with:

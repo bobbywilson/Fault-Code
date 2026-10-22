@@ -9,7 +9,7 @@ Define observable Fault Code automotive ontology requirements and acceptance sce
 The ontology SHALL define versioned EPS, steer-by-wire and steering ADAS concepts, classifications, relationships and deterministic domain rules, without GraphRAG.
 
 #### Scenario: Typed domain concepts acceptance
-- **GIVEN** synthetic authorized Fault Code test context with the stated preconditions
+- **GIVEN** demo authorized Fault Code test context with the stated preconditions
 - **WHEN** an authorized engineer creates relationships and rules
 - **THEN** valid types and references are accepted; duplicates, invalid references and prohibited cycles are rejected
 
@@ -17,19 +17,19 @@ The ontology SHALL define versioned EPS, steer-by-wire and steering ADAS concept
 Investigation rule evaluation SHALL use approved versions and retain rule/evidence provenance without rewriting historical outcomes after taxonomy changes.
 
 #### Scenario: Traceable rule evaluation acceptance
-- **GIVEN** synthetic authorized Fault Code test context with the stated preconditions
+- **GIVEN** demo authorized Fault Code test context with the stated preconditions
 - **WHEN** a published rule changes after an incident investigation
 - **THEN** new investigations use the new approved version while the historical record retains its original rule version and explanation
 
 ### Requirement: Fault taxonomy validation boundary
 Fault writes and publication SHALL validate exact approved classification identity/version/system and remedy kinds through an ontology contract. Missing, unapproved or incompatible links SHALL reject the mutation; unavailable validation SHALL fail503.
 #### Scenario: Invalid taxonomy or remedy combination
-- **GIVEN** a synthetic fault draft
+- **GIVEN** a demo fault draft
 - **WHEN** a classification is absent, unapproved, belongs to another system, or forbids the remedy kind
 - **THEN** the mutation returns400 without changing revisions, audit or replay; unavailable ontology returns503
 
 ### Requirement: Tenant ontology catalog management
-Ontology SHALL expose tenant-local bounded draft replacement for versioned subsystem, component, symptom, classification, severity, applicability and remedy concepts across the three synthetic steering systems. Stable IDs SHALL retain kind/system; invalid references, duplicate IDs/edges, incompatible relationship types and is-a/part-of cycles SHALL reject400 atomically. Draft/history management SHALL require knowledge.publish; approved reads SHALL require knowledge.read.
+Ontology SHALL expose tenant-local bounded draft replacement for versioned subsystem, component, symptom, classification, severity, applicability and remedy concepts across the three demo steering systems. Stable IDs SHALL retain kind/system; invalid references, duplicate IDs/edges, incompatible relationship types and is-a/part-of cycles SHALL reject400 atomically. Draft/history management SHALL require knowledge.publish; approved reads SHALL require knowledge.read.
 #### Scenario: Typed management and denial
 - **WHEN** an Engineer or exactly granted application replaces a catalog or a Reader attempts management
 - **THEN** valid catalog changes succeed with strong versions; invalid graphs reject400, stale versions409 and unauthorized callers401/403; drafts never appear in approved reads

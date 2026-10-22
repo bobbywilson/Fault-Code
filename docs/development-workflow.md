@@ -8,7 +8,7 @@ OpenSpec defines requirements and decisions; Linear tracks work; GitHub versions
 3. Create a scoped change using `npx --yes @fission-ai/openspec@1.14.3 new change fau-N-short-purpose` (or the generated Codex propose skill). Inspect `status --change NAME --json` and `instructions ARTIFACT --change NAME --json`.
 4. Write proposal, full requirement/scenario deltas, design decisions and tasks in dependency order. Include acceptance, tests, errors, permissions and affected components. Resolve architectural decisions with the user before dependent implementation; do not silently choose a database, channel or host.
 5. Validate with `npx --yes @fission-ai/openspec@1.14.3 validate NAME --strict`. Specification readiness does not authorize application work. Obtain the user's implementation instruction before applying development changes.
-6. When authorized, implement the ready scope and tests together. Keep specs synchronized with approved behavior changes. Use synthetic data; never deploy vehicle software.
+6. When authorized, implement the ready scope and tests together. Keep specs synchronized with approved behavior changes. Use demo data; never deploy vehicle software.
 7. Run the ticket's focused tests, contract/security checks and evaluation cases; record exact commands/results and limitations. Do not mark unrun tests as passing or pending dependencies complete.
 8. Review the diff and spec-to-code traceability. Mark tracked tasks complete only with evidence, then validate the change again.
 9. Complete official archive using `npx --yes @fission-ai/openspec@1.14.3 archive NAME` after tasks/tests are complete; inspect CLI prompts, resulting main specs and archive. Never bypass failed validation. Archive is not proof of application delivery.
@@ -23,3 +23,11 @@ Node.js 20.19+ (local 22.13.0 used); official OpenSpec pinned to 1.14.3. Run com
 
 ## Setup boundaries
 Setup may initialize and version specifications and instructions only. Entra tenant, cloud services, subscriptions, database, application source, deployment and vehicle software operations remain unperformed. GitHub integration permission approval and end-to-end verification remain explicit external setup steps.
+
+## Authorized Linux demo promotion (2026-10-22)
+
+Part of FAU-23/FAU-26. The user authorized pushing the completed app, reviewing the open PRs and deployment after merge into development. This supersedes the earlier paused/main-only demo policy. Only current development push revisions passing verify, administration, documentation, retrieval, smoke, release and sql-server may publish immutable API, SPA, Qdrant and static Mintlify images and deploy through the restricted SSH receiver. Main remains an optional separate promotion; it is not the live demo trigger. Author self-approval must never be fabricated or performed by switching accounts; record actual review and provider constraints.
+
+Use the existing Linux box with isolated Fault Code containers, configuration, credentials, networks and volumes, as explicitly confirmed. No LALAI code, mounts, secrets, database, daemon restart or service operations are part of this deployment. Mailpit remains capture-only. Public docs live at https://faultcodeai.com/docs/, Swagger at /swagger/, and the Mailpit viewer at /mailpit/ requires John Henry's existing app session.
+
+The user approved dedicated self-hosted CI after GitHub Free reached its monthly hosted-minute quota. CI runs in the `faultcode-ci` user's own rootless Docker engine, with masked host application paths and no host Docker socket. Its separate gate worker cannot occupy the only build worker. The existing LALAI runner remains outside this setup.

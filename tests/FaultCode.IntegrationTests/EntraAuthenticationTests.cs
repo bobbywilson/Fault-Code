@@ -35,7 +35,7 @@ public sealed class EntraAuthenticationTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync();
         Assert.Contains(Actor, body);
-        Assert.Contains(machine ? "Synthetic.Read.All" : "synthetic.read", body);
+        Assert.Contains(machine ? "Demo.Read.All" : "demo.read", body);
         Assert.Contains(keys.Requests, x => x.EndsWith("/.well-known/openid-configuration", StringComparison.Ordinal));
         Assert.Contains(keys.Requests, x => x.EndsWith("/keys", StringComparison.Ordinal));
     }
@@ -102,7 +102,7 @@ public sealed class EntraAuthenticationTests
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         await AssertDenied(await client.GetAsync("/identity-fixture"), token);
         Assert.Empty(keys.Requests);
-        foreach (var path in new[] { "/api/v1/health", "/api/v1/examples", "/openapi/v1.json", "/health/live", "/health/ready" })
+        foreach (var path in new[] { "/openapi/v1.json", "/health/live", "/health/ready" })
             Assert.Equal(HttpStatusCode.OK, (await client.GetAsync(path)).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/not-an-endpoint")).StatusCode);
     }
@@ -113,7 +113,7 @@ public sealed class EntraAuthenticationTests
         using var keys = new Discovery();
         await using var factory = CreateFactory(keys);
         using var client = factory.CreateClient();
-        foreach (var path in new[] { "/api/v1/health", "/api/v1/examples", "/openapi/v1.json", "/health/live", "/health/ready" })
+        foreach (var path in new[] { "/openapi/v1.json", "/health/live", "/health/ready" })
             Assert.Equal(HttpStatusCode.OK, (await client.GetAsync(path)).StatusCode);
         Assert.Empty(keys.Requests);
     }
@@ -156,10 +156,10 @@ public sealed class EntraAuthenticationTests
         if (machine || failure is "roleless-app" or "app-with-scope")
         {
             claims.Add(new("idtyp", "app"));
-            if (failure != "roleless-app") claims.Add(new("roles", "Synthetic.Read.All"));
-            if (failure == "app-with-scope") claims.Add(new("scp", "synthetic.read"));
+            if (failure != "roleless-app") claims.Add(new("roles", "Demo.Read.All"));
+            if (failure == "app-with-scope") claims.Add(new("scp", "demo.read"));
         }
-        else if (failure != "id-token") claims.Add(new("scp", "synthetic.read"));
+        else if (failure != "id-token") claims.Add(new("scp", "demo.read"));
         var now = DateTime.UtcNow;
         var jwt = new JwtSecurityToken(failure == "wrong-issuer" ? "https://unrelated.invalid/v2.0" : Issuer,
             failure == "wrong-audience" ? Client : failure == "audience-slash" ? Audience + "/" : Audience,
@@ -197,7 +197,7 @@ public sealed class EntraAuthenticationTests
         {
             this.outage = outage;
             this.wrongIssuer = wrongIssuer;
-            Key = new RsaSecurityKey(rsa) { KeyId = "synthetic-key" };
+            Key = new RsaSecurityKey(rsa) { KeyId = "demo-key" };
         }
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -228,6 +228,6 @@ public sealed class IdentityFixtureController : ControllerBase
     public object Get() => new { actor = User.FindFirst("oid")?.Value, scopes = User.FindFirst("scp")?.Value, roles = User.FindAll("roles").Select(x => x.Value) };
 
     [HttpGet("restricted")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Synthetic.Admin")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Demo.Admin")]
     public object Restricted() => Get();
 }

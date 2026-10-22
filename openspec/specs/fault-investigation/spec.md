@@ -9,15 +9,15 @@ Define observable Fault Code fault investigation requirements and acceptance sce
 For a known fault the system SHALL identify the stored approved definition, retrieve technical support, investigate with agent/domain rules, generate driver guidance and record results and notification status.
 
 #### Scenario: Workflow A known fault acceptance
-- **GIVEN** synthetic authorized Fault Code test context with the stated preconditions
-- **WHEN** an incident matches an approved synthetic definition without an applicable patch
+- **GIVEN** demo authorized Fault Code test context with the stated preconditions
+- **WHEN** an incident matches an approved demo definition without an applicable patch
 - **THEN** an evidence-backed known-fault result and notification request are persisted with citations, rule/version references and eventual delivery status
 
 ### Requirement: Workflow B approved patch
 For a known fault with an approved applicable patch the system SHALL assess dealership service and record the recommendation, supporting evidence and driver notification; it SHALL NOT deploy software to vehicles.
 
 #### Scenario: Workflow B approved patch acceptance
-- **GIVEN** synthetic authorized Fault Code test context with the stated preconditions
+- **GIVEN** demo authorized Fault Code test context with the stated preconditions
 - **WHEN** approved patch applicability matches the incident vehicle context
 - **THEN** the driver receives the justified dealership recommendation; no tool, API or workflow performs vehicle software installation
 
@@ -25,7 +25,7 @@ For a known fault with an approved applicable patch the system SHALL assess deal
 Investigation SHALL distinguish absence of an approved definition from provider/retrieval outage and route unsupported or conflicting evidence explicitly.
 
 #### Scenario: Unknown versus unavailable knowledge acceptance
-- **GIVEN** synthetic authorized Fault Code test context with the stated preconditions
+- **GIVEN** demo authorized Fault Code test context with the stated preconditions
 - **WHEN** no approved definition exists, or the lookup dependency is unavailable
 - **THEN** an actually unknown code escalates to engineering; outage is a retryable failure and never falsely confirms that no definition exists
 
@@ -33,7 +33,7 @@ Investigation SHALL distinguish absence of an approved definition from provider/
 Investigations SHALL classify KnownFault, KnownFaultWithApprovedPatch, UnknownFault or InsufficientEvidence using current approved definitions, pinned ontology rules and canonical applicable citations. Provider outage SHALL fail retryably without confirming unknown. Only deterministic approved content SHALL supply guidance; the model SHALL NOT author repairs or approve patches.
 
 #### Scenario: Supported A and B routes
-- **WHEN** an accessible synthetic incident has an approved definition, matching pinned rule/classification and approved applicable remedy with supporting cited source/version
+- **WHEN** an accessible demo incident has an approved definition, matching pinned rule/classification and approved applicable remedy with supporting cited source/version
 - **THEN** A records KnownFault with the approved guidance; B records KnownFaultWithApprovedPatch with the exact approved dealership patch metadata and referral proposal; neither deploys software
 
 #### Scenario: Unknown C route and outage

@@ -75,7 +75,7 @@ public sealed class OtlpTelemetryTests
     public async Task Real_OTLP_delivers_nested_traces_correlated_logs_and_bounded_metrics()
     {
         await using var receiver = await Receiver.Start();
-        using var adapter = new OtlpTelemetryAdapter(new(receiver.Endpoint, 1, "synthetic-model-2026-10-21"));
+        using var adapter = new OtlpTelemetryAdapter(new(receiver.Endpoint, 1, "demo-model-2026-10-21"));
         var telemetry = new SafeTelemetry(adapter); var correlation = Guid.NewGuid().ToString("N");
         using var outside = new Activity("SECRET-outside").AddBaggage("contact", "SECRET-contact").Start();
         using (var api = telemetry.Begin(TelemetryOperation.Api, correlation))
@@ -108,7 +108,7 @@ public sealed class OtlpTelemetryTests
             Assert.False(attributes.ContainsKey("gen_ai.usage.output_tokens"));
         }
         var modelSpan = Assert.Single(spans, x => x.Text(5) == "Model");
-        Assert.Equal("synthetic-model-2026-10-21", modelSpan.Attributes(9)["gen_ai.request.model"].Text(1));
+        Assert.Equal("demo-model-2026-10-21", modelSpan.Attributes(9)["gen_ai.request.model"].Text(1));
         Assert.Equal("Dependency", modelSpan.Attributes(9)["error.type"].Text(1));
         var metrics = receiver.Items("metrics"); Assert.Contains(metrics, x => x.Text(1) == "faultcode.operation.duration");
         Assert.Contains(metrics, x => x.Text(1) == "faultcode.model.input_tokens");

@@ -21,7 +21,7 @@ python scripts/check-api-contract.py artifacts/openapi/faultcode-v1.json contrac
 
 | Requirement | Evidence |
 |---|---|
-| Identifier validation and association rules | FleetRulesTests checks normalized synthetic IDs, malformed IDs, inactive/cross-tenant/unowned records, one open association and ended intervals |
+| Identifier validation and association rules | FleetRulesTests checks normalized demo IDs, malformed IDs, inactive/cross-tenant/unowned records, one open association and ended intervals |
 | CRUD and validation | FleetTests exercises create/get/update/deactivate, duplicates, missing/deactivated entities, contact/owner validation, active filter and invalid pagination |
 | Ownership | Actual signed-token middleware with production controllers; own lists filtered before count/page, spoofed query ignored, another driver cannot read records/vehicles; trusted resource authorization used on single GET; unknown JSON owner update fails400 |
 | Authorization | Reader writes and Administrator without exact write grant deny403; all-read Administrator and exact machine roles succeed; association requires both write policies; all FAU-9 catalog negative tests remain passing |

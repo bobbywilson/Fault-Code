@@ -1,6 +1,6 @@
 # Proposal
 ## Why
-Part of FAU-11. Incident processing needs authoritative synthetic fault knowledge with immutable approval provenance and safe advisory remedies.
+Part of FAU-11. Incident processing needs authoritative demo fault knowledge with immutable approval provenance and safe advisory remedies.
 ## What Changes
 - Add tenant-scoped fault CRUD/search, revision history, engineering publication and approved applicable lookup.
 - Add provider-independent knowledge transaction and ontology validation contracts; production adapters return503 pending DEC-001/FAU-13.

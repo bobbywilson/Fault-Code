@@ -7,7 +7,7 @@ from jsonschema import Draft202012Validator
 
 artifact = json.loads(Path(sys.argv[1]).read_text())
 tools = {tool['name']: tool for tool in artifact['tools']}
-assert set(tools) == {'fault_lookup', 'knowledge_search', 'incident_get', 'incident_status', 'incident_escalate'}
+assert set(tools) == {'notification_fault_lookup', 'notification_email_send'}
 assert artifact['sdk'] == '2.3.0'
 assert len(artifact['samples']) == len(tools)
 for sample in artifact['samples']:
@@ -22,5 +22,5 @@ for sample in artifact['samples']:
     assert not inputs['additionalProperties']
     assert sample['output']['status'] == 200 and sample['error']['status'] == 400
     assert not Draft202012Validator(inputs).is_valid({**sample['input'], 'tenantId': 'spoofed'})
-    assert not Draft202012Validator(inputs).is_valid({})
-print('Five actual SDK tool input/output schemas and success/error examples validated; unknown/missing input fixtures rejected.')
+    if inputs['required']: assert not Draft202012Validator(inputs).is_valid({})
+print('Two internal MCP tool input/output schemas and success/error examples validated; unknown/missing input fixtures rejected.')

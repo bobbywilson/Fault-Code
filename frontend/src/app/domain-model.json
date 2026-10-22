@@ -1,0 +1,79 @@
+[
+  {
+    "relationship": "is reported in",
+    "to": "Incident",
+    "detail": "An occurrence records the fault code, steering system, model and software version.",
+    "source": "Incident.Code/System; IncidentKnowledge.DefinitionId",
+    "from": "Fault code"
+  },
+  {
+    "relationship": "occurs on",
+    "to": "Vehicle",
+    "detail": "The incident retains the vehicle identity and its fleet snapshot.",
+    "source": "Incident.Fleet.VehicleId",
+    "from": "Incident"
+  },
+  {
+    "relationship": "involves",
+    "to": "Driver",
+    "detail": "The incident retains the driver identity and vehicle association at intake.",
+    "source": "Incident.Fleet.DriverId/Association",
+    "from": "Incident"
+  },
+  {
+    "relationship": "is assigned to",
+    "to": "Vehicle",
+    "detail": "An association records when a driver’s assignment starts and ends.",
+    "source": "Association.VehicleId/DriverId/From/Until",
+    "from": "Driver"
+  },
+  {
+    "relationship": "has",
+    "to": "Notification",
+    "detail": "A notification links its incident to an approved remedy and delivery history.",
+    "source": "DriverNotification.IncidentId",
+    "from": "Incident"
+  },
+  {
+    "relationship": "is addressed to",
+    "to": "Driver",
+    "detail": "Delivery follows the driver’s notification preferences and approved contact.",
+    "source": "DriverNotification.DriverId; LocalNotificationPreference.DriverId",
+    "from": "Notification"
+  },
+  {
+    "relationship": "concerns",
+    "to": "Fault code",
+    "detail": "The message retains the exact fault publication and ontology version used.",
+    "source": "DriverNotification.FaultId/PublicationVersion/OntologyVersion",
+    "from": "Notification"
+  },
+  {
+    "relationship": "has approved",
+    "to": "Classification",
+    "detail": "Fault knowledge references an exact approved classification and version.",
+    "source": "FaultContent.ClassificationId/ClassificationVersion",
+    "from": "Fault code"
+  },
+  {
+    "relationship": "describes",
+    "to": "Symptoms",
+    "detail": "Symptoms describe the observed steering behavior associated with the fault.",
+    "source": "FaultContent.Symptoms",
+    "from": "Fault code"
+  },
+  {
+    "relationship": "has",
+    "to": "Remedy",
+    "detail": "Versioned fault knowledge contains remedy guidance and approval status.",
+    "source": "FaultContent.Remedies; FaultRemedy.Approved",
+    "from": "Fault code"
+  },
+  {
+    "relationship": "may escalate to",
+    "to": "Engineering case",
+    "detail": "An engineering case links the incident and investigation to resolution review.",
+    "source": "EngineeringCase.IncidentId/InvestigationId",
+    "from": "Incident"
+  }
+]

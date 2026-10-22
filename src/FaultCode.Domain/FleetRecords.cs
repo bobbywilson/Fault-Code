@@ -14,10 +14,10 @@ public static class FleetRules
         var normalized = value?.Trim().ToUpperInvariant() ?? "";
         if (!normalized.StartsWith(prefix, StringComparison.Ordinal) || normalized.Length <= prefix.Length
             || normalized.Length > 40 || normalized.Any(c => !char.IsAsciiLetterOrDigit(c) && c != '-'))
-            throw new ArgumentException("Invalid synthetic identifier.");
+            throw new ArgumentException("Invalid demo identifier.");
         return normalized;
     }
     public static bool CanAssociate(Vehicle vehicle, Driver driver, IEnumerable<Association> history) =>
         vehicle.Active && driver.Active && CanonicalId(driver.OwnerObjectId) && vehicle.TenantId == driver.TenantId
-        && !history.Any(a => a.VehicleId == vehicle.Id && a.Until is null);
+        && !history.Any(a => a.VehicleId == vehicle.Id && a.DriverId == driver.Id && a.Until is null);
 }

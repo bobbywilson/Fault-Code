@@ -4,18 +4,30 @@ namespace FaultCode.Domain.Tests;
 
 public sealed class OntologyRulesTests
 {
+    [Fact]
+    public void Cause_edges_require_typed_same_system_targets()
+    {
+        var content = new OntologyContent([
+            new("SYN-CAUSE", "cause", "EPS", "Demo cause", []),
+            new("SYN-SYMPTOM", "symptom", "EPS", "Demo symptom", [])],
+            [new("SYN-EDGE", "causes", "SYN-CAUSE", "SYN-SYMPTOM")], []);
+        OntologyRules.Validate(content);
+        Assert.Throws<ArgumentException>(() => OntologyRules.Validate(content with { Relationships = [new("SYN-EDGE", "causes", "SYN-SYMPTOM", "SYN-CAUSE")] }));
+        Assert.Throws<ArgumentException>(() => OntologyRules.Validate(content with { Concepts = [content.Concepts[0], content.Concepts[1] with { System = "steer-by-wire" }] }));
+    }
+
     private static OntologyContent Content => new([
-        new("SYN-SUB", "subsystem", "EPS", "Synthetic EPS", []), new("SYN-COMP", "component", "EPS", "Synthetic component", []),
-        new("SYN-SYM", "symptom", "EPS", "Synthetic symptom", []), new("SYN-CLASS", "classification", "EPS", "Synthetic classification", ["dealership"]),
-        new("SYN-SEV", "severity", "EPS", "Synthetic severity", []), new("SYN-APP", "applicability", "EPS", "Synthetic applicability", []),
-        new("SYN-REM", "remedy", "EPS", "Synthetic remedy", [])], [new("SYN-EDGE", "part-of", "SYN-COMP", "SYN-SUB")],
+        new("SYN-SUB", "subsystem", "EPS", "Demo EPS", []), new("SYN-COMP", "component", "EPS", "Demo component", []),
+        new("SYN-SYM", "symptom", "EPS", "Demo symptom", []), new("SYN-CLASS", "classification", "EPS", "Demo classification", ["dealership"]),
+        new("SYN-SEV", "severity", "EPS", "Demo severity", []), new("SYN-APP", "applicability", "EPS", "Demo applicability", []),
+        new("SYN-REM", "remedy", "EPS", "Demo remedy", [])], [new("SYN-EDGE", "part-of", "SYN-COMP", "SYN-SUB")],
         [new("SYN-RULE", "EPS", ["SYN-SYM"], "SYN-CLASS", "SYN-SEV", ["dealership"], 10, null, null)]);
     private static readonly OntologyInput Input = new(2, "EPS", ["SYN-SYM"], "SYN-MODEL-1", "1.0");
     [Theory]
     [InlineData("EPS")]
     [InlineData("steer-by-wire")]
     [InlineData("steering-ADAS")]
-    public void All_seven_concept_kinds_and_synthetic_systems_are_supported(string system)
+    public void All_seven_concept_kinds_and_demo_systems_are_supported(string system)
     {
         var c = Content with { Concepts = [.. Content.Concepts.Select(x => x with { System = system })], Rules = [Content.Rules[0] with { System = system }] };
         OntologyRules.Validate(c); var outcome = OntologyRules.Evaluate(c, Input with { System = system });

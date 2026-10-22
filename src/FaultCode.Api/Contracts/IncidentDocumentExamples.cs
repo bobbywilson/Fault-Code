@@ -7,7 +7,7 @@ internal static class IncidentDocumentExamples
 {
     internal static void Decorate(OpenApiOperation operation, string path)
     {
-        operation.Description += " Synthetic incident workflow. Production storage/context unavailable (503) pending DEC-001. Source client is validated azp; tenant/client/event replay is independent of actor/key. Reads require immutable intake owner or exact vehicle all-read plus faults.read and knowledge.read. Status/failure/retry record authorized workflow reports; no external investigation or notification delivery is performed. Strong version and replay key required on conditional mutations.";
+        operation.Description += " Vehicle-originated incidents. POST accepts vehicleId and code, creates an incident and linked notification, then attempts agent/MCP processing. Creation does not prove email delivery. PUT updates investigation status; resolving requires resolution notes (maximum 2000 characters), records them with author/time/version, indexes case evidence in Qdrant and queues an agent/MCP follow-up notification. An unknown fault can be resolved with recorded findings; this does not publish an approved fault definition or confirm vehicle repair. DELETE removes the record from normal reads while retaining audit and delivery history. Conditional mutations require If-Match and Idempotency-Key.";
         const string id = "55555555-5555-4555-8555-555555555555";
         const string at = "2026-10-20T12:00:00Z";
         var incident = new
@@ -31,8 +31,8 @@ internal static class IncidentDocumentExamples
         if (operation.RequestBody?.Content is { } request)
             foreach (var media in request.Values) media.Example = operation.OperationId switch
             {
-                "CreateIncident" => JsonSerializer.SerializeToNode(new { vehicleId = id, driverId = id, sourceEventId = "SYN-EVENT-1", code = "SYN-EPS:001", system = "EPS", model = "SYN-MODEL-1", softwareVersion = "1.0", occurredAt = at }),
-                "TransitionIncident" => JsonSerializer.SerializeToNode(new { status = "Investigating" }),
+                "CreateIncident" => JsonSerializer.SerializeToNode(new { vehicleId = id, code = "SYN-EPS:ASSIST-SIGNAL" }),
+                "UpdateIncident" => JsonSerializer.SerializeToNode(new { status = "Resolved", resolution = "Investigation confirmed the connector issue. Arrange a qualified service assessment." }),
                 _ => JsonSerializer.SerializeToNode(new { code = "dispatch-unavailable" })
             };
         foreach (var parameter in operation.Parameters ?? [])
@@ -41,7 +41,7 @@ internal static class IncidentDocumentExamples
                 if (parameter.In == ParameterLocation.Query) concrete.Name = char.ToLowerInvariant(parameter.Name![0]) + parameter.Name[1..];
                 if (parameter.In == ParameterLocation.Header)
                 {
-                    concrete.Example = JsonValue.Create(parameter.Name == "If-Match" ? "\"1\"" : "synthetic-incident-1");
+                    concrete.Example = JsonValue.Create(parameter.Name == "If-Match" ? "\"1\"" : "demo-incident-1");
                     concrete.Description = parameter.Name == "If-Match" ? "One strong quoted positive version, malformed400/stale409." : "1-100 ASCII alnum/hyphen/underscore. Exact canonical retry replays original result; changed payload409.";
                 }
             }
@@ -59,6 +59,7 @@ internal static class IncidentDocumentExamples
             object example = operation.OperationId switch
             {
                 "GetIncident" => incident,
+                "CreateIncident" => new { incidentId = id, notificationId = id, state = "Accepted" },
                 "ListIncidents" => new { items = new[] { incident }, page = 1, pageSize = 20, totalCount = 1 },
                 "IncidentHistory" => new { items = new[] { new { version = 1, status = "Received", action = "received", actorId = id, clientId = id, correlationId = "5ce0d2ac05434c56980a058cfd2e8fa7", at, failureCode = (string?)null } }, page = 1, pageSize = 20, totalCount = 1 },
                 _ => new { id, version = 1 }

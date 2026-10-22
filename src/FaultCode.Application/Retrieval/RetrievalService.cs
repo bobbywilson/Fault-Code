@@ -129,7 +129,7 @@ public sealed class RetrievalService(IDocumentStore store, IEmbeddingProvider em
     private Task<EvidenceResult> SearchCore(KnowledgeCaller c, EvidenceQuery query, CancellationToken ct)
     {
         if (!FaultRules.Text(query.Text, 1000) || query.System is not ("EPS" or "steer-by-wire" or "steering-ADAS")
-            || !FaultRules.SyntheticModel(query.Model) || !FaultRules.Software(query.SoftwareVersion) || query.Limit is < 1 or > 20) throw new KnowledgeException(400);
+            || !FaultRules.DemoModel(query.Model) || !FaultRules.Software(query.SoftwareVersion) || query.Limit is < 1 or > 20) throw new KnowledgeException(400);
         return Execute<EvidenceResult>(c, async s =>
         {
             var profile = embeddings.Profile; profile.Validate();

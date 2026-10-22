@@ -35,17 +35,17 @@ The container environment SHALL require an externally supplied Qdrant API key. M
 - **THEN** readiness returns HTTP 503 with generic status and no credential value
 
 ### Requirement: Verified local data lifecycle
-Local Qdrant data SHALL survive service restarts and ordinary Compose teardown/recreation. Documentation SHALL distinguish retained volumes from explicitly destructive volume deletion. Automated Linux smoke tests SHALL verify persistence with synthetic data and isolate their project and volumes from developer resources.
+Local Qdrant data SHALL survive service restarts and ordinary Compose teardown/recreation. Documentation SHALL distinguish retained volumes from explicitly destructive volume deletion. Automated Linux smoke tests SHALL verify persistence with demo data and isolate their project and volumes from developer resources.
 
-#### Scenario: Retained synthetic data
-- **GIVEN** a synthetic test collection in an isolated smoke project
+#### Scenario: Retained demo data
+- **GIVEN** a demo test collection in an isolated smoke project
 - **WHEN** services restart and are torn down without volume deletion and recreated
-- **THEN** the collection and synthetic point remain readable
+- **THEN** the collection and demo point remain readable
 
 #### Scenario: Explicit destructive reset
 - **GIVEN** a disposable smoke project
 - **WHEN** its explicitly destructive volume reset runs
-- **THEN** the recreated Qdrant instance has no prior synthetic collection and other projects are untouched
+- **THEN** the recreated Qdrant instance has no prior demo collection and other projects are untouched
 
 ### Requirement: Local hostname proxy
 The environment SHALL provide a loopback reverse proxy for faultcode.test with process health checks. Documentation SHALL distinguish tested proxy routing from the separate host resolver entry needed for port-free browser access.

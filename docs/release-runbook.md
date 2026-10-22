@@ -12,7 +12,7 @@ RELEASE_BASE_SHA=<approved-prior-40-character-commit> bash scripts/release-linux
 
 The script builds prior API and candidate API/admin from pinned Dockerfiles. Images carry immutable source labels and SHA tags. A unique disposable network/container publishes an ephemeral loopback API port. It verifies prior image/configuration/health/401/non-root, candidate replacement, candidate restart, prior restoration and identical prior public fixtures. Blank required application configuration must exit nonzero. Cleanup removes only its own containers/network and temporary source, without developer volumes. Existing container/Qdrant jobs separately test their boundaries.
 
-`artifacts/release/` contains source-tagged Docker archives, manifest with source/platform/image IDs, rollback stages, synthetic responses and SHA256SUMS. All exact-source jobs must pass. Private Actions artifacts expire after7days; preserve intentionally. No registry publication or hosting promotion occurs. Pinned inputs/reproducible commands do not promise bit-identical Docker layers.
+`artifacts/release/` contains source-tagged Docker archives, manifest with source/platform/image IDs, rollback stages, demo responses and SHA256SUMS. All exact-source jobs must pass. Private Actions artifacts expire after7days; preserve intentionally. No registry publication or hosting promotion occurs. Pinned inputs/reproducible commands do not promise bit-identical Docker layers.
 
 ## Download and load after approval
 
@@ -41,7 +41,7 @@ Before durable promotion, approve adapters and require migration checksums/order
 1. Record the approved target, exact source/image IDs, compatible configuration references and all passing evidence. Verify schema compatibility and actual restore acceptance first.
 2. Load verified images through the target's reviewed deployment procedure, retaining prior images/configuration and backups. This document does not choose or provision a host.
 3. Probe process/dependencies, anonymous deployed docs, actual Entra issuer/audience/expiry and401/403, authorized REST/MCP, PKCE and responsive administration. Check tenant/owner policies, correlation and redaction.
-4. Execute synthetic A/B/C against the approved isolated tenant and durable services. Retain incident/result/evidence/approval/notification IDs and observed outcomes. A: approved guidance and notification. B: approved applicable dealership referral, zero vehicle actions. C: confirmed absence→engineering→approved publication→driver notification. Outage must fail retryably, never imply unknown. Check duplicate/replay/concurrency/restart and delivery reconciliation.
+4. Execute demo A/B/C against the approved isolated tenant and durable services. Retain incident/result/evidence/approval/notification IDs and observed outcomes. A: approved guidance and notification. B: approved applicable dealership referral, zero vehicle actions. C: confirmed absence→engineering→approved publication→driver notification. Outage must fail retryably, never imply unknown. Check duplicate/replay/concurrency/restart and delivery reconciliation.
 5. Stop promotion on failure. Restore the known-good immutable image **and compatible configuration** through that target's procedure. Repeat health/auth/workflow checks and retain results. Never blindly roll back an irreversible migration.
 
 ## Outstanding live acceptance
@@ -49,9 +49,9 @@ Before durable promotion, approve adapters and require migration checksums/order
 | Boundary | Current evidence | Still required |
 | --- | --- | --- |
 | DEC-001 canonical storage/outbox | Test-only transactional adapters | Approved engine; migration, durable replay, crash/restart/restore |
-| DEC-002 notifications | Local synthetic sink acknowledgements | Approved channel/contact/consent; actual delivery/reconciliation |
+| DEC-002 notifications | Local demo sink acknowledgements | Approved channel/contact/consent; actual delivery/reconciliation |
 | DEC-003 host/object storage | No provisioned target | Approved host/TLS/retention/backups and durable rollback |
-| Entra | Synthetic signed JWT/discovery tests | Actual isolated PKCE/machine tokens; negative issuer/audience/expiry/permissions |
+| Entra | Demo signed JWT/discovery tests | Actual isolated PKCE/machine tokens; negative issuer/audience/expiry/permissions |
 | DEC-004 models/embeddings | Mocked provider, strict actual SDK/schema tests | Approved snapshots/dimensions; separately authorized live calls |
 | DEC-005 plans | No purchase/activation | Verify current Mintlify/Datadog/Entra entitlements and budget |
 | Public docs | Anonymous actual local/CI Mintlify renderer | Approved docs hosting and actual anonymous deployed URL |

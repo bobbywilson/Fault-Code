@@ -1,18 +1,18 @@
 ## ADDED Requirements
 
 ### Requirement: Version one foundation operations
-The API SHALL expose public GET /api/v1/health and read-only synthetic examples at /api/v1/examples with camelCase DTOs, stable IDs and deterministic ordering. Unknown versions and resources SHALL return 404 without exposing business data.
+The API SHALL expose public GET /api/v1/health and read-only demo examples at /api/v1/examples with camelCase DTOs, stable IDs and deterministic ordering. Unknown versions and resources SHALL return 404 without exposing business data.
 
 #### Scenario: Public foundation responses
 - **GIVEN** a running API without provider credentials
 - **WHEN** a client requests version one health or examples
-- **THEN** health returns 200 and examples return only synthetic steering fixtures in stable ID order
+- **THEN** health returns 200 and examples return only demo steering fixtures in stable ID order
 
 ### Requirement: Bounded collection queries
 Collections SHALL validate one-based page and pageSize from 1 through 100, defaulting to page 1 and size 20; examples SHALL support an optional exact system filter of EPS, steer-by-wire or steering-ADAS. Invalid queries SHALL return 400; empty pages SHALL return an empty items array and accurate totalCount.
 
 #### Scenario: Query boundaries
-- **GIVEN** the synthetic examples collection
+- **GIVEN** the demo examples collection
 - **WHEN** a client filters, requests an empty page or supplies invalid pagination
 - **THEN** valid results include page, pageSize and totalCount while invalid queries return correlated validation Problem Details
 

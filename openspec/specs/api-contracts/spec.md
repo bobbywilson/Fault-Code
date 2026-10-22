@@ -9,7 +9,7 @@ Define observable Fault Code api contracts requirements and acceptance scenarios
 All application capabilities including every Angular administration operation SHALL be available through versioned REST API contracts with consistent DTOs, validation, pagination and concurrency behavior.
 
 #### Scenario: Exclusive versioned API boundary acceptance
-- **GIVEN** synthetic authorized Fault Code test context with the stated preconditions
+- **GIVEN** demo authorized Fault Code test context with the stated preconditions
 - **WHEN** a user performs an administrative action
 - **THEN** Angular calls an authorized ASP.NET Core API operation; no UI operation accesses storage or AI directly
 
@@ -17,23 +17,23 @@ All application capabilities including every Angular administration operation SH
 The API SHALL generate OpenAPI and return standardized Problem Details with correlation IDs for invalid input, missing identity, forbidden access, absent resources and conflicts.
 
 #### Scenario: Standard errors and documentation contracts acceptance
-- **GIVEN** synthetic authorized Fault Code test context with the stated preconditions
+- **GIVEN** demo authorized Fault Code test context with the stated preconditions
 - **WHEN** requests contain invalid input, no token, insufficient privilege or a version conflict
 - **THEN** responses use the specified 400/401/403/404/409 semantics without internal secrets; contract tests validate the generated OpenAPI
 
 ### Requirement: Version one foundation operations
-The API SHALL expose public GET /api/v1/health and read-only synthetic examples at /api/v1/examples with camelCase DTOs, stable IDs and deterministic ordering. Unknown versions and resources SHALL return 404 without exposing business data.
+The API SHALL expose public GET /api/v1/health and read-only demo examples at /api/v1/examples with camelCase DTOs, stable IDs and deterministic ordering. Unknown versions and resources SHALL return 404 without exposing business data.
 
 #### Scenario: Public foundation responses
 - **GIVEN** a running API without provider credentials
 - **WHEN** a client requests version one health or examples
-- **THEN** health returns 200 and examples return only synthetic steering fixtures in stable ID order
+- **THEN** health returns 200 and examples return only demo steering fixtures in stable ID order
 
 ### Requirement: Bounded collection queries
 Collections SHALL validate one-based page and pageSize from 1 through 100, defaulting to page 1 and size 20; examples SHALL support an optional exact system filter of EPS, steer-by-wire or steering-ADAS. Invalid queries SHALL return 400; empty pages SHALL return an empty items array and accurate totalCount.
 
 #### Scenario: Query boundaries
-- **GIVEN** the synthetic examples collection
+- **GIVEN** the demo examples collection
 - **WHEN** a client filters, requests an empty page or supplies invalid pagination
 - **THEN** valid results include page, pageSize and totalCount while invalid queries return correlated validation Problem Details
 
@@ -65,7 +65,7 @@ Future mutations SHALL document strong ETag and If-Match concurrency with 409 fo
 GET /api/v1/authorization/me SHALL return only the authenticated caller kind and sorted granted permission names under authorization.read (Reader, Operator, Engineer or Administrator) or Authorization.Read application role. OpenAPI SHALL declare EntraBearer and exact delegated scope, allowed human roles and application role for protected operations, preserving anonymous fixture contracts and safe correlated 401/403 errors.
 
 #### Scenario: Caller permissions
-- **GIVEN** a signed synthetic delegated or application access token
+- **GIVEN** a signed demo delegated or application access token
 - **WHEN** the caller has the exact authorization read permission
 - **THEN** return its caller kind and granted permission names without token or resource data; missing identity returns 401 and insufficient permission returns 403
 
@@ -100,7 +100,7 @@ The versioned API SHALL expose draft creation/replacement/retrieval, history, pu
 ### Requirement: Document lifecycle and retrieval API
 Versioned document create/draft/update/publication/delete/index and tenant reindex APIs SHALL require knowledge.publish; search SHALL require knowledge.read. Explicit DTOs SHALL reject unknown input fields and omit tenant data. Mutations SHALL use strong If-Match and scoped retry keys where specified. OpenAPI SHALL document schemas, examples, policies, correlated errors, ETags and creation Location.
 #### Scenario: Authorized document API and failures
-- **WHEN** synthetic delegated or machine callers invoke document operations
+- **WHEN** demo delegated or machine callers invoke document operations
 - **THEN** exact scope/role policies enforce401/403, inaccessible IDs404, bad bounds/fields/preconditions400, stale/replay conflicts409 and unconfigured/provider failures503; search has bounded results and explicit evidence status
 
 ### Requirement: Protected advisory runtime contract
@@ -133,7 +133,7 @@ Versioned engineering case creation, queue/detail/history, assignment, notes, st
 The API SHALL expose conditional notification enqueue/detail/list/history/dispatch/cancellation and driver local preference reads/updates with explicit DTOs, existing exact policy conjunctions, tenant/original owner filtering before page/count, strong ETags/scoped replay, safe400/401/403/404/409/503 errors and generated compatible OpenAPI. External production dispatch SHALL remain unavailable pending approved adapters.
 
 #### Scenario: Protected notification contracts
-- **WHEN** permitted consumers manage synthetic preferences and notification history or attempt malformed/unauthorized mutations
+- **WHEN** permitted consumers manage demo preferences and notification history or attempt malformed/unauthorized mutations
 - **THEN** return bounded approved DTOs and honest acknowledgement states or correlated errors, preserve prior REST/MCP schemas and never expose tenant/owner/contact plumbing or vehicle installation operations
 
 ### Requirement: User and integration administration contracts

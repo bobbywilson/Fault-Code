@@ -9,7 +9,7 @@ Define observable Fault Code incident lifecycle requirements and acceptance scen
 The API SHALL validate incoming events, associate vehicles/drivers, persist an incident and its source event identity, and accept unknown codes as valid investigation inputs.
 
 #### Scenario: Idempotent fault intake acceptance
-- **GIVEN** synthetic authorized Fault Code test context with the stated preconditions
+- **GIVEN** demo authorized Fault Code test context with the stated preconditions
 - **WHEN** the same valid event is submitted twice or concurrently
 - **THEN** one incident is returned and downstream investigation/notifications are not duplicated; invalid association is rejected
 
@@ -17,14 +17,14 @@ The API SHALL validate incoming events, associate vehicles/drivers, persist an i
 Incidents SHALL preserve state transitions and investigation history, distinguishing received, investigating, escalated, resolved and notification states; durable dispatch SHALL not lose committed work.
 
 #### Scenario: Durable state and history acceptance
-- **GIVEN** synthetic authorized Fault Code test context with the stated preconditions
+- **GIVEN** demo authorized Fault Code test context with the stated preconditions
 - **WHEN** dispatch fails after intake or an illegal transition is requested
 - **THEN** the committed incident remains retryable/visible and history is preserved; illegal transitions fail without state corruption
 
-### Requirement: Source bound synthetic intake
-Intake SHALL require faults.write and knowledge.read, use authenticated tenant/client as source, normalize synthetic codes and validate event ID, UTC occurrence, model/software and active applicable fleet association. Unknown or unpublished codes SHALL be accepted; unavailable authoritative knowledge SHALL return503 without claiming unknown.
+### Requirement: Source bound demo intake
+Intake SHALL require faults.write and knowledge.read, use authenticated tenant/client as source, normalize demo codes and validate event ID, UTC occurrence, model/software and active applicable fleet association. Unknown or unpublished codes SHALL be accepted; unavailable authoritative knowledge SHALL return503 without claiming unknown.
 #### Scenario: Valid and invalid events
-- **WHEN** known and unknown synthetic events arrive with active same-tenant context
+- **WHEN** known and unknown demo events arrive with active same-tenant context
 - **THEN** accept both with server IDs and immutable approved-only provenance; reject invalid source/data/timestamps/association400, absent resources404 and missing permissions401/403
 #### Scenario: Source spoofing
 - **WHEN** input attempts to provide tenant, source client, owner or approval data

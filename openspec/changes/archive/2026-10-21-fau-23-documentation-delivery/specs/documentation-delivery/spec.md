@@ -23,7 +23,7 @@ Release verification SHALL retain exact source identifiers, test results, determ
 - **THEN** replacement, restart and restoration of the prior image are observed using image identity and health/configuration assertions without modifying developer volumes or deploying to a host
 
 #### Scenario: Grounded workflow release evidence
-- **WHEN** deterministic synthetic workflow fixtures execute
+- **WHEN** deterministic demo workflow fixtures execute
 - **THEN** A records approved known guidance, B records approved dealership metadata without vehicle deployment and C records engineering approval/publication and notification acknowledgement; exact citations, zero unauthorized actions and failure/outage/redaction criteria are recorded separately from live durable acceptance
 
 #### Scenario: Failed or incomplete acceptance

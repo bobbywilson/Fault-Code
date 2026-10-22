@@ -1,7 +1,7 @@
 name: faultcode-demo
 x-runtime: &runtime
   restart: unless-stopped
-  security_opt: [no-new-privileges:true]
+  security_opt: ["no-new-privileges:true"]
   logging:
     driver: json-file
     options: {max-size: 10m, max-file: "3"}
@@ -23,17 +23,76 @@ services:
       retries: 12
     environment:
       ASPNETCORE_ENVIRONMENT: Production
+      ApiTesting__Enabled: "true"
+      ReverseProxy__Enabled: "true"
       AllowedHosts: "faultcodeai.com;localhost;127.0.0.1;[::1]"
       FaultCode__ApplicationName: Fault Code
+      Notifications__Provider: Mailpit
+      Notifications__Endpoint: http://mailpit:8025/mailpit/
+      ConnectionStrings__FaultCode: ${FAULTCODE_SQL_CONNECTION:?SQL application connection required}
+      Agents__Enabled: ${FAULTCODE_AGENTS_ENABLED:-true}
+      Agents__Model: ${FAULTCODE_AGENT_MODEL:?Agent model required}
+      Agents__ApiKey: ${FAULTCODE_OPENAI_KEY:?Server model key required}
+      Embeddings__Enabled: ${FAULTCODE_EMBEDDINGS_ENABLED:-true}
+      Embeddings__Model: ${FAULTCODE_EMBEDDING_MODEL:?Embedding model required}
+      Embeddings__Dimensions: ${FAULTCODE_EMBEDDING_DIMENSIONS:-1536}
+      Embeddings__ApiKey: ${FAULTCODE_OPENAI_KEY:?Server model key required}
+      DemoAccount__Enabled: ${FAULTCODE_DEMO_LOGIN_ENABLED:-false}
+      DemoAccount__Username: ${FAULTCODE_DEMO_USERNAME:-johnhenry}
+      DemoAccount__DisplayName: John Henry
+      DemoAccount__ProfilePhoto: ""
+      DemoApiToken__Enabled: ${FAULTCODE_DEMO_API_TOKEN_ENABLED:-false}
+      DemoApiToken__ClientId: ${FAULTCODE_DEMO_API_CLIENT_ID:-}
+      DemoApiToken__CertificatePath: ${FAULTCODE_DEMO_API_CERTIFICATE_PATH:-}
+      DemoApiToken__PrivateKeyPath: ${FAULTCODE_DEMO_API_PRIVATE_KEY_PATH:-}
+      DemoAccount__PasswordHash: ${FAULTCODE_DEMO_PASSWORD_HASH:-}
+      DemoAccount__UserId: ${FAULTCODE_DEMO_USER_ID:-}
+      DemoAccount__ClientId: ${FAULTCODE_DEMO_CLIENT_ID:-}
+      DemoAccount__TenantId: c0ff26e9-dd24-4e59-b395-1e9b48354aad
       Entra__Enabled: "true"
       Entra__TenantId: c0ff26e9-dd24-4e59-b395-1e9b48354aad
       Entra__ClientId: ce48cbc2-5349-4228-b5ea-365c9df1e2af
       Qdrant__Enabled: "true"
       Qdrant__Endpoint: http://qdrant:6333
       Qdrant__ApiKey: ${FAULTCODE_QDRANT_API_KEY:?Server-managed secret required}
+      LinearReview__ApiKey: ${FAULTCODE_LINEAR_REVIEW_API_KEY:-}
+      DatadogIncidents__AccessToken: ${FAULTCODE_DATADOG_INCIDENT_TOKEN:?Server-managed incident token required}
+    volumes:
+      - ./entra-api:/run/faultcode-identity:ro
     depends_on:
+      sql: {condition: service_healthy}
       qdrant: {condition: service_healthy}
+      mailpit: {condition: service_started}
     networks: [application, data]
+  sql:
+    <<: *runtime
+    image: mcr.microsoft.com/mssql/server:2025-RTM-ubuntu-22.04@sha256:54b23ca766287dab5f6f55162923325f07cdec6ccb42108f37c55c87e7688ebd
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Express
+      MSSQL_SA_PASSWORD: ${FAULTCODE_SQL_SA_PASSWORD:?Server-managed SQL bootstrap password required}
+      MSSQL_MEMORY_LIMIT_MB: "1536"
+    volumes: [sql-data:/var/opt/mssql]
+    cpus: 1.0
+    mem_limit: 2500m
+    pids_limit: 256
+    healthcheck:
+      test: [CMD-SHELL, 'SQLCMDPASSWORD="$$MSSQL_SA_PASSWORD" /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -Q "SELECT 1" -b -o /dev/null']
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 18
+    networks: [data]
+  documentation:
+    <<: *runtime
+    image: ${DOCS_IMAGE:?Immutable documentation image required}
+    cpus: 0.25
+    mem_limit: 128m
+    pids_limit: 64
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    networks: [edge]
   administration:
     <<: *runtime
     image: ${WEB_IMAGE:?Immutable Angular image required}
@@ -62,6 +121,24 @@ services:
       - qdrant-storage:/qdrant/storage
       - qdrant-snapshots:/qdrant/snapshots
     networks: [data]
+  mailpit:
+    image: axllent/mailpit:v1.31.6@sha256:23fe39e81bde596a918000b3135c0f85dc8bb4c9ea6be274b051143f3e300387
+    environment:
+      MP_WEBROOT: /mailpit/
+      MP_DATABASE: /data/mailpit.db
+      MP_MAX_MESSAGES: "500"
+      MP_SMTP_RELAY_ALL: "false"
+    volumes: [mailpit-data:/data]
+    networks: [data, edge]
+    healthcheck:
+      test: [CMD, /mailpit, readyz]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    cpus: 0.25
+    mem_limit: 256m
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
   proxy:
     <<: *runtime
     image: nginx:1.28.0-alpine@sha256:30f1c0d78e0ad60901648be663a710bdadf19e4c10ac6782c235200619158284
@@ -79,6 +156,8 @@ services:
       - ./acme:/var/www/acme:ro
     depends_on:
       administration: {condition: service_healthy}
+      documentation: {condition: service_healthy}
+      mailpit: {condition: service_healthy}
     healthcheck:
       test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:8080/healthz]
       interval: 10s
@@ -92,3 +171,5 @@ networks:
 volumes:
   qdrant-storage: {}
   qdrant-snapshots: {}
+  mailpit-data: {}
+  sql-data: {}

@@ -54,7 +54,7 @@ public sealed class NotificationTests
         await s.NotificationExecute(Tenant, tx =>
         {
             var i = tx.Context.Incidents.Incidents[0];
-            tx.Fleet.Drivers.Add(new(i.Fleet.DriverId, Tenant, "SYN-DRIVER", Actor, "Synthetic driver", "synthetic@example.test", true, true, 1));
+            tx.Fleet.Drivers.Add(new(i.Fleet.DriverId, Tenant, "SYN-DRIVER", Actor, "Demo driver", "demo@example.test", true, true, 1));
             tx.Fleet.Vehicles.Add(new(i.Fleet.VehicleId, Tenant, "SYN-VEHICLE", "EPS", true, 1));
             tx.Fleet.Associations.Add(i.Fleet.Association); return 0;
         });
@@ -90,7 +90,7 @@ public sealed class NotificationTests
             var chunk = DocumentRules.Chunks(d, publication)[0];
             var ontology = tx.Ontology.Catalog!;
             var rule = new InvestigationRule(2, Actor, DateTimeOffset.UtcNow, new(2, "EPS", ["SYN-SYM"], "SYN-MODEL-1", "1.0"),
-                new("SYN-RULE", "SYN-CLASS", "SYN-SEV", [remedy.Kind], ["SYN-RULE"], "Synthetic rule"));
+                new("SYN-RULE", "SYN-CLASS", "SYN-SEV", [remedy.Kind], ["SYN-RULE"], "Demo rule"));
             var r = tx.Investigations.Results[0];
             tx.Investigations.Results[0] = r with
             {
@@ -111,6 +111,27 @@ public sealed class NotificationTests
     private static Task<MutationResult> Queue(TestEngineeringStore s, Guid source, string kind = "engineering", string key = "enqueue") =>
         Service(s).Enqueue(Caller, IncidentId, kind, source, s.Snapshot().Incidents.Incidents[0].Version, key, default);
     private static async Task Error(int status, Func<Task> action) => Assert.Equal(status, (await Assert.ThrowsAsync<IncidentException>(action)).Status);
+
+    [Fact]
+    public async Task All_driver_list_filters_by_driver_and_respects_incident_visibility()
+    {
+        var (store, source) = await Engineering();
+        var queued = await Queue(store, source);
+        var service = Service(store);
+        var all = await service.ListAll(Caller, null, 1, 20, default);
+        Assert.Equal(queued.Id, Assert.Single(all.Items).Notification.Id);
+        Assert.Equal("Demo driver", all.Items[0].DriverName);
+        Assert.Equal("demo@example.test", all.Items[0].Email);
+        Assert.Single((await service.ListAll(Caller, null, 1, 20, default, IncidentId)).Items);
+        await Error(400, () => service.ListAll(Caller, null, 1, 20, default, Guid.Empty));
+        await Error(404, () => service.ListAll(Caller, null, 1, 20, default, Guid.NewGuid()));
+        var driverId = store.Snapshot().Incidents.Incidents[0].Fleet.DriverId;
+        Assert.Single((await service.ListAll(Caller, driverId, 1, 20, default)).Items);
+        Assert.Empty((await service.ListAll(Caller with { AllVehicles = false, OwnVehicles = false }, null, 1, 20, default)).Items);
+        await Error(400, () => service.ListAll(Caller, Guid.Empty, 1, 20, default));
+        await Error(404, () => service.ListAll(Caller, Guid.NewGuid(), 1, 20, default));
+        await Error(400, () => service.ListAll(Caller, null, 0, 20, default));
+    }
 
     [Fact]
     public async Task Handled_delivery_failure_exports_actionable_failure_without_contact_or_exception()
@@ -153,7 +174,7 @@ public sealed class NotificationTests
         Assert.Equal(4, spans.Count(x => x.Text(5) == "Notification"));
         Assert.Single(spans.Select(x => x.Hex(1)).Distinct());
         foreach (var message in receiver.Messages)
-            foreach (var secret in new[] { Tenant, Actor, Client, "SYN-CONTACT", "synthetic@example.test", "secret-provider-body" })
+            foreach (var secret in new[] { Tenant, Actor, Client, "SYN-CONTACT", "demo@example.test", "secret-provider-body" })
                 Assert.DoesNotContain(secret, System.Text.Encoding.UTF8.GetString(message.Body));
     }
 
@@ -173,7 +194,7 @@ public sealed class NotificationTests
         var sent = await service.Dispatch(Caller, result.Id, 1, "dispatch", default);
         Assert.Equal(3, sent.Version); var n = await service.Get(Caller, result.Id, default);
         Assert.Equal("Sent", n.State); Assert.Equal("Notified", s.Snapshot().Incidents.Incidents[0].Status);
-        Assert.NotNull(Assert.Single(n.Attempts).Acknowledgement); Assert.Equal("SYN-CONTACT", Assert.Single(sink.Local.Accepted).SyntheticContact);
+        Assert.NotNull(Assert.Single(n.Attempts).Acknowledgement); Assert.Equal("SYN-CONTACT", Assert.Single(sink.Local.Accepted).DemoContact);
         Assert.Equal(sent, await service.Dispatch(Caller, result.Id, 1, "dispatch", default)); Assert.Equal(1, sink.Calls);
         Assert.Equal(original, JsonSerializer.Serialize(s.Snapshot().Investigations));
     }
@@ -301,106 +322,6 @@ public sealed class NotificationTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => Service(s).Enqueue(Caller, IncidentId, "engineering", source, 3, "enqueue", cancel.Token));
         Assert.Equal(before, JsonSerializer.Serialize(s.NotificationSnapshot())); s.BeforeCommit = null; await Queue(s, source);
     }
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Every_notification_write_grant_is_required_for_signed_humans_and_machines(bool machine)
-    {
-        var (s, source) = await Engineering(); using var keys = new Discovery(); var sink = new Sink();
-        await using var factory = CreateFactory(keys).WithWebHostBuilder(b => b.ConfigureServices(services =>
-        {
-            services.Replace(ServiceDescriptor.Singleton<INotificationStore>(s));
-            services.Replace(ServiceDescriptor.Singleton<INotificationDelivery>(sink));
-        }));
-        using var client = factory.CreateClient();
-        var scopes = new[] { "faults.write", "faults.read", "vehicles.read", "drivers.read", "knowledge.read" };
-        var roles = new[] { "Faults.Write.All", "Faults.Read.All", "Vehicles.Read.All", "Drivers.Read.All", "Knowledge.Read.All" };
-        void Auth(int omit, string humanRole = "Operator", string actor = Actor) => client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
-            AuthorizationTests.Token(keys.Key, machine ? null : string.Join(" ", scopes.Where((_, n) => n != omit)), machine ? roles.Where((_, n) => n != omit).ToArray() : [humanRole], machine, actor));
-        async Task<JsonElement> Send(int status, HttpMethod method, string path, object? body = null, string? version = "\"3\"", string? key = "api")
-        {
-            using var req = new HttpRequestMessage(method, path);
-            if (method != HttpMethod.Get) req.Content = JsonContent.Create(body ?? new { });
-            if (version is not null) req.Headers.TryAddWithoutValidation("If-Match", version);
-            if (key is not null) req.Headers.TryAddWithoutValidation("Idempotency-Key", key);
-            using var res = await client.SendAsync(req); var raw = await res.Content.ReadAsStringAsync();
-            Assert.True((int)res.StatusCode == status, raw);
-            var json = JsonSerializer.Deserialize<JsonElement>(raw);
-            if (status >= 400)
-            {
-                Assert.Equal("application/problem+json", res.Content.Headers.ContentType?.MediaType);
-                Assert.Equal(res.Headers.GetValues("X-Correlation-ID").Single(), json.GetProperty("correlationId").GetString());
-                Assert.DoesNotContain("secret-provider-body", raw);
-            }
-            else if (method != HttpMethod.Get) Assert.NotNull(res.Headers.ETag);
-            return json;
-        }
-        var path = $"/api/v1/incidents/{IncidentId}/notifications"; var body = new { sourceKind = "engineering", sourceId = source };
-        await Send(401, HttpMethod.Get, path);
-        for (var omit = 0; omit < scopes.Length; omit++)
-        { Auth(omit); await Send(403, HttpMethod.Post, path, body); Assert.Empty(s.NotificationSnapshot().Notifications.Messages); }
-        if (!machine)
-        {
-            foreach (var role in new[] { "Reader", "Engineer", "Administrator" }) { Auth(-1, role); await Send(403, HttpMethod.Post, path, body); }
-        }
-        Auth(-1);
-        foreach (var v in new string?[] { null, "3", "W/\"3\"", "\"03\"", "\"0\"", "\"3\",\"4\"" }) await Send(400, HttpMethod.Post, path, body, v);
-        foreach (var k in new string?[] { null, "bad key", "bad/key" }) await Send(400, HttpMethod.Post, path, body, key: k);
-        await Send(400, HttpMethod.Post, path, new { sourceKind = "engineering", sourceId = source, recipient = Client });
-        var created = await Send(201, HttpMethod.Post, path, body); var id = created.GetProperty("id").GetGuid();
-        var detail = await Send(200, HttpMethod.Get, "/api/v1/notifications/" + id);
-        foreach (var hidden in new[] { "contact", "ownerId", "tenantId", "leaseId" }) Assert.False(detail.TryGetProperty(hidden, out _));
-        Assert.Equal("Pending", detail.GetProperty("state").GetString());
-        await Send(400, HttpMethod.Post, $"/api/v1/notifications/{id}/dispatches", new { approved = true }, "\"1\"");
-        await Send(200, HttpMethod.Post, $"/api/v1/notifications/{id}/dispatches", version: "\"1\"");
-        await Send(200, HttpMethod.Get, $"/api/v1/notifications/{id}/history");
-        await Send(400, HttpMethod.Get, path + "?pageSize=101");
-        Assert.Empty((await Send(200, HttpMethod.Get, path + "?page=2147483647&pageSize=100")).GetProperty("items").EnumerateArray());
-        if (!machine)
-        {
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthorizationTests.Token(keys.Key,
-                "faults.read vehicles.read.own drivers.read.own knowledge.read", ["Reader"], false, Client));
-            await Send(404, HttpMethod.Get, path); await Send(404, HttpMethod.Get, $"/api/v1/notifications/{id}");
-            await Send(404, HttpMethod.Get, $"/api/v1/notifications/{id}/history");
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthorizationTests.Token(keys.Key,
-                "faults.read vehicles.read.own drivers.read.own knowledge.read", ["Reader"], false));
-            await Send(200, HttpMethod.Get, path); await Send(403, HttpMethod.Post, $"/api/v1/notifications/{id}/cancellations", version: "\"3\"");
-        }
-        Assert.Single(sink.Local.Accepted);
-        await using var unavailable = CreateFactory(keys); using var prod = unavailable.CreateClient();
-        prod.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthorizationTests.Token(keys.Key, string.Join(" ", scopes), ["Operator"], false));
-        Assert.Equal(503, (int)(await prod.GetAsync(path)).StatusCode);
-    }
-    [Fact]
-    public async Task Signed_preference_API_uses_exact_driver_grants_strict_fields_and_synthetic_contacts()
-    {
-        var (s, _) = await Engineering(); using var keys = new Discovery();
-        await using var factory = CreateFactory(keys).WithWebHostBuilder(b => b.ConfigureServices(services => services.Replace(ServiceDescriptor.Singleton<INotificationStore>(s))));
-        using var client = factory.CreateClient(); var path = $"/api/v1/drivers/{IncidentId}/notification-preferences";
-        async Task<int> Put(object body)
-        {
-            using var req = new HttpRequestMessage(HttpMethod.Put, path) { Content = JsonContent.Create(body) };
-            req.Headers.Add("If-Match", "\"2\""); req.Headers.Add("Idempotency-Key", "preference-api");
-            return (int)(await client.SendAsync(req)).StatusCode;
-        }
-        void Auth(string scopes, string role, string actor = Actor) => client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthorizationTests.Token(keys.Key, scopes, [role], false, actor));
-        Auth("drivers.read.own", "Reader", Client); Assert.Equal(404, (int)(await client.GetAsync(path)).StatusCode);
-        Auth("drivers.read.own", "Reader"); Assert.Equal(200, (int)(await client.GetAsync(path)).StatusCode);
-        Assert.Equal(403, await Put(new { enabled = false, contact = (string?)null }));
-        Auth("drivers.write", "Operator"); Assert.Equal(403, await Put(new { enabled = false, contact = (string?)null }));
-        Auth("drivers.write drivers.read", "Administrator"); Assert.Equal(403, await Put(new { enabled = false, contact = (string?)null }));
-        Auth("drivers.write drivers.read", "Operator");
-        Assert.Equal(400, await Put(new { enabled = true, contact = "person@example.test" }));
-        Assert.Equal(400, await Put(new { enabled = true, contact = (string?)null }));
-        Assert.Equal(400, await Put(new { enabled = true, contact = "SYN-CONTACT", tenantId = Tenant }));
-        Assert.Equal(200, await Put(new { enabled = false, contact = (string?)null }));
-        Assert.Equal(200, await Put(new { enabled = false, contact = (string?)null }));
-        Assert.Equal(409, await Put(new { enabled = true, contact = "SYN-OTHER" }));
-        Assert.False((await Service(s).Preference(Caller, IncidentId, default)).Enabled);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthorizationTests.Token(keys.Key, null, ["Drivers.Write.All", "Drivers.Read.All"], true));
-        using var machine = new HttpRequestMessage(HttpMethod.Put, path) { Content = JsonContent.Create(new { enabled = true, contact = "SYN-MACHINE" }) };
-        machine.Headers.Add("If-Match", "\"3\""); machine.Headers.Add("Idempotency-Key", "machine"); Assert.Equal(200, (int)(await client.SendAsync(machine)).StatusCode);
-    }
     [Fact]
     public async Task Enqueue_replay_payload_binding_visibility_and_source_approval_are_enforced()
     {
@@ -438,7 +359,7 @@ public sealed class NotificationTests
     private sealed class EchoProvider : IAgentProvider
     {
         public bool Enabled => true;
-        public string Model => "synthetic-agent-2026-10-20";
+        public string Model => "demo-agent-2026-10-20";
         public Task<AgentCompletion> Complete(AgentInvocation invocation, CancellationToken ct)
         {
             var input = JsonSerializer.Deserialize<JsonElement>(invocation.Input);
@@ -460,8 +381,8 @@ public sealed class NotificationTests
         await s.Execute(Tenant, tx =>
         {
             tx.Investigations.Results.Clear(); var catalog = tx.Ontology.Catalog!;
-            var content = new OntologyContent([new("SYN-CLASS", "classification", "EPS", "Synthetic class", ["guidance", "dealership"]),
-                new("SYN-SYM", "symptom", "EPS", "Synthetic symptom", []), new("SYN-SEV", "severity", "EPS", "Synthetic severity", [])], [],
+            var content = new OntologyContent([new("SYN-CLASS", "classification", "EPS", "Demo class", ["guidance", "dealership"]),
+                new("SYN-SYM", "symptom", "EPS", "Demo symptom", []), new("SYN-SEV", "severity", "EPS", "Demo severity", [])], [],
                 [new("SYN-RULE", "EPS", ["SYN-SYM"], "SYN-CLASS", "SYN-SEV", ["guidance", "dealership"], 1, null, null)]);
             tx.Ontology.Catalog = catalog with { Draft = content, Publications = [new(2, content, Actor, DateTimeOffset.UtcNow)] }; return 0;
         }, default);

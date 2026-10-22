@@ -39,7 +39,8 @@ public sealed class AuthorizationTests
         {
             var expectedRoles = permission.Name switch
             {
-                "drivers.read.own" or "vehicles.read.own" => new[] { "Reader" },
+                "authorization.read" => new[] { "Reader", "Operator", "Engineer", "Administrator", "Driver" },
+                "drivers.read.own" or "vehicles.read.own" => new[] { "Reader", "Driver" },
                 "drivers.write" or "vehicles.write" or "faults.write" => ["Operator"],
                 "knowledge.publish" or "escalations.write" => ["Engineer"],
                 "integrations.manage" or "users.manage" => ["Administrator"],
@@ -47,7 +48,7 @@ public sealed class AuthorizationTests
             };
             Assert.Equal(permission.Name, permission.Scope);
             Assert.Equal(expectedRoles, permission.HumanRoles);
-            foreach (var role in new[] { "Reader", "Operator", "Engineer", "Administrator", "Agent", "reader" })
+            foreach (var role in new[] { "Reader", "Operator", "Engineer", "Administrator", "Driver", "Agent", "reader" })
             {
                 await Check(permission.Name, Token(keys.Key, permission.Scope, [role]), expectedRoles.Contains(role));
                 await Check(permission.Name, Token(keys.Key, permission.Scope + ".extra", [role]), false);
@@ -87,6 +88,9 @@ public sealed class AuthorizationTests
         await using var factory = CreateFactory(keys);
         using var client = factory.CreateClient();
         await Check(Token(keys.Key, area + ".read.own", ["Reader"]), "own", true);
+        await Check(Token(keys.Key, area + ".read.own", ["Driver"]), "own", true);
+        await Check(Token(keys.Key, area + ".read.own", ["Driver"], actor: Client), "own", false);
+        await Check(Token(keys.Key, area + ".read", ["Driver"]), "own", false);
         await Check(Token(keys.Key, area + ".read.own", ["Reader"], actor: Client), "own", false);
         await Check(Token(keys.Key, area + ".read.own", ["Administrator"]), "own", false);
         await Check(Token(keys.Key, area + ".read", ["Operator"]), "other", true);
@@ -108,38 +112,6 @@ public sealed class AuthorizationTests
             using var response = await client.GetAsync($"/permission-fixture/resource/{area}/{record}");
             Assert.Equal(allowed ? HttpStatusCode.OK : HttpStatusCode.Forbidden, response.StatusCode);
         }
-    }
-
-    [Fact]
-    public async Task Real_permission_endpoint_distinguishes_identity_permission_and_granted_permissions()
-    {
-        using var keys = new Discovery();
-        await using var factory = CreateFactory(keys);
-        using var client = factory.CreateClient();
-        const string path = "/api/v1/authorization/me";
-        await Problem(await client.GetAsync(path), 401);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token(keys.Key, "authorization.read", ["Agent"]));
-        await Problem(await client.GetAsync(path), 403);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token(keys.Key, "authorization.read knowledge.publish", ["Reader"]));
-        using var delegated = JsonDocument.Parse(await client.GetStringAsync(path));
-        Assert.Equal("delegated", delegated.RootElement.GetProperty("callerKind").GetString());
-        Assert.Equal(new[] { "authorization.read" }, delegated.RootElement.GetProperty("permissions").EnumerateArray().Select(x => x.GetString()));
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token(keys.Key, null, ["Authorization.Read.Application", "Knowledge.Publish.Application"], true));
-        using var machine = JsonDocument.Parse(await client.GetStringAsync(path));
-        Assert.Equal("application", machine.RootElement.GetProperty("callerKind").GetString());
-        Assert.Equal(new[] { "authorization.read", "knowledge.publish" }, machine.RootElement.GetProperty("permissions").EnumerateArray().Select(x => x.GetString()));
-        Assert.DoesNotContain(Actor, machine.RootElement.GetRawText());
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token(keys.Key, null, ["Authorization.Read"], true));
-        await Problem(await client.GetAsync(path), 403);
-        foreach (var failure in new[] { "expired", "wrong-issuer", "wrong-audience", "wrong-tenant" })
-        {
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", EntraAuthenticationTests.Token(keys.Key, failure));
-            await Problem(await client.GetAsync(path), 401);
-        }
-        using var other = System.Security.Cryptography.RSA.Create(2048);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
-            Token(new RsaSecurityKey(other) { KeyId = keys.Key.KeyId }, "authorization.read", ["Reader"]));
-        await Problem(await client.GetAsync(path), 401);
     }
 
     [Fact]
@@ -173,6 +145,26 @@ public sealed class AuthorizationTests
                 Assert.False(json.RootElement.GetProperty("paths").TryGetProperty("/api/v1/mcp", out _));
                 continue;
             }
+            if (endpoint is RouteEndpoint session && session.RoutePattern.RawText is "/session/api-token" or "/session/mailpit-access")
+            {
+                var auth = Assert.Single(endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>());
+                Assert.Equal("demo.token", auth.Policy);
+                var policy = await factory.Services.GetRequiredService<IAuthorizationPolicyProvider>().GetPolicyAsync("demo.token");
+                Assert.Equal(new[] { FaultCode.Api.Identity.DemoSession.Scheme }, policy!.AuthenticationSchemes);
+                Assert.False(json.RootElement.GetProperty("paths").TryGetProperty("/session/api-token", out _));
+                continue;
+            }
+            if (endpoint is RouteEndpoint review && review.RoutePattern.RawText?.StartsWith("/workspace/tickets", StringComparison.Ordinal) == true)
+            {
+                var policy = Assert.Single(endpoint.Metadata.GetOrderedMetadata<AuthorizationPolicy>());
+                Assert.Contains(FaultCode.Api.Identity.DemoSession.Scheme, policy.AuthenticationSchemes);
+                Assert.Contains("Bearer", policy.AuthenticationSchemes);
+                var permission = Assert.Single(policy.Requirements.OfType<PermissionRequirement>());
+                Assert.Equal("faults.read", permission.Permission.Name);
+                Assert.Equal(CallerKind.Delegated, permission.Kind);
+                Assert.False(json.RootElement.GetProperty("paths").TryGetProperty(review.RoutePattern.RawText!, out _));
+                continue;
+            }
             var policies = endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>();
             Assert.NotEmpty(policies);
             foreach (var policy in policies)
@@ -199,7 +191,7 @@ public sealed class AuthorizationTests
                 if (readArea is not null)
                 {
                     Assert.Equal(readArea + ".read.own", alternatives[1].GetProperty("scope").GetString());
-                    Assert.Equal(new[] { "Reader" }, alternatives[1].GetProperty("humanRoles").EnumerateArray().Select(x => x.GetString()));
+                    Assert.Equal(new[] { "Reader", "Driver" }, alternatives[1].GetProperty("humanRoles").EnumerateArray().Select(x => x.GetString()));
                     Assert.Equal(JsonValueKind.Null, alternatives[1].GetProperty("applicationRole").ValueKind);
                 }
                 if (policies.Count == 1)
@@ -213,7 +205,7 @@ public sealed class AuthorizationTests
             }
             protectedCount++;
         }
-        Assert.Equal(74, protectedCount);
+        Assert.Equal(30, protectedCount);
     }
 
     [Fact]
@@ -224,13 +216,13 @@ public sealed class AuthorizationTests
         await using var factory = CreateFactory(keys).WithWebHostBuilder(builder =>
             builder.ConfigureLogging(logging => logging.AddProvider(logs)));
         using var client = factory.CreateClient();
-        var token = Token(keys.Key, "authorization.read knowledge.publish", ["Reader"]);
+        var token = Token(keys.Key, "drivers.read knowledge.publish", ["Reader"]);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        using var response = await client.GetAsync("/api/v1/authorization/me");
+        using var response = await client.GetAsync("/api/v1/drivers");
         var correlation = response.Headers.GetValues("X-Correlation-ID").Single();
         using var denial = await client.GetAsync("/permission-fixture/policy/knowledge.publish");
         var decisionText = string.Join("\n", logs.Messages);
-        Assert.Contains("permission=authorization.read", decisionText);
+        Assert.Contains("permission=drivers.access.read", decisionText);
         Assert.Contains("allowed=True", decisionText);
         Assert.Contains("permission=knowledge.publish", decisionText);
         Assert.Contains("allowed=False", decisionText);
@@ -249,7 +241,7 @@ public sealed class AuthorizationTests
         await using var factory = CreateFactory(keys, enabled: false);
         using var client = factory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token(keys.Key, "authorization.read", ["Reader"]));
-        await Problem(await client.GetAsync("/api/v1/authorization/me"), 401);
+        await Problem(await client.GetAsync("/api/v1/drivers"), 401);
         Assert.Empty(keys.Requests);
     }
 

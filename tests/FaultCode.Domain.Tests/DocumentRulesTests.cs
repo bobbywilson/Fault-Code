@@ -3,7 +3,7 @@ namespace FaultCode.Domain.Tests;
 
 public sealed class DocumentRulesTests
 {
-    private static DocumentContent Content(string text) => new("Synthetic EPS", "1", "EPS", "SYN-MODEL-1", "1.0", "tenant", [new(7, text)]);
+    private static DocumentContent Content(string text) => new("Demo EPS", "1", "EPS", "SYN-MODEL-1", "1.0", "tenant", [new(7, text)]);
     [Fact]
     public void Page_chunks_are_deterministic_lossless_versioned_and_unicode_safe()
     {
@@ -26,7 +26,7 @@ public sealed class DocumentRulesTests
     [Fact]
     public void Bounds_duplicates_access_applicability_and_system_are_validated()
     {
-        var c = Content("Synthetic");
+        var c = Content("Demo");
         foreach (var invalid in new[] { c with { Pages = [] }, c with { Pages = [new(1, "a"), new(1, "b")] },
             c with { Pages = [new(0, "a")] }, c with { Pages = [new(1, new('a', 10001))] }, c with { Access = "admin" },
             c with { Model = "real-model" }, c with { SoftwareVersion = " " }, c with { System = "brakes" }, c with { SourceVersion = "../x" },

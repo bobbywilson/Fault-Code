@@ -4,7 +4,7 @@
 Protected operations SHALL require a named permission. Delegated callers SHALL present its exact space-delimited scope and an allowed Reader, Operator, Engineer or Administrator role; machines SHALL present its exact application role without delegated scopes. Comparisons SHALL be case-sensitive; roles SHALL NOT imply unrelated privileges. Caller-kind-specific policies SHALL reject the other kind.
 
 #### Scenario: Permission separation
-- **GIVEN** a validated synthetic identity
+- **GIVEN** a validated demo identity
 - **WHEN** scope, role, caller kind or permission differs from the operation matrix
 - **THEN** return 403; correct delegated scope plus role or correct application role succeeds
 
@@ -12,7 +12,7 @@ Protected operations SHALL require a named permission. Delegated callers SHALL p
 Driver-owned resource access SHALL use server-loaded tenant and owner identifiers and require either an exact own-read delegated permission with matching oid or an explicit all-resource permission. Machines SHALL NOT use own-read permission. Unowned, malformed and cross-tenant resources SHALL fail closed; client-supplied ownership SHALL NOT confer access.
 
 #### Scenario: Cross-driver denial
-- **GIVEN** a trusted synthetic resource owned by one driver
+- **GIVEN** a trusted demo resource owned by one driver
 - **WHEN** another driver with only own-read permission accesses it
 - **THEN** deny with 403; the matching owner succeeds and explicit all-resource permission is separately required for staff or machines
 

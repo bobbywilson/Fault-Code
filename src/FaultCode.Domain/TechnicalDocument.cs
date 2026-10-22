@@ -24,7 +24,7 @@ public static class DocumentRules
     public static void Validate(DocumentContent c)
     {
         if (!FaultRules.Text(c.Title, 200) || !FaultRules.Software(c.SourceVersion)
-            || c.System is not ("EPS" or "steer-by-wire" or "steering-ADAS") || !FaultRules.SyntheticModel(c.Model)
+            || c.System is not ("EPS" or "steer-by-wire" or "steering-ADAS") || !FaultRules.DemoModel(c.Model)
             || !FaultRules.Software(c.SoftwareVersion) || c.Access is not ("tenant" or "publisher")
             || c.Pages.IsDefault || c.Pages.Length is < 1 or > 20 || c.Pages.Any(p => p is null)
             || c.Pages.Select(p => p.Number).Distinct().Count() != c.Pages.Length

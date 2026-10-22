@@ -4,7 +4,7 @@
 - [x] 1.2 Generate compatible OpenAPI including examples; verify existing REST and five MCP schemas remain compatible.
 ## 2. Administration client
 - [x] 2.1 Pin compatible Angular/Spartan/Tailwind/MSAL tooling and implement isolated PKCE lifecycle; verify production build, config/token boundaries and expired-session tests.
-- [x] 2.2 Implement permission-aware resource/actions/forms and recorded history; verify manifest coverage, input validation and all three mocked synthetic workflows.
+- [x] 2.2 Implement permission-aware resource/actions/forms and recorded history; verify manifest coverage, input validation and all three mocked demo workflows.
 - [x] 2.3 Verify mobile/keyboard/focus, loading/empty/error403/409/503, pagination and mutation replay through component/service and Playwright tests; visually inspect exact production and fixture routes.
 ## 3. Linux delivery
 - [x] 3.1 Add non-root frontend Linux packaging and same-origin Compose proxy; verify container acceptance and unchanged internal isolation.

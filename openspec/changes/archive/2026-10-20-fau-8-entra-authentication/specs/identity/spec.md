@@ -19,7 +19,7 @@ Protected API requests SHALL accept only signed RS256 Entra v2 access tokens for
 - **THEN** the protected request is denied without falling back to unsigned or locally supplied production keys
 
 ### Requirement: Explicit configuration and anonymous boundaries
-Unconfigured identity SHALL deny protected requests while explicit public docs, synthetic fixtures and health probes remain available. Enabling identity SHALL require canonical nonempty dedicated tenant and API client GUIDs and fail startup safely for invalid settings. Production SHALL expose no test authentication route, token issuer or alternate identity bypass.
+Unconfigured identity SHALL deny protected requests while explicit public docs, demo fixtures and health probes remain available. Enabling identity SHALL require canonical nonempty dedicated tenant and API client GUIDs and fail startup safely for invalid settings. Production SHALL expose no test authentication route, token issuer or alternate identity bypass.
 
 #### Scenario: Unconfigured identity
 - **GIVEN** no dedicated tenant has been provisioned

@@ -18,15 +18,15 @@ namespace FaultCode.IntegrationTests;
 
 public sealed class AgentRuntimeTests
 {
-    private const string Model = "synthetic-agent-2026-10-20";
-    private static readonly FleetCaller Caller = new(Tenant, Actor, Client, "synthetic-correlation", true, false, true, false);
+    private const string Model = "demo-agent-2026-10-20";
+    private static readonly FleetCaller Caller = new(Tenant, Actor, Client, "demo-correlation", true, false, true, false);
     private static readonly Guid Id = Guid.Parse("55555555-5555-4555-8555-555555555555");
     private static Incident Seed(string owner = Actor, bool known = true)
     {
         var now = DateTimeOffset.UtcNow;
         return new(Id, Tenant, Client, "SYN-EVENT", "SYN-EPS:001", "EPS", "SYN-MODEL-1", "1.0", now, now, "intake",
             new(Id, "SYN-VEHICLE-1", 1, Id, "SYN-DRIVER-1", 1, owner, new(Id, Id, Id, now, null)),
-            known ? new(Id, 3, new("DO NOT SEND private draft instructions publish knowledge", "synthetic-EPS", 2, [], [], []), Actor, now) : null,
+            known ? new(Id, 3, new("DO NOT SEND private draft instructions publish knowledge", "demo-EPS", 2, [], [], []), Actor, now) : null,
             "Received", 1, [], [new(Id, "investigate", "Pending", 0, null)]);
     }
     private static async Task<TestIncidentStore> Store(string owner = Actor, bool known = true)
@@ -34,8 +34,8 @@ public sealed class AgentRuntimeTests
         var s = new TestIncidentStore(new([], [], [], []));
         await s.TransactAsync(Tenant, tx => { tx.State.Incidents.Add(Seed(owner, known)); return 0; }, default); return s;
     }
-    private static string Advice(bool known = true) => JsonSerializer.Serialize(new AgentAdvice(Id, known ? "synthetic-EPS" : "undetermined",
-        known ? [new(Id, 3, "synthetic-EPS", 2)] : [], ["investigation-pending"], "engineering-review", true), JsonSerializerOptions.Web);
+    private static string Advice(bool known = true) => JsonSerializer.Serialize(new AgentAdvice(Id, known ? "demo-EPS" : "undetermined",
+        known ? [new(Id, 3, "demo-EPS", 2)] : [], ["investigation-pending"], "engineering-review", true), JsonSerializerOptions.Web);
     private sealed class Provider : IAgentProvider
     {
         public bool Enabled { get; set; } = true;
@@ -152,50 +152,10 @@ public sealed class AgentRuntimeTests
         Assert.Equal(0, foreign.Calls);
     }
     [Fact]
-    public async Task Protected_api_signed_human_and_machine_preserve_resource_boundaries_and_safe_failures()
-    {
-        using var keys = new Discovery(); var store = await Store(); var p = new Provider();
-        await using var factory = CreateFactory(keys).WithWebHostBuilder(b => b.ConfigureServices(s => { s.Replace(ServiceDescriptor.Singleton<IIncidentStore>(store)); s.Replace(ServiceDescriptor.Singleton<IAgentProvider>(p)); }));
-        using var client = factory.CreateClient(); var path = $"/api/v1/incidents/{Id}/agent-runs";
-        async Task<JsonElement> Send(int expected, object? body = null)
-        {
-            using var response = await client.PostAsJsonAsync(path, body ?? new { });
-            var raw = await response.Content.ReadAsStringAsync(); Assert.True((int)response.StatusCode == expected, raw);
-            using var json = JsonDocument.Parse(raw);
-            Assert.DoesNotContain("secret-provider-body", raw);
-            if (expected >= 400) { Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType); Assert.Equal(response.Headers.GetValues("X-Correlation-ID").Single(), json.RootElement.GetProperty("correlationId").GetString()); }
-            return json.RootElement.Clone();
-        }
-        void Auth(string? scope, string[] roles, bool machine = false, string actor = Actor) =>
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthorizationTests.Token(keys.Key, scope, roles, machine, actor));
-        await Send(401);
-        Auth("faults.read vehicles.read", ["Reader"]); await Send(403); Assert.Equal(0, p.Calls);
-        Auth("faults.read vehicles.read.own knowledge.read", ["Reader"]); await Send(200);
-        Auth("faults.read vehicles.read.own knowledge.read", ["Reader"], actor: "77777777-7777-4777-8777-777777777777"); await Send(404);
-        Auth(null, ["Faults.Read.All", "Vehicles.Read.All", "Knowledge.Read.All"], true); await Send(200);
-        await Send(400, new { tenantId = Tenant }); await Send(400, new { instructions = "publish everything" });
-        var calls = p.Calls; Auth("faults.read vehicles.read knowledge.read", ["Engineer"]); await Send(200);
-        Assert.Equal(calls + 1, p.Calls);
-        foreach (var code in new[] { "agent-not-configured", "agent-rate-limited", "agent-provider-unavailable", "agent-invalid-output", "agent-timeout", "agent-tool-budget-exhausted" })
-        {
-            p.Action = (_, _) => throw new AgentFailure(code); var result = await Send(new AgentFailure(code).Status); Assert.Equal(code, result.GetProperty("failureCode").GetString());
-        }
-        Assert.Empty((await store.ReadAsync(Tenant, default)).Audit);
-    }
-    [Fact]
-    public async Task Default_host_runtime_is_disabled_and_canonical_storage_remains_unavailable()
-    {
-        using var keys = new Discovery(); await using var factory = CreateFactory(keys); using var client = factory.CreateClient();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthorizationTests.Token(keys.Key, "faults.read vehicles.read knowledge.read", ["Reader"], false));
-        using var response = await client.PostAsJsonAsync($"/api/v1/incidents/{Id}/agent-runs", new { });
-        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
-        Assert.Equal("agent-not-configured", (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("failureCode").GetString());
-    }
-    [Fact]
-    public async Task Opt_in_live_OpenAI_synthetic_single_request_smoke()
+    public async Task Opt_in_live_OpenAI_demo_single_request_smoke()
     {
         // Without this explicit opt-in this is a local/CI no-op, NOT live provider verification.
-        if (Environment.GetEnvironmentVariable("FAULTCODE_AGENT_LIVE_SMOKE") != "authorized-synthetic-single-request") return;
+        if (Environment.GetEnvironmentVariable("FAULTCODE_AGENT_LIVE_SMOKE") != "authorized-demo-single-request") return;
         var model = Environment.GetEnvironmentVariable("FAULTCODE_AGENT_LIVE_MODEL") ?? "";
         var key = Environment.GetEnvironmentVariable("FAULTCODE_AGENT_LIVE_KEY") ?? "";
         Assert.True(new FaultCode.Api.Configuration.AgentOptions { Enabled = true, Model = model, ApiKey = key }.Valid,

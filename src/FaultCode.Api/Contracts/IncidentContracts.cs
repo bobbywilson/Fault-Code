@@ -7,7 +7,7 @@ namespace FaultCode.Api.Contracts;
 public sealed record CreateIncidentRequest(Guid VehicleId, Guid DriverId, [Required] string SourceEventId,
     [Required] string Code, [Required] string System, [Required] string Model, [Required] string SoftwareVersion, DateTimeOffset OccurredAt);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record IncidentStatusRequest([Required] string Status);
+public sealed record IncidentStatusRequest([Required] string Status, [StringLength(2000)] string? Resolution = null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record IncidentFailureRequest([Required] string Code);
 public sealed class IncidentQuery
@@ -16,7 +16,10 @@ public sealed class IncidentQuery
     [Range(1, 100)] public int PageSize { get; set; } = 20;
     public string? Status { get; set; }
     public Guid? VehicleId { get; set; }
+    public bool UnmatchedOnly { get; set; }
 }
+public sealed record IncidentResolutionResponse(string Text, string ActorId, string ClientId, DateTimeOffset At, long Version);
+public sealed record DatadogIncidentResponse(string State, string? Id, long? Number, string? Url, long Version, string? FailureCode);
 public sealed record IncidentFleetResponse(Guid VehicleId, string VehicleIdentifier, long VehicleVersion, Guid DriverId,
     string DriverIdentifier, long DriverVersion, Guid AssociationId, DateTimeOffset AssociationFrom, DateTimeOffset? AssociationUntil);
 public sealed record IncidentKnowledgeResponse(Guid DefinitionId, long PublicationVersion, FaultContentRequest Content, string ApprovedBy, DateTimeOffset ApprovedAt);
@@ -25,4 +28,14 @@ public sealed record IncidentHistoryResponse(long Version, string Status, string
     string CorrelationId, DateTimeOffset At, string? FailureCode);
 public sealed record IncidentResponse(Guid Id, string SourceClientId, string SourceEventId, string Code, string System,
     string Model, string SoftwareVersion, DateTimeOffset OccurredAt, DateTimeOffset ReceivedAt, string IntakeCorrelationId,
-    IncidentFleetResponse Fleet, IncidentKnowledgeResponse? Knowledge, string Status, long Version, IncidentWorkResponse[] Work);
+    IncidentFleetResponse Fleet, IncidentKnowledgeResponse? Knowledge, string Status, long Version, IncidentWorkResponse[] Work)
+{
+    public IncidentResolutionResponse? Resolution { get; init; }
+    public DatadogIncidentResponse? Datadog { get; init; }
+    public IncidentLinksResponse Links => new($"/api/v1/vehicles/{Fleet.VehicleId:D}",
+        $"/api/v1/drivers/{Fleet.DriverId:D}", $"/api/v1/notifications?incidentId={Id:D}");
+}
+public sealed record IncidentLinksResponse(string Vehicle, string Driver, string Notifications);
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record DispatchVehicleFaultRequest(Guid VehicleId, [Required, StringLength(60)] string Code);

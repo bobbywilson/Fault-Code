@@ -2,6 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0.402-noble@sha256:0d99ebf1ccad15037b5c98c9
 WORKDIR /source
 COPY global.json Directory.Build.props ./
 COPY src/ src/
+COPY data/demo/ data/demo/
 RUN dotnet restore src/FaultCode.Api/FaultCode.Api.csproj --locked-mode \
     && dotnet publish src/FaultCode.Api/FaultCode.Api.csproj -c Release --no-restore -o /app
 COPY docker/HealthProbe/ docker/HealthProbe/
@@ -21,6 +22,7 @@ LABEL org.opencontainers.image.source="https://github.com/bobbywilson/Fault-Code
 WORKDIR /app
 COPY --from=build /app ./
 COPY --from=build /probe /probe
+COPY deploy/demo/ /deployment/
 ENV ASPNETCORE_HTTP_PORTS=8080
 USER $APP_UID
 EXPOSE 8080

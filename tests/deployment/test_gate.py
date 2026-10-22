@@ -14,20 +14,27 @@ SHA = 'a' * 40
 
 class DeploymentGateTests(unittest.TestCase):
     def setUp(self):
-        self.event = {'workflow_run': {'head_sha': SHA, 'head_branch': 'main', 'event': 'push',
+        self.event = {'workflow_run': {'head_sha': SHA, 'head_branch': 'development', 'event': 'push',
                                      'conclusion': 'success',
                                      'head_repository': {'full_name': GATE.REPOSITORY}}}
         self.checks = [{'id': i, 'name': name, 'head_sha': SHA, 'status': 'completed',
                         'conclusion': 'success', 'app': {'slug': 'github-actions'}}
                        for i, name in enumerate(sorted(GATE.REQUIRED), 1)]
 
-    def test_only_complete_current_main_passes(self):
+    def test_only_complete_current_development_passes(self):
         self.assertTrue(GATE.eligible(self.event, SHA, self.checks))
         self.assertFalse(GATE.eligible(self.event, 'b' * 40, self.checks))
         self.assertFalse(GATE.eligible(self.event, SHA, self.checks[:-1]))
 
-    def test_pr_development_fork_and_failed_event_deny(self):
-        for field, value in [('event', 'pull_request'), ('head_branch', 'development'),
+    def test_push_development_checks_exact_repository_current_source_and_all_required_jobs(self):
+        event={'ref':'refs/heads/development','after':SHA,'repository':{'full_name':GATE.REPOSITORY}}
+        self.assertTrue(GATE.eligible(event,SHA,self.checks))
+        self.assertFalse(GATE.eligible({**event,'ref':'refs/heads/main'},SHA,self.checks))
+        self.assertFalse(GATE.eligible({**event,'repository':{'full_name':'another/repository'}},SHA,self.checks))
+        self.assertFalse(GATE.eligible(event,SHA,self.checks[:-1]))
+
+    def test_pr_main_fork_and_failed_event_deny(self):
+        for field, value in [('event', 'pull_request'), ('head_branch', 'main'),
                              ('conclusion', 'failure'), ('head_sha', 'not-a-sha')]:
             event = copy.deepcopy(self.event)
             event['workflow_run'][field] = value
@@ -47,7 +54,7 @@ class DeploymentGateTests(unittest.TestCase):
         self.assertFalse(GATE.eligible(self.event, SHA, self.checks + [newer]))
 
     def test_forced_command_rejects_shell_and_scope_injection(self):
-        valid = 'deploy ' + SHA + (' sha256:' + 'b' * 64) * 3
+        valid = 'deploy ' + SHA + (' sha256:' + 'b' * 64) * 4
         for command in ['', 'bash', valid + '; id', valid + '\nwhoami',
                         valid.replace('deploy ', 'rollback ', 1), valid + ' extra']:
             result = subprocess.run(['bash', str(ROOT / 'deploy/demo/ssh-receiver.sh')],

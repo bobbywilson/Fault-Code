@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Isolated investigation assessment
-Investigation model execution SHALL receive only bounded curated synthetic context and untrusted evidence under a fixed exact schema. Trusted code SHALL enforce classification, citation identity, rules, approval and next action. Model tools SHALL remain disabled; no identity tokens, provider secrets, filesystem, shell, generic network, environment inventory or mutation capability SHALL reach the model.
+Investigation model execution SHALL receive only bounded curated demo context and untrusted evidence under a fixed exact schema. Trusted code SHALL enforce classification, citation identity, rules, approval and next action. Model tools SHALL remain disabled; no identity tokens, provider secrets, filesystem, shell, generic network, environment inventory or mutation capability SHALL reach the model.
 
 #### Scenario: Assessment validation and execution bounds
 - **WHEN** investigation assessment returns unsupported route/citations, unknown/duplicate/missing fields, tool calls, truncation, invalid usage, refusal or wrong model

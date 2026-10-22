@@ -9,16 +9,17 @@ public sealed record Permission(string Name, string Scope, string? ApplicationRo
 
 public static class Permissions
 {
-    private static Permission Read(string name, string appRole) => new(name, name, appRole,
-        Array.AsReadOnly(new[] { "Reader", "Operator", "Engineer", "Administrator" }));
+    private static Permission Read(string name, string appRole, bool driver = false) => new(name, name, appRole,
+        Array.AsReadOnly(driver ? new[] { "Reader", "Operator", "Engineer", "Administrator", "Driver" }
+            : new[] { "Reader", "Operator", "Engineer", "Administrator" }));
     private static Permission Write(string name, string appRole, string role) => new(name, name, appRole,
         Array.AsReadOnly(new[] { role }));
 
     public static IReadOnlyList<Permission> All { get; } = Array.AsReadOnly(new[]
     {
-        Read("authorization.read", "Authorization.Read.Application"),
-        new Permission("drivers.read.own", "drivers.read.own", null, Array.AsReadOnly(new[] { "Reader" })),
-        new Permission("vehicles.read.own", "vehicles.read.own", null, Array.AsReadOnly(new[] { "Reader" })),
+        Read("authorization.read", "Authorization.Read.Application", driver: true),
+        new Permission("drivers.read.own", "drivers.read.own", null, Array.AsReadOnly(new[] { "Reader", "Driver" })),
+        new Permission("vehicles.read.own", "vehicles.read.own", null, Array.AsReadOnly(new[] { "Reader", "Driver" })),
         Read("drivers.read", "Drivers.Read.All"), Read("vehicles.read", "Vehicles.Read.All"),
         Write("drivers.write", "Drivers.Write.All", "Operator"), Write("vehicles.write", "Vehicles.Write.All", "Operator"),
         Read("faults.read", "Faults.Read.All"), Write("faults.write", "Faults.Write.All", "Operator"),

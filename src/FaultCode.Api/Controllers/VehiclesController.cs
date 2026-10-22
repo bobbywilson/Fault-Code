@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace FaultCode.Api.Controllers;
 
 [Route("api/v1/vehicles")]
-public sealed class VehiclesController(FleetService fleet, IAuthorizationService authorization) : FleetControllerBase
+public sealed class VehiclesController(FleetService fleet, IAuthorizationService authorization, IFleetStore store) : FleetControllerBase
 {
     [HttpGet(Name = "ListVehicles")]
     [Authorize(Policy = "vehicles.access.read")]
@@ -15,7 +15,7 @@ public sealed class VehiclesController(FleetService fleet, IAuthorizationService
     public async Task<ActionResult<PageResponse<VehicleResponse>>> List([FromQuery] FleetQuery query, CancellationToken ct)
     {
         var page = await fleet.Vehicles(Caller, query.Page, query.PageSize, query.Active, ct);
-        return Ok(new PageResponse<VehicleResponse>(page.Items.Select(Map).ToArray(), page.Page, page.PageSize, page.TotalCount));
+        return Ok(new PageResponse<VehicleResponse>((await Enrich(page.Items, ct)).ToArray(), page.Page, page.PageSize, page.TotalCount));
     }
     [HttpGet("{id:guid}", Name = "GetVehicle")]
     [Authorize(Policy = "vehicles.access.read")]
@@ -23,8 +23,8 @@ public sealed class VehiclesController(FleetService fleet, IAuthorizationService
     public async Task<ActionResult<VehicleResponse>> Get(Guid id, CancellationToken ct)
     {
         var (v, d) = await fleet.GetVehicle(Caller, id, ct);
-        if (!(await authorization.AuthorizeAsync(User, new DriverResource(d.TenantId, d.OwnerObjectId), "vehicles.resource.read")).Succeeded) return Forbid();
-        ETag(v.Version); return Ok(Map(v));
+        if (d is not null && !(await authorization.AuthorizeAsync(User, new DriverResource(d.TenantId, d.OwnerObjectId), "vehicles.resource.read")).Succeeded) return Forbid();
+        ETag(v.Version); return Ok((await Enrich([v], ct))[0]);
     }
     [HttpPost(Name = "CreateVehicle")]
     [Authorize(Policy = "vehicles.write")]
@@ -38,30 +38,19 @@ public sealed class VehiclesController(FleetService fleet, IAuthorizationService
     public async Task<ActionResult<MutationResponse>> Update(Guid id, VehicleRequest request,
         [FromHeader(Name = "If-Match")] string version, CancellationToken ct) =>
         Mutation(await fleet.UpdateVehicle(Caller, id, new(request.Identifier, request.System), Version(version), ct), false, "");
-    [HttpDelete("{id:guid}", Name = "DeactivateVehicle")]
+    [HttpDelete("{id:guid}", Name = "DeleteVehicle")]
     [Authorize(Policy = "vehicles.write")]
     [ProducesResponseType<MutationResponse>(200)]
     public async Task<ActionResult<MutationResponse>> Deactivate(Guid id, [FromHeader(Name = "If-Match")] string version, CancellationToken ct) =>
         Mutation(await fleet.Deactivate(Caller, id, false, Version(version), ct), false, "");
-    [HttpGet("{id:guid}/associations", Name = "ListVehicleAssociations")]
-    [Authorize(Policy = "vehicles.access.read")]
-    [ProducesResponseType<PageResponse<AssociationResponse>>(200)]
-    public async Task<ActionResult<PageResponse<AssociationResponse>>> History(Guid id, [FromQuery] FleetPageQuery query, CancellationToken ct)
+    private async Task<IReadOnlyList<VehicleResponse>> Enrich(IReadOnlyList<FaultCode.Domain.Vehicle> vehicles, CancellationToken ct)
     {
-        var page = await fleet.History(Caller, id, query.Page, query.PageSize, ct);
-        return Ok(new PageResponse<AssociationResponse>(page.Items.Select(a => new AssociationResponse(a.Id, a.VehicleId, a.DriverId, a.From, a.Until)).ToArray(), page.Page, page.PageSize, page.TotalCount));
+        var state = await store.ReadAsync(Caller.TenantId, ct);
+        return vehicles.Select(v => Map(v) with
+        {
+            Drivers = state.Associations.Where(a => a.VehicleId == v.Id && a.Until is null)
+                .Select(a => state.Drivers.SingleOrDefault(d => d.Id == a.DriverId && d.TenantId == Caller.TenantId))
+                .Where(d => d is not null && FleetService.CanRead(Caller, d)).Select(d => Map(d!)).ToArray()
+        }).ToArray();
     }
-    [HttpPost("{id:guid}/associations", Name = "AssociateVehicle")]
-    [Authorize(Policy = "vehicles.write")]
-    [Authorize(Policy = "drivers.write")]
-    [ProducesResponseType<MutationResponse>(201)]
-    public async Task<ActionResult<MutationResponse>> Associate(Guid id, AssociationRequest request,
-        [FromHeader(Name = "If-Match")] string version, [FromHeader(Name = "Idempotency-Key")] string key, CancellationToken ct) =>
-        Mutation(await fleet.Associate(Caller, id, request.DriverId, Version(version), Key(key), ct), true, "/api/v1/vehicles/");
-    [HttpDelete("{id:guid}/associations/{associationId:guid}", Name = "EndVehicleAssociation")]
-    [Authorize(Policy = "vehicles.write")]
-    [Authorize(Policy = "drivers.write")]
-    [ProducesResponseType<MutationResponse>(200)]
-    public async Task<ActionResult<MutationResponse>> End(Guid id, Guid associationId, [FromHeader(Name = "If-Match")] string version, CancellationToken ct) =>
-        Mutation(await fleet.EndAssociation(Caller, id, associationId, Version(version), ct), false, "");
 }

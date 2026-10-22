@@ -3,6 +3,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY angular.json tsconfig.json tsconfig.app.json .postcssrc.json ./
+COPY libs/ libs/
 COPY src/ src/
 COPY public/ public/
 RUN npm run build
