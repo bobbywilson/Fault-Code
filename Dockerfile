@@ -2,6 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0.402-noble@sha256:0d99ebf1ccad15037b5c98c9
 WORKDIR /source
 COPY global.json Directory.Build.props ./
 COPY src/ src/
+COPY data/demo/ data/demo/
 RUN dotnet restore src/FaultCode.Api/FaultCode.Api.csproj --locked-mode \
     && dotnet publish src/FaultCode.Api/FaultCode.Api.csproj -c Release --no-restore -o /app
 COPY docker/HealthProbe/ docker/HealthProbe/
