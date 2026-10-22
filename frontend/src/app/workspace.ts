@@ -217,6 +217,16 @@ export const areas = [
                   ><ng-icon name="lucideArrowUpRight" /><span>Test API</span></a
                 >
               </li>
+              <li hlmSidebarMenuItem>
+                <a
+                  hlmSidebarMenuButton
+                  tooltip="GitHub repository"
+                  href="https://github.com/bobbywilson/Fault-Code"
+                  target="_blank"
+                  rel="noopener"
+                  ><ng-icon name="lucideArrowUpRight" /><span>GitHub repository</span></a
+                >
+              </li>
             </ul>
           </div>
         </hlm-sidebar>
