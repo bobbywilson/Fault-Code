@@ -7,7 +7,7 @@ permissions:
   contents: read
 jobs:
   administration:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, faultcode-ci]
     timeout-minutes: 15
     defaults:
       run:

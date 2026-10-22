@@ -25,7 +25,9 @@ REQUIRED = {
     'Invalid_identity_fails_closed_without_disclosing_token_or_reason': 20,
     'Authenticated_identity_is_not_an_automatic_operation_permission': 1,
     'Public_operations_stay_anonymous_with_enabled_identity': 1,
-    'Every_notification_write_grant_is_required_for_signed_humans_and_machines': 2,
+    'CRUD_requires_exact_grants_and_invalid_input_never_bypasses_authorization': 6,
+    'Every_permission_checks_exact_scope_role_and_caller_kind_through_real_JWT_middleware': 1,
+    'Every_production_route_is_explicitly_anonymous_or_has_registered_permission_and_OpenAPI_security': 1,
     'Actual_engineering_notification_commit_and_replay_survive_OTLP_outage': 2,
     'Handled_delivery_failure_exports_actionable_failure_without_contact_or_exception': 1,
 }

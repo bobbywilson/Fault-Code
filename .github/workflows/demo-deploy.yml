@@ -12,8 +12,8 @@ concurrency:
 jobs:
   gate:
     if: vars.DEMO_DEPLOY_ENABLED == 'true' && github.ref == 'refs/heads/development'
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
+    runs-on: [self-hosted, Linux, X64, faultcode-gate]
+    timeout-minutes: 120
     outputs:
       ready: ${{ steps.checks.outputs.ready }}
       source: ${{ steps.checks.outputs.source }}
@@ -31,7 +31,7 @@ jobs:
   publish:
     needs: gate
     if: needs.gate.outputs.ready == 'true'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, faultcode-ci]
     timeout-minutes: 30
     permissions:
       contents: read
@@ -73,7 +73,7 @@ jobs:
           done
   deploy:
     needs: [gate, publish]
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, faultcode-ci]
     timeout-minutes: 15
     environment: demo-production
     permissions:

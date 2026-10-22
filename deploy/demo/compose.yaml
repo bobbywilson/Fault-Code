@@ -61,7 +61,9 @@ services:
     depends_on:
       sql: {condition: service_healthy}
       qdrant: {condition: service_healthy}
-      sql:
+      mailpit: {condition: service_started}
+    networks: [application, data]
+  sql:
     <<: *runtime
     image: mcr.microsoft.com/mssql/server:2025-RTM-ubuntu-22.04@sha256:54b23ca766287dab5f6f55162923325f07cdec6ccb42108f37c55c87e7688ebd
     environment:
@@ -90,8 +92,6 @@ services:
     tmpfs: [/tmp]
     cap_drop: [ALL]
     networks: [edge]
-  mailpit: {condition: service_started}
-    networks: [application, data]
   administration:
     <<: *runtime
     image: ${WEB_IMAGE:?Immutable Angular image required}

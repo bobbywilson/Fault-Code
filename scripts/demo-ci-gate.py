@@ -45,7 +45,7 @@ def main():
 
     import time
     ready = False
-    for attempt in range(90):
+    for attempt in range(440):
         current = get('/git/ref/heads/development')['object']['sha']
         checks = get('/commits/' + source + '/check-runs?per_page=100')['check_runs']
         ready = eligible(event, current, checks)
