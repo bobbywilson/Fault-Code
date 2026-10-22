@@ -26,7 +26,7 @@ loginctl enable-linger faultcode-ci
 systemctl start "user@$uid.service"
 # Bound the entire CI user, including Docker build/test descendants.
 systemctl set-property "user-$uid.slice" MemoryHigh=4G MemoryMax=4500M CPUQuota=200% TasksMax=4096
-ci() { runuser -u faultcode-ci -- env HOME="$base" XDG_RUNTIME_DIR="/run/user/$uid" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$uid/bus" PATH="$base/bin:/usr/local/bin:/usr/bin:/bin" "$@"; }
+ci() { runuser -u faultcode-ci -- env HOME="$base" XDG_RUNTIME_DIR="/run/user/$uid" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$uid/bus" PATH="$base/bin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" "$@"; }
 # PID1 applies the filesystem sandbox before dropping privileges. Applying these
 # namespace options from a user manager would nest RootlessKit in another user namespace.
 ci systemctl --user disable --now docker.service 2>/dev/null || true
@@ -41,7 +41,7 @@ Group=faultcode-ci
 Environment=HOME=$base
 Environment=XDG_RUNTIME_DIR=/run/user/$uid
 Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$uid/bus
-Environment=PATH=$base/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PATH=$base/bin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 ExecStart=$base/bin/dockerd-rootless.sh
 Restart=on-failure
 RestartSec=5
