@@ -197,6 +197,16 @@ export const areas = [
                   ><ng-icon name="lucideFiles" /><span>Development stack</span></a
                 >
               </li>
+              <li hlmSidebarMenuItem>
+                <a
+                  hlmSidebarMenuButton
+                  tooltip="Test API"
+                  [href]="apiTestingUrl"
+                  target="_blank"
+                  rel="noopener"
+                  ><ng-icon name="lucideArrowUpRight" /><span>Test API</span></a
+                >
+              </li>
             </ul>
           </div>
         </hlm-sidebar>
