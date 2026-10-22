@@ -1,0 +1,5 @@
+{
+  "reason": "User approved six-resource CRUD-only v1 surface, Entra-managed users and browser-only support routes on 2026-10-22. Part of FAU-26.",
+  "fromSha256": "49bd9cc8489b1f054603852123b2839104a41d5e226730551a6c67c5ffb769e6",
+  "toSha256": "ad2f98ac207c9182680cc51ab4461934e9017ad10fb3d9511be9c9b9bdcbf8a6"
+}

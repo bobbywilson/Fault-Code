@@ -65,10 +65,10 @@ public sealed class ApiHostTests
         var previous = Environment.GetEnvironmentVariable(key);
         try
         {
-            Environment.SetEnvironmentVariable(key, "Synthetic environment override");
+            Environment.SetEnvironmentVariable(key, "Demo environment override");
             using var factory = new WebApplicationFactory<Program>();
             using var client = factory.CreateClient();
-            Assert.Equal("Synthetic environment override", factory.Services.GetRequiredService<FoundationStatusService>()
+            Assert.Equal("Demo environment override", factory.Services.GetRequiredService<FoundationStatusService>()
                 .GetStatus().ApplicationName);
         }
         finally
@@ -92,7 +92,7 @@ public sealed class ApiHostTests
         using var factory = new WebApplicationFactory<Program>();
         using var client = factory.CreateClient();
         Assert.Null(factory.Services.GetService<IUnitOfWork>());
-        Assert.Null(factory.Services.GetService<IRepository<SyntheticAggregate>>());
+        Assert.Null(factory.Services.GetService<IRepository<DemoAggregate>>());
     }
 
     [Fact]
@@ -114,7 +114,7 @@ public sealed class ApiHostTests
         Assert.DoesNotContain("SECRET", output);
     }
 
-    private sealed record SyntheticAggregate(Guid Id) : IAggregateRoot;
+    private sealed record DemoAggregate(Guid Id) : IAggregateRoot;
 
     // Run invalid startup out of process: WebApplicationFactory can dispose its deferred
     // service provider before surfacing the original validation exception on fast failures.

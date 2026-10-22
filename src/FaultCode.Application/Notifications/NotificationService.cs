@@ -14,7 +14,7 @@ public sealed class NotificationService(INotificationStore store, INotificationD
         if (!FleetRules.CanonicalId(c.TenantId) || !FleetRules.CanonicalId(c.ActorId) || !FleetRules.CanonicalId(c.ClientId)
             || string.IsNullOrWhiteSpace(c.CorrelationId)) throw new IncidentException(403);
     }
-    private static bool Visible(Incident i, FleetCaller c) => i.TenantId == c.TenantId && FleetRules.CanonicalId(i.Fleet.OwnerObjectId)
+    private static bool Visible(Incident i, FleetCaller c) => !i.Deleted && i.TenantId == c.TenantId && FleetRules.CanonicalId(i.Fleet.OwnerObjectId)
         && (c.AllVehicles || c.OwnVehicles && i.Fleet.OwnerObjectId == c.ActorId)
         && (c.AllDrivers || c.OwnDrivers && i.Fleet.OwnerObjectId == c.ActorId);
     private static Incident Incident(NotificationTransaction tx, FleetCaller c, Guid id) =>
@@ -23,7 +23,7 @@ public sealed class NotificationService(INotificationStore store, INotificationD
         && d.TenantId == c.TenantId && FleetRules.CanonicalId(d.OwnerObjectId) && (c.AllDrivers || c.OwnDrivers && d.OwnerObjectId == c.ActorId)) ?? throw new IncidentException(404);
     private static DriverNotification Message(NotificationTransaction tx, FleetCaller c, Guid id)
     {
-        var n = tx.Notifications.Messages.SingleOrDefault(n => n.Id == id && n.TenantId == c.TenantId) ?? throw new IncidentException(404);
+        var n = tx.Notifications.Messages.SingleOrDefault(n => n.Id == id && n.TenantId == c.TenantId && !n.Deleted) ?? throw new IncidentException(404);
         Incident(tx, c, n.IncidentId); return n;
     }
     private static FleetPage<T> Page<T>(T[] items, int page, int size)
@@ -37,7 +37,7 @@ public sealed class NotificationService(INotificationStore store, INotificationD
     private Task<FleetPage<DriverNotification>> ListCore(FleetCaller c, Guid incidentId, int page, int size, CancellationToken ct)
     {
         Caller(c); return store.Execute(c.TenantId, tx =>
-        { Incident(tx, c, incidentId); return Page(tx.Notifications.Messages.Where(n => n.TenantId == c.TenantId && n.IncidentId == incidentId).OrderBy(n => n.CreatedAt).ThenBy(n => n.Id).ToArray(), page, size); }, ct);
+        { Incident(tx, c, incidentId); return Page(tx.Notifications.Messages.Where(n => !n.Deleted && n.TenantId == c.TenantId && n.IncidentId == incidentId).OrderBy(n => n.CreatedAt).ThenBy(n => n.Id).ToArray(), page, size); }, ct);
     }
     public Task<FleetPage<DriverNotificationSummary>> ListAll(FleetCaller c, Guid? driverId, int page, int size, CancellationToken ct, Guid? incidentId = null) =>
         (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Notification, c.CorrelationId, () =>
@@ -50,7 +50,7 @@ public sealed class NotificationService(INotificationStore store, INotificationD
                 if (driverId == Guid.Empty) throw new IncidentException(400);
                 if (driverId.HasValue) Driver(tx, c, driverId.Value);
                 var visible = tx.Context.Incidents.Incidents.Where(i => Visible(i, c)).Select(i => i.Id).ToHashSet();
-                return Page(tx.Notifications.Messages.Where(n => n.TenantId == c.TenantId
+                return Page(tx.Notifications.Messages.Where(n => !n.Deleted && n.TenantId == c.TenantId
                     && visible.Contains(n.IncidentId) && (!driverId.HasValue || n.DriverId == driverId.Value)
                     && (!incidentId.HasValue || n.IncidentId == incidentId.Value))
                     .OrderByDescending(n => n.CreatedAt).ThenBy(n => n.Id)

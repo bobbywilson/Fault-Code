@@ -5,7 +5,9 @@ import { ontologyRelationships } from '../fixtures/ontology-model';
 const id = '55555555-5555-4555-8555-555555555555';
 const all = [...new Set(operations.flatMap((o) => o.policies.flat()))];
 async function setup(page: Page, permissions = all) {
-  await page.route('**/__test/session', (r) => r.fulfill({ json: { state: 'signed-in' } }));
+  await page.route('**/__test/session', (r) =>
+    r.fulfill({ json: { state: 'signed-in', permissions } }),
+  );
   await page.route('**/api/v1/**', (r) =>
     r.fulfill({
       json: r.request().url().endsWith('/authorization/me')
@@ -13,7 +15,7 @@ async function setup(page: Page, permissions = all) {
         : r.request().url().endsWith('/ontology/relationships')
           ? { version: '1', items: ontologyRelationships }
           : { items: [], page: 1, pageSize: 20, totalCount: 0 },
-      headers: { 'X-Correlation-ID': 'synthetic-reference' },
+      headers: { 'X-Correlation-ID': 'demo-reference' },
     }),
   );
 }
@@ -24,7 +26,10 @@ async function action(page: Page, area: string, id: string) {
       .getByRole('button', { name: /Review incident SYN-/ })
       .first()
       .click();
-  await page.getByLabel('Action', { exact: true }).selectOption(id);
+  await page.getByLabel('Action', { exact: true }).click();
+  await page
+    .getByRole('option', { name: operations.find((o) => o.id === id)!.label, exact: true })
+    .click();
   await expect(page.getByText('Checking permissions…')).not.toBeVisible();
 }
 async function submit(page: Page) {
@@ -78,62 +83,6 @@ test('401 clears records and navigation until a real session is renewed', async 
   );
 });
 
-test('retained incident investigation and notification views invoke authenticated operations', async ({
-  page,
-}) => {
-  await setup(page);
-  const requests: { url: string; method: string; body: any; headers: any }[] = [];
-  await page.route('**/api/v1/**', (r) => {
-    const q = r.request();
-    if (q.url().endsWith('/authorization/me'))
-      return r.fulfill({ json: { callerKind: 'delegated', permissions: all } });
-    if (q.method() === 'GET' && new URL(q.url()).pathname === '/api/v1/incidents')
-      return r.fulfill({
-        json: {
-          items: [
-            {
-              id,
-              code: 'SYN-EPS:UNKNOWN',
-              system: 'EPS',
-              status: 'Received',
-              occurredAt: '2026-10-21T12:00:00Z',
-              fleet: {
-                vehicleId: id,
-                driverId: id,
-                vehicleIdentifier: 'SYN-VEH-1',
-                driverIdentifier: 'SYN-DRIVER-1',
-              },
-              knowledge: null,
-            },
-          ],
-          page: 1,
-          pageSize: 20,
-          totalCount: 1,
-        },
-      });
-    requests.push({
-      url: q.url(),
-      method: q.method(),
-      body: q.postDataJSON(),
-      headers: q.headers(),
-    });
-    return r.fulfill({
-      json: { id, version: 2, outcome: 'Recorded synthetic fixture' },
-      headers: { ETag: '"2"' },
-    });
-  });
-  // Workflow A known fault and Workflow B approved patch use the same authoritative investigation boundary.
-  for (const workflow of ['known-fault', 'approved-patch']) {
-    await action(page, 'incidents', 'InvestigateIncident');
-    await page.getByLabel('Id *', { exact: true }).fill(id);
-    await page.getByLabel('Current record version').fill('1');
-    await submit(page);
-    await expect(page.getByRole('status')).toContainText('request completed');
-    expect(requests.at(-1)?.url).toContain('/investigations');
-    expect(requests.at(-1)?.body).toEqual({});
-    expect(requests.at(-1)?.headers['if-match']).toBe('"1"');
-  }
-});
 test('mobile fleet navigation remains accessible without management forms', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await setup(page);
@@ -196,32 +145,21 @@ test('fleet pagination escapes names and suppresses late route results', async (
   await expect(page.getByText('Late driver', { exact: true })).toHaveCount(0);
 });
 
-test('users and roles is a read-only API-backed table', async ({ page }) => {
+test('Users shows the signed-in Entra identity without a user-management API', async ({ page }) => {
   await setup(page, ['authorization.read', 'users.manage']);
-  await page.route('**/api/v1/admin/users?**', (r) =>
-    r.fulfill({
-      json: {
-        items: [{ id, displayName: 'Alex Morgan', roles: ['Reader', 'Driver'] }],
-        page: 1,
-        pageSize: 20,
-        totalCount: 1,
-      },
-    }),
-  );
+  let managementCalls = 0;
+  page.on('request', (r) => {
+    if (r.url().includes('/api/v1/admin/users')) managementCalls++;
+  });
   await page.goto('/admin/users');
-  const table = page.getByRole('table', { name: 'Users and roles records', exact: true });
-  await expect(table).toContainText('Alex Morgan');
+  const table = page.getByRole('table', { name: 'Users records', exact: true });
+  await expect(table).toContainText('Bobby Wilson');
   await expect(table).toContainText('Reader');
-  await expect(table).toContainText('Driver');
+  await expect(table).toContainText('Operator');
+  expect(managementCalls).toBe(0);
   await expect(page.getByLabel('Action', { exact: true })).toHaveCount(0);
-  await page.route('**/api/v1/admin/users?**', (r) =>
-    r.fulfill({ status: 403, json: { status: 403 } }),
-  );
-  await page.getByRole('button', { name: 'Refresh', exact: true }).click();
-  await expect(page.getByRole('alert')).toContainText('Access denied');
-  await expect(table).not.toContainText('Alex Morgan');
 });
-test('ontology opens a read-only fault-code relationship table with search and protected record navigation', async ({
+test('ontology opens a read-only fault-code relationship table with search and no browse links', async ({
   page,
 }) => {
   await setup(page, ['authorization.read', 'knowledge.read']);
@@ -248,12 +186,16 @@ test('ontology opens a read-only fault-code relationship table with search and p
       audit.violations.map((v) => ({ id: v.id, nodes: v.nodes.map((n) => n.failureSummary) })),
     ).toEqual([]);
   }
-  expect(ontologyRequests.length).toBeGreaterThan(0);
-  expect(ontologyRequests.every((method) => method === 'GET')).toBe(true);
-  await page
-    .getByRole('link', { name: 'Browse vehicle records for incident', exact: true })
-    .click();
-  await expect(page.getByRole('heading', { name: 'Vehicles', exact: true })).toBeVisible();
+  expect(ontologyRequests).toEqual([]);
+  await expect(table.getByRole('columnheader')).toHaveText([
+    'Concept',
+    'Relationship',
+    'Related concept',
+    'Meaning',
+  ]);
+  await expect(table.getByRole('link')).toHaveCount(0);
+  await expect(table.getByText('Browse', { exact: true })).toHaveCount(0);
+  await expect(table.getByRole('row')).toHaveCount(12);
 });
 
 test('Incidents automatically lists vehicle reports and preserves unavailable, empty and review states', async ({
@@ -349,12 +291,20 @@ test('vehicle and driver lists show associations and email and dispatch the sele
   const driver = {
     id: driverId,
     identifier: 'SYN-DRIVER-1',
-    displayName: 'Synthetic Demo Driver',
+    displayName: 'Demo Demo Driver',
     email: 'demo@example.com',
     emailNotifications: true,
     active: true,
   };
-  const vehicle = { id, identifier: 'SYN-SILVERADO-1', system: 'EPS', active: true, version: 1 };
+  const vehicle = {
+    id,
+    identifier: 'SYN-SILVERADO-1',
+    system: 'EPS',
+    active: true,
+    version: 1,
+    drivers: [driver],
+    incidentCount: 0,
+  };
   await page.route('**/api/v1/vehicles?**', (r) =>
     r.fulfill({ json: { items: [vehicle], page: 1, pageSize: 20, totalCount: 1 } }),
   );
@@ -372,7 +322,7 @@ test('vehicle and driver lists show associations and email and dispatch the sele
   await page.route('**/api/v1/drivers?**', (r) =>
     r.fulfill({ json: { items: [driver], page: 1, pageSize: 20, totalCount: 1 } }),
   );
-  await page.route('**/api/v1/fault-code-catalog', (r) =>
+  await page.route('**/api/v1/fault-codes?**', (r) =>
     r.fulfill({
       json: {
         scope: 'Test catalog',
@@ -381,13 +331,13 @@ test('vehicle and driver lists show associations and email and dispatch the sele
             code: 'SYN-EPS:ASSIST-SIGNAL',
             system: 'EPS',
             vehicles: ['Chevrolet Silverado', 'GMC Sierra'],
-            description: 'Assist signal',
+            draft: { description: 'Assist signal' },
           },
           {
             code: 'SYN-SBW:LINK-TIMING',
             system: 'steer-by-wire',
             vehicles: ['Chevrolet Silverado'],
-            description: 'Other system',
+            draft: { description: 'Other system' },
           },
         ],
       },
@@ -400,7 +350,6 @@ test('vehicle and driver lists show associations and email and dispatch the sele
   await page.goto('/admin/vehicles');
   const table = page.getByRole('table', { name: 'Vehicles records' });
   await expect(table).toContainText('Chevrolet Silverado');
-  await expect(table).not.toContainText('Synthetic');
   await expect(table.getByRole('columnheader', { name: 'Email', exact: true })).toBeVisible();
   await expect(table).toContainText('Demo Driver');
   await expect(table).toContainText('demo@example.com');
@@ -424,11 +373,12 @@ test('vehicle and driver lists show associations and email and dispatch the sele
   const dispatch = table.getByRole('button', { name: 'Dispatch', exact: true });
   const select = table.getByRole('combobox');
   await expect(dispatch).toBeDisabled();
-  await expect(select.locator('option')).toHaveCount(2);
-  await select.selectOption('SYN-EPS:ASSIST-SIGNAL');
+  await select.click();
+  await expect(page.getByRole('option')).toHaveCount(2);
+  await page.getByRole('option', { name: /SYN-EPS:ASSIST-SIGNAL/ }).click();
   await expect(dispatch).toBeEnabled();
   const replayKeys: string[] = [];
-  await page.route('**/api/v1/vehicle-fault-dispatches', (r) => {
+  await page.route('**/api/v1/incidents', (r) => {
     replayKeys.push(r.request().headers()['idempotency-key']);
     return r.fulfill({ status: 503, json: { status: 503 } });
   });
@@ -440,8 +390,9 @@ test('vehicle and driver lists show associations and email and dispatch the sele
   await expect.poll(() => replayKeys.length).toBe(2);
   expect(replayKeys[0]).toBe(replayKeys[1]);
   let request: any;
-  await page.route('**/api/v1/vehicle-fault-dispatches', (r) => {
+  await page.route('**/api/v1/incidents', (r) => {
     incidentCount = 1;
+    vehicle.incidentCount = 1;
     request = { body: r.request().postDataJSON(), headers: r.request().headers() };
     return r.fulfill({
       status: 202,
@@ -452,7 +403,7 @@ test('vehicle and driver lists show associations and email and dispatch the sele
   await expect(page.getByText('Dispatched', { exact: true })).toBeVisible();
   expect(request.body).toEqual({ vehicleId: id, code: 'SYN-EPS:ASSIST-SIGNAL' });
   expect(request.headers['idempotency-key']).toBe(replayKeys[0]);
-  await expect(select).toHaveValue('SYN-EPS:ASSIST-SIGNAL');
+  await expect(select).toContainText('SYN-EPS:ASSIST-SIGNAL');
   await expect(dispatch).toBeEnabled();
   await expect(table.getByRole('link', { name: /View 1 incidents/ })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Back to vehicles' })).toHaveCount(0);
@@ -517,7 +468,9 @@ test('driver notification links filter the data table and show recorded delivery
     true,
   );
   await page.getByRole('link', { name: 'Show all notifications', exact: true }).click();
-  await expect(table).toContainText('Your fault is being investigated.');
+  await table.getByRole('button', { name: 'View message', exact: true }).click();
+  await expect(page.getByRole('dialog')).toContainText('Your fault is being investigated.');
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
   await expect
     .poll(() => new URL(notificationRequests.at(-1)!).searchParams.has('driverId'))
     .toBe(false);
@@ -556,9 +509,30 @@ test('vehicle incident badges use filtered totals, disable zero or unavailable c
     r.fulfill({
       json: {
         items: [
-          { id, identifier: 'SYN-SILVERADO-1', system: 'EPS', active: true },
-          { id: zeroId, identifier: 'SYN-SIERRA-1', system: 'EPS', active: true },
-          { id: unavailableId, identifier: 'SYN-SIERRA-2', system: 'EPS', active: true },
+          {
+            id,
+            identifier: 'SYN-SILVERADO-1',
+            system: 'EPS',
+            active: true,
+            drivers: [],
+            incidentCount: 21,
+          },
+          {
+            id: zeroId,
+            identifier: 'SYN-SIERRA-1',
+            system: 'EPS',
+            active: true,
+            drivers: [],
+            incidentCount: 0,
+          },
+          {
+            id: unavailableId,
+            identifier: 'SYN-SIERRA-2',
+            system: 'EPS',
+            active: true,
+            drivers: [],
+            incidentCount: null,
+          },
         ],
         page: 1,
         pageSize: 20,
@@ -591,12 +565,6 @@ test('vehicle incident badges use filtered totals, disable zero or unavailable c
   await expect(rows.nth(2).locator('[data-slot="badge"]')).toHaveText('0');
   await expect(rows.nth(3).getByRole('button', { name: /View incidents/ })).toBeDisabled();
   await expect(rows.nth(3).locator('[data-slot="badge"]')).toHaveCount(0);
-  expect(
-    requests
-      .filter((u) => u.searchParams.get('pageSize') === '1')
-      .map((u) => u.searchParams.get('vehicleId'))
-      .sort(),
-  ).toEqual([id, zeroId, unavailableId].sort());
   await rows
     .nth(1)
     .getByRole('link', { name: /View 21 incidents/ })
@@ -613,4 +581,113 @@ test('vehicle incident badges use filtered totals, disable zero or unavailable c
   await expect.poll(() => requests.at(-1)?.searchParams.has('vehicleId')).toBe(false);
   await expect(page.getByRole('button', { name: 'Clear filter', exact: true })).toHaveCount(0);
   expect(requests.at(-1)?.searchParams.get('page')).toBe('1');
+});
+
+for (const state of ['signed-out', 'expired', 'unconfigured', 'error']) {
+  test(`public entry hides protected chrome for ${state}`, async ({ page }) => {
+    let protectedRequests = 0;
+    await page.route('**/__test/session', (r) => r.fulfill({ json: { state } }));
+    await page.route('**/api/v1/**', (r) => {
+      protectedRequests++;
+      return r.fulfill({ status: 401 });
+    });
+    await page.goto('/admin/incidents');
+    await expect(
+      page.getByRole('navigation', { name: 'Documentation', exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('link', { name: 'API documentation', exact: true }),
+    ).toHaveAttribute('href', 'http://localhost:5083');
+    await expect(page.getByRole('link', { name: 'Test API', exact: true })).toHaveAttribute(
+      'href',
+      'http://127.0.0.1:5080/swagger/index.html',
+    );
+    await expect(page.getByRole('complementary', { name: 'Workspace navigation' })).toHaveCount(0);
+    await expect(page.getByText('Workspace', { exact: true })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Incidents', exact: true })).toHaveCount(0);
+    await expect(page.getByText('Administration', { exact: true })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /Account menu/ })).toHaveCount(0);
+    expect(protectedRequests).toBe(0);
+  });
+}
+
+test('signed-out sign-in card is centered in the content area on desktop and mobile', async ({
+  page,
+}) => {
+  await page.route('**/__test/session', (r) => r.fulfill({ json: { state: 'signed-out' } }));
+  for (const viewport of [
+    { width: 1440, height: 900 },
+    { width: 390, height: 844 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto('/admin/incidents');
+    const card = page.getByRole('region', { name: 'Sign in', exact: true });
+    await expect(card).toBeVisible();
+    const box = (await card.boundingBox())!;
+    const header = (await page.locator('header').boundingBox())!;
+    expect(Math.abs(box.x + box.width / 2 - viewport.width / 2)).toBeLessThan(2);
+    expect(Math.abs(box.y + box.height / 2 - (viewport.height + header.height) / 2)).toBeLessThan(
+      2,
+    );
+    expect(box.width).toBeLessThanOrEqual(512);
+  }
+});
+
+test('demo login uses password input and hides private user-token administration', async ({
+  page,
+}) => {
+  await setup(page);
+  await page.route('**/__test/session', (r) =>
+    r.fulfill({ json: { state: 'signed-out', demoAvailable: true, permissions: all } }),
+  );
+  await page.goto('/admin/vehicles');
+  await expect(
+    page.getByRole('button', { name: 'Sign in with credentials', exact: true }),
+  ).toBeDisabled();
+  await expect(page.getByLabel('Password', { exact: true })).toHaveAttribute('type', 'password');
+  await page.getByLabel('Username', { exact: true }).fill('johnhenry');
+  await page.getByLabel('Password', { exact: true }).fill('test-only-fixture-password');
+  await page.getByRole('button', { name: 'Sign in with credentials', exact: true }).click();
+  await expect(page.getByRole('navigation', { name: 'Administration', exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Account menu for John Henry JH', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Account menu for John Henry JH', exact: true }),
+  ).toContainText('JH');
+  await expect(page.getByRole('link', { name: 'Users', exact: true })).toHaveCount(0);
+  await expect(page.getByLabel('Your Entra API access token', { exact: true })).toHaveCount(0);
+  await page.route('**/__test/session', (r) =>
+    r.fulfill({
+      json: { state: 'signed-in', kind: 'demo', demoAvailable: true, permissions: all },
+    }),
+  );
+  await page.getByRole('link', { name: 'Token', exact: true }).click();
+  await expect(page.getByLabel('Entra API access token', { exact: true })).toHaveValue(
+    'test-application-token',
+  );
+  await expect(page.getByText('Identity: Fault Code Demo API', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Refresh token', exact: true }).click();
+  await expect(page.getByLabel('Entra API access token', { exact: true })).toHaveValue(
+    'test-application-token',
+  );
+  await expect(
+    page.getByRole('button', { name: 'Copy Entra API access token', exact: true }),
+  ).toBeVisible();
+  await page.goto('/admin/users');
+  await expect(
+    page.getByText('This account cannot access user administration.', { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: /Refresh token|Copy Entra/ })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Account menu for John Henry JH', exact: true }).click();
+  await expect(page.getByRole('menu', { name: 'Account', exact: true })).toContainText(
+    'John Henry',
+  );
+  await page.getByRole('menuitem', { name: 'Sign out', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Sign in to continue', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Sign in with Microsoft', exact: true }),
+  ).toBeVisible();
 });

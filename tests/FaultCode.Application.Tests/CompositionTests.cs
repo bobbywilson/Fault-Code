@@ -15,8 +15,8 @@ public sealed class CompositionTests
     [Fact]
     public void Application_accepts_a_replacement_adapter_without_infrastructure_setup()
     {
-        var service = new FoundationStatusService("Synthetic test", new TestEnvironment());
-        Assert.Equal(new FoundationStatus("Synthetic test", "Isolated"), service.GetStatus());
+        var service = new FoundationStatusService("Demo test", new TestEnvironment());
+        Assert.Equal(new FoundationStatus("Demo test", "Isolated"), service.GetStatus());
     }
 
     private sealed class TestEnvironment : IRuntimeEnvironment

@@ -20,7 +20,7 @@ Implement normalized users/role mappings, consent/invitations, vehicles/drivers 
 
 ## Trade-offs
 
-Express keeps licensing cost zero but lacks SQL Server Agent; use the application's bounded background outbox worker and dedicated maintenance jobs instead. Memory/CPU/database-size limits suit a small30-day synthetic POC, not an unlimited production service. .NET's EF Core SQL Server integration fits the chosen backend; PostgreSQL can use less baseline memory but would be a separate database decision. No provider choice is implied by this recommendation.
+Express keeps licensing cost zero but lacks SQL Server Agent; use the application's bounded background outbox worker and dedicated maintenance jobs instead. Memory/CPU/database-size limits suit a small30-day demo POC, not an unlimited production service. .NET's EF Core SQL Server integration fits the chosen backend; PostgreSQL can use less baseline memory but would be a separate database decision. No provider choice is implied by this recommendation.
 
 ## Primary sources checked during audit
 

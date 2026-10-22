@@ -1,623 +1,5 @@
 [
   {
-    "id": "ListAdministrationRoles",
-    "label": "List  Roles",
-    "group": "Users & roles",
-    "method": "GET",
-    "path": "/api/v1/admin/roles",
-    "parameters": [],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "users.manage"
-      ]
-    ]
-  },
-  {
-    "id": "ListManagedUsers",
-    "label": "List  Users",
-    "group": "Users & roles",
-    "method": "GET",
-    "path": "/api/v1/admin/users",
-    "parameters": [
-      {
-        "name": "page",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 2147483647,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      },
-      {
-        "name": "pageSize",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 100,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      }
-    ],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "users.manage"
-      ]
-    ]
-  },
-  {
-    "id": "GetManagedUser",
-    "label": "Get  User",
-    "group": "Users & roles",
-    "method": "GET",
-    "path": "/api/v1/admin/users/{id}",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "users.manage"
-      ]
-    ]
-  },
-  {
-    "id": "ReplaceManagedUserRoles",
-    "label": "Replace  User Roles",
-    "group": "Users & roles",
-    "method": "PUT",
-    "path": "/api/v1/admin/users/{id}/roles",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": {
-      "required": [
-        "roles"
-      ],
-      "type": "object",
-      "properties": {
-        "roles": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "users.manage"
-      ]
-    ]
-  },
-  {
-    "id": "ListManagedIntegrations",
-    "label": "List  Integrations",
-    "group": "Integrations",
-    "method": "GET",
-    "path": "/api/v1/admin/integrations",
-    "parameters": [
-      {
-        "name": "page",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 2147483647,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      },
-      {
-        "name": "pageSize",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 100,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      }
-    ],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "integrations.manage"
-      ]
-    ]
-  },
-  {
-    "id": "GetManagedIntegration",
-    "label": "Get  Integration",
-    "group": "Integrations",
-    "method": "GET",
-    "path": "/api/v1/admin/integrations/{id}",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "integrations.manage"
-      ]
-    ]
-  },
-  {
-    "id": "ReplaceManagedIntegration",
-    "label": "Replace  Integration",
-    "group": "Integrations",
-    "method": "PUT",
-    "path": "/api/v1/admin/integrations/{id}",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": {
-      "required": [
-        "enabled"
-      ],
-      "type": "object",
-      "properties": {
-        "enabled": {
-          "type": [
-            "null",
-            "boolean"
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "integrations.manage"
-      ]
-    ]
-  },
-  {
-    "id": "RunIncidentAgent",
-    "label": "Run Incident Agent",
-    "group": "Agent activity",
-    "method": "POST",
-    "path": "/api/v1/incidents/{id}/agent-runs",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [],
-    "body": {
-      "type": "object",
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "knowledge.read"
-      ]
-    ]
-  },
-  {
-    "id": "CreateDocument",
-    "label": "Create Document",
-    "group": "Documents",
-    "method": "POST",
-    "path": "/api/v1/knowledge/documents",
-    "parameters": [],
-    "headers": [
-      "Idempotency-Key"
-    ],
-    "body": {
-      "required": [
-        "sourceId",
-        "content"
-      ],
-      "type": "object",
-      "properties": {
-        "sourceId": {
-          "type": "string"
-        },
-        "content": {
-          "required": [
-            "title",
-            "sourceVersion",
-            "system",
-            "model",
-            "softwareVersion",
-            "access",
-            "pages"
-          ],
-          "type": "object",
-          "properties": {
-            "title": {
-              "type": "string"
-            },
-            "sourceVersion": {
-              "type": "string"
-            },
-            "system": {
-              "type": "string"
-            },
-            "model": {
-              "type": "string"
-            },
-            "softwareVersion": {
-              "type": "string"
-            },
-            "access": {
-              "type": "string"
-            },
-            "pages": {
-              "type": "array",
-              "items": {
-                "required": [
-                  "number",
-                  "text"
-                ],
-                "type": "object",
-                "properties": {
-                  "number": {
-                    "pattern": "^-?(?:0|[1-9]\\d*)$",
-                    "type": [
-                      "integer",
-                      "string"
-                    ],
-                    "format": "int32"
-                  },
-                  "text": {
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": false
-              }
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "knowledge.publish"
-      ]
-    ]
-  },
-  {
-    "id": "GetDocument",
-    "label": "Get Document",
-    "group": "Documents",
-    "method": "GET",
-    "path": "/api/v1/knowledge/documents/{id}",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "knowledge.publish"
-      ]
-    ]
-  },
-  {
-    "id": "UpdateDocument",
-    "label": "Update Document",
-    "group": "Documents",
-    "method": "PUT",
-    "path": "/api/v1/knowledge/documents/{id}",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match"
-    ],
-    "body": {
-      "required": [
-        "title",
-        "sourceVersion",
-        "system",
-        "model",
-        "softwareVersion",
-        "access",
-        "pages"
-      ],
-      "type": "object",
-      "properties": {
-        "title": {
-          "type": "string"
-        },
-        "sourceVersion": {
-          "type": "string"
-        },
-        "system": {
-          "type": "string"
-        },
-        "model": {
-          "type": "string"
-        },
-        "softwareVersion": {
-          "type": "string"
-        },
-        "access": {
-          "type": "string"
-        },
-        "pages": {
-          "type": "array",
-          "items": {
-            "required": [
-              "number",
-              "text"
-            ],
-            "type": "object",
-            "properties": {
-              "number": {
-                "pattern": "^-?(?:0|[1-9]\\d*)$",
-                "type": [
-                  "integer",
-                  "string"
-                ],
-                "format": "int32"
-              },
-              "text": {
-                "type": "string"
-              }
-            },
-            "additionalProperties": false
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "knowledge.publish"
-      ]
-    ]
-  },
-  {
-    "id": "DeleteDocument",
-    "label": "Delete Document",
-    "group": "Documents",
-    "method": "DELETE",
-    "path": "/api/v1/knowledge/documents/{id}",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": null,
-    "policies": [
-      [
-        "knowledge.publish"
-      ]
-    ]
-  },
-  {
-    "id": "PublishDocument",
-    "label": "Publish Document",
-    "group": "Documents",
-    "method": "POST",
-    "path": "/api/v1/knowledge/documents/{id}/publications",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": null,
-    "policies": [
-      [
-        "knowledge.publish"
-      ]
-    ]
-  },
-  {
-    "id": "IndexDocument",
-    "label": "Index Document",
-    "group": "Documents",
-    "method": "POST",
-    "path": "/api/v1/knowledge/documents/{id}/index",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": null,
-    "policies": [
-      [
-        "knowledge.publish"
-      ]
-    ]
-  },
-  {
-    "id": "ReindexDocuments",
-    "label": "Reindex Documents",
-    "group": "Documents",
-    "method": "POST",
-    "path": "/api/v1/knowledge/reindex",
-    "parameters": [],
-    "headers": [
-      "Idempotency-Key"
-    ],
-    "body": null,
-    "policies": [
-      [
-        "knowledge.publish"
-      ]
-    ]
-  },
-  {
-    "id": "SearchEvidence",
-    "label": "Search Evidence",
-    "group": "Documents",
-    "method": "POST",
-    "path": "/api/v1/knowledge/search",
-    "parameters": [],
-    "headers": [],
-    "body": {
-      "required": [
-        "text",
-        "system",
-        "model",
-        "softwareVersion"
-      ],
-      "type": "object",
-      "properties": {
-        "text": {
-          "type": "string"
-        },
-        "system": {
-          "type": "string"
-        },
-        "model": {
-          "type": "string"
-        },
-        "softwareVersion": {
-          "type": "string"
-        },
-        "limit": {
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32",
-          "default": 5
-        }
-      },
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "knowledge.read"
-      ]
-    ]
-  },
-  {
     "id": "ListDrivers",
     "label": "List Drivers",
     "group": "Drivers",
@@ -640,10 +22,7 @@
           "maximum": 2147483647,
           "minimum": 1,
           "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
+          "type": ["integer", "string"],
           "format": "int32"
         }
       },
@@ -655,22 +34,14 @@
           "maximum": 100,
           "minimum": 1,
           "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
+          "type": ["integer", "string"],
           "format": "int32"
         }
       }
     ],
     "headers": [],
     "body": null,
-    "policies": [
-      [
-        "drivers.read",
-        "drivers.read.own"
-      ]
-    ]
+    "policies": [["drivers.read", "drivers.read.own"]]
   },
   {
     "id": "CreateDriver",
@@ -679,17 +50,9 @@
     "method": "POST",
     "path": "/api/v1/drivers",
     "parameters": [],
-    "headers": [
-      "Idempotency-Key"
-    ],
+    "headers": ["Idempotency-Key"],
     "body": {
-      "required": [
-        "identifier",
-        "ownerObjectId",
-        "displayName",
-        "email",
-        "emailNotifications"
-      ],
+      "required": ["identifier", "ownerObjectId", "displayName", "email", "emailNotifications"],
       "type": "object",
       "properties": {
         "identifier": {
@@ -702,10 +65,7 @@
           "type": "string"
         },
         "email": {
-          "type": [
-            "null",
-            "string"
-          ]
+          "type": ["null", "string"]
         },
         "emailNotifications": {
           "type": "boolean"
@@ -713,11 +73,7 @@
       },
       "additionalProperties": false
     },
-    "policies": [
-      [
-        "drivers.write"
-      ]
-    ]
+    "policies": [["drivers.write"]]
   },
   {
     "id": "GetDriver",
@@ -738,12 +94,7 @@
     ],
     "headers": [],
     "body": null,
-    "policies": [
-      [
-        "drivers.read",
-        "drivers.read.own"
-      ]
-    ]
+    "policies": [["drivers.read", "drivers.read.own"]]
   },
   {
     "id": "UpdateDriver",
@@ -762,25 +113,16 @@
         }
       }
     ],
-    "headers": [
-      "If-Match"
-    ],
+    "headers": ["If-Match"],
     "body": {
-      "required": [
-        "displayName",
-        "email",
-        "emailNotifications"
-      ],
+      "required": ["displayName", "email", "emailNotifications"],
       "type": "object",
       "properties": {
         "displayName": {
           "type": "string"
         },
         "email": {
-          "type": [
-            "null",
-            "string"
-          ]
+          "type": ["null", "string"]
         },
         "emailNotifications": {
           "type": "boolean"
@@ -788,15 +130,11 @@
       },
       "additionalProperties": false
     },
-    "policies": [
-      [
-        "drivers.write"
-      ]
-    ]
+    "policies": [["drivers.write"]]
   },
   {
-    "id": "DeactivateDriver",
-    "label": "Deactivate Driver",
+    "id": "DeleteDriver",
+    "label": "Delete Driver",
     "group": "Drivers",
     "method": "DELETE",
     "path": "/api/v1/drivers/{id}",
@@ -811,668 +149,16 @@
         }
       }
     ],
-    "headers": [
-      "If-Match"
-    ],
+    "headers": ["If-Match"],
     "body": null,
-    "policies": [
-      [
-        "drivers.write"
-      ]
-    ]
+    "policies": [["drivers.write"]]
   },
   {
-    "id": "ListEngineeringCases",
-    "label": "List Engineering Cases",
-    "group": "Engineering",
-    "method": "GET",
-    "path": "/api/v1/engineering-escalations",
-    "parameters": [
-      {
-        "name": "page",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 2147483647,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      },
-      {
-        "name": "pageSize",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 100,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      },
-      {
-        "name": "status",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "type": "string"
-        }
-      }
-    ],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "knowledge.read"
-      ],
-      [
-        "escalations.read"
-      ]
-    ]
-  },
-  {
-    "id": "CreateEngineeringCase",
-    "label": "Create Engineering Case",
-    "group": "Engineering",
-    "method": "POST",
-    "path": "/api/v1/engineering-escalations",
-    "parameters": [],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": {
-      "required": [
-        "incidentId",
-        "investigationId"
-      ],
-      "type": "object",
-      "properties": {
-        "incidentId": {
-          "type": "string",
-          "format": "uuid"
-        },
-        "investigationId": {
-          "type": "string",
-          "format": "uuid"
-        }
-      },
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "knowledge.read"
-      ],
-      [
-        "escalations.write"
-      ]
-    ]
-  },
-  {
-    "id": "GetEngineeringCase",
-    "label": "Get Engineering Case",
-    "group": "Engineering",
-    "method": "GET",
-    "path": "/api/v1/engineering-escalations/{id}",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "knowledge.read"
-      ],
-      [
-        "escalations.read"
-      ]
-    ]
-  },
-  {
-    "id": "EngineeringCaseHistory",
-    "label": "Engineering Case History",
-    "group": "Engineering",
-    "method": "GET",
-    "path": "/api/v1/engineering-escalations/{id}/history",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      },
-      {
-        "name": "page",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 2147483647,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      },
-      {
-        "name": "pageSize",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 100,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      }
-    ],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "knowledge.read"
-      ],
-      [
-        "escalations.read"
-      ]
-    ]
-  },
-  {
-    "id": "EngineeringCaseEvents",
-    "label": "Engineering Case Events",
-    "group": "Engineering",
-    "method": "GET",
-    "path": "/api/v1/engineering-escalations/{id}/events",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      },
-      {
-        "name": "page",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 2147483647,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      },
-      {
-        "name": "pageSize",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 100,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      }
-    ],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "knowledge.read"
-      ],
-      [
-        "escalations.read"
-      ]
-    ]
-  },
-  {
-    "id": "AssignEngineeringCase",
-    "label": "Assign Engineering Case",
-    "group": "Engineering",
-    "method": "PUT",
-    "path": "/api/v1/engineering-escalations/{id}/assignment",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": {
-      "required": [
-        "assigneeId"
-      ],
-      "type": "object",
-      "properties": {
-        "assigneeId": {
-          "type": [
-            "null",
-            "string"
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "knowledge.read"
-      ],
-      [
-        "escalations.write"
-      ]
-    ]
-  },
-  {
-    "id": "AddEngineeringNote",
-    "label": "Add Engineering Note",
-    "group": "Engineering",
-    "method": "POST",
-    "path": "/api/v1/engineering-escalations/{id}/notes",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": {
-      "required": [
-        "text"
-      ],
-      "type": "object",
-      "properties": {
-        "text": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "knowledge.read"
-      ],
-      [
-        "escalations.write"
-      ]
-    ]
-  },
-  {
-    "id": "ChangeEngineeringStatus",
-    "label": "Change Engineering Status",
-    "group": "Engineering",
-    "method": "PUT",
-    "path": "/api/v1/engineering-escalations/{id}/status",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": {
-      "required": [
-        "status"
-      ],
-      "type": "object",
-      "properties": {
-        "status": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "knowledge.read"
-      ],
-      [
-        "escalations.write"
-      ]
-    ]
-  },
-  {
-    "id": "ProposeEngineeringResolution",
-    "label": "Propose Engineering Resolution",
-    "group": "Engineering",
-    "method": "POST",
-    "path": "/api/v1/engineering-escalations/{id}/resolutions",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": {
-      "required": [
-        "content",
-        "expectedFaultVersion"
-      ],
-      "type": "object",
-      "properties": {
-        "content": {
-          "required": [
-            "description",
-            "classificationId",
-            "classificationVersion",
-            "symptoms",
-            "references",
-            "remedies"
-          ],
-          "type": "object",
-          "properties": {
-            "description": {
-              "type": "string"
-            },
-            "classificationId": {
-              "type": "string"
-            },
-            "classificationVersion": {
-              "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
-              "format": "int64"
-            },
-            "symptoms": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "references": {
-              "type": "array",
-              "items": {
-                "required": [
-                  "id",
-                  "version"
-                ],
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "version": {
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "remedies": {
-              "type": "array",
-              "items": {
-                "required": [
-                  "id",
-                  "kind",
-                  "description",
-                  "approved",
-                  "model",
-                  "softwareVersion",
-                  "patch"
-                ],
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "kind": {
-                    "type": "string"
-                  },
-                  "description": {
-                    "type": "string"
-                  },
-                  "approved": {
-                    "type": "boolean"
-                  },
-                  "model": {
-                    "type": "string"
-                  },
-                  "softwareVersion": {
-                    "type": "string"
-                  },
-                  "patch": {
-                    "required": [
-                      "reference",
-                      "softwareVersion"
-                    ],
-                    "type": [
-                      "object",
-                      "null"
-                    ],
-                    "properties": {
-                      "reference": {
-                        "type": "string"
-                      },
-                      "softwareVersion": {
-                        "type": "string"
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                },
-                "additionalProperties": false
-              }
-            }
-          },
-          "additionalProperties": false
-        },
-        "expectedFaultVersion": {
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int64"
-        }
-      },
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "knowledge.read"
-      ],
-      [
-        "escalations.write"
-      ]
-    ]
-  },
-  {
-    "id": "ApproveEngineeringResolution",
-    "label": "Approve Engineering Resolution",
-    "group": "Engineering",
-    "method": "POST",
-    "path": "/api/v1/engineering-escalations/{id}/approvals",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": {
-      "type": "object",
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "knowledge.read"
-      ],
-      [
-        "escalations.write"
-      ],
-      [
-        "knowledge.publish"
-      ]
-    ]
-  },
-  {
-    "id": "ListDemoFaultCodes",
-    "label": "List Demo Fault Codes",
+    "id": "ListFaultCodes",
+    "label": "List Fault Codes",
     "group": "Fault codes",
     "method": "GET",
-    "path": "/api/v1/fault-code-catalog",
-    "parameters": [],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "knowledge.read"
-      ]
-    ]
-  },
-  {
-    "id": "ListFaults",
-    "label": "List Faults",
-    "group": "Fault definitions",
-    "method": "GET",
-    "path": "/api/v1/faults",
+    "path": "/api/v1/fault-codes",
     "parameters": [
       {
         "name": "page",
@@ -1482,10 +168,7 @@
           "maximum": 2147483647,
           "minimum": 1,
           "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
+          "type": ["integer", "string"],
           "format": "int32"
         }
       },
@@ -1497,10 +180,7 @@
           "maximum": 100,
           "minimum": 1,
           "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
+          "type": ["integer", "string"],
           "format": "int32"
         }
       },
@@ -1532,28 +212,18 @@
     ],
     "headers": [],
     "body": null,
-    "policies": [
-      [
-        "faults.read"
-      ]
-    ]
+    "policies": [["faults.read"]]
   },
   {
-    "id": "CreateFault",
-    "label": "Create Fault",
-    "group": "Fault definitions",
+    "id": "CreateFaultCode",
+    "label": "Create Fault Code",
+    "group": "Fault codes",
     "method": "POST",
-    "path": "/api/v1/faults",
+    "path": "/api/v1/fault-codes",
     "parameters": [],
-    "headers": [
-      "Idempotency-Key"
-    ],
+    "headers": ["Idempotency-Key"],
     "body": {
-      "required": [
-        "code",
-        "system",
-        "content"
-      ],
+      "required": ["code", "system", "content"],
       "type": "object",
       "properties": {
         "code": {
@@ -1581,10 +251,7 @@
             },
             "classificationVersion": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": ["integer", "string"],
               "format": "int64"
             },
             "symptoms": {
@@ -1596,10 +263,7 @@
             "references": {
               "type": "array",
               "items": {
-                "required": [
-                  "id",
-                  "version"
-                ],
+                "required": ["id", "version"],
                 "type": "object",
                 "properties": {
                   "id": {
@@ -1645,14 +309,8 @@
                     "type": "string"
                   },
                   "patch": {
-                    "required": [
-                      "reference",
-                      "softwareVersion"
-                    ],
-                    "type": [
-                      "object",
-                      "null"
-                    ],
+                    "required": ["reference", "softwareVersion"],
+                    "type": ["object", "null"],
                     "properties": {
                       "reference": {
                         "type": "string"
@@ -1673,18 +331,14 @@
       },
       "additionalProperties": false
     },
-    "policies": [
-      [
-        "faults.write"
-      ]
-    ]
+    "policies": [["faults.write"]]
   },
   {
-    "id": "GetFault",
-    "label": "Get Fault",
-    "group": "Fault definitions",
+    "id": "GetFaultCode",
+    "label": "Get Fault Code",
+    "group": "Fault codes",
     "method": "GET",
-    "path": "/api/v1/faults/{id}",
+    "path": "/api/v1/fault-codes/{id}",
     "parameters": [
       {
         "name": "id",
@@ -1698,18 +352,14 @@
     ],
     "headers": [],
     "body": null,
-    "policies": [
-      [
-        "faults.read"
-      ]
-    ]
+    "policies": [["faults.read"]]
   },
   {
-    "id": "UpdateFault",
-    "label": "Update Fault",
-    "group": "Fault definitions",
+    "id": "UpdateFaultCode",
+    "label": "Update Fault Code",
+    "group": "Fault codes",
     "method": "PUT",
-    "path": "/api/v1/faults/{id}",
+    "path": "/api/v1/fault-codes/{id}",
     "parameters": [
       {
         "name": "id",
@@ -1721,9 +371,7 @@
         }
       }
     ],
-    "headers": [
-      "If-Match"
-    ],
+    "headers": ["If-Match"],
     "body": {
       "required": [
         "description",
@@ -1743,10 +391,7 @@
         },
         "classificationVersion": {
           "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
+          "type": ["integer", "string"],
           "format": "int64"
         },
         "symptoms": {
@@ -1758,10 +403,7 @@
         "references": {
           "type": "array",
           "items": {
-            "required": [
-              "id",
-              "version"
-            ],
+            "required": ["id", "version"],
             "type": "object",
             "properties": {
               "id": {
@@ -1807,14 +449,8 @@
                 "type": "string"
               },
               "patch": {
-                "required": [
-                  "reference",
-                  "softwareVersion"
-                ],
-                "type": [
-                  "object",
-                  "null"
-                ],
+                "required": ["reference", "softwareVersion"],
+                "type": ["object", "null"],
                 "properties": {
                   "reference": {
                     "type": "string"
@@ -1832,18 +468,14 @@
       },
       "additionalProperties": false
     },
-    "policies": [
-      [
-        "faults.write"
-      ]
-    ]
+    "policies": [["faults.write"]]
   },
   {
-    "id": "RetireFault",
-    "label": "Retire Fault",
-    "group": "Fault definitions",
+    "id": "DeleteFaultCode",
+    "label": "Delete Fault Code",
+    "group": "Fault codes",
     "method": "DELETE",
-    "path": "/api/v1/faults/{id}",
+    "path": "/api/v1/fault-codes/{id}",
     "parameters": [
       {
         "name": "id",
@@ -1855,208 +487,9 @@
         }
       }
     ],
-    "headers": [
-      "If-Match"
-    ],
+    "headers": ["If-Match"],
     "body": null,
-    "policies": [
-      [
-        "faults.write"
-      ]
-    ]
-  },
-  {
-    "id": "FaultHistory",
-    "label": "Fault History",
-    "group": "Fault definitions",
-    "method": "GET",
-    "path": "/api/v1/faults/{id}/history",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      },
-      {
-        "name": "page",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 2147483647,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      },
-      {
-        "name": "pageSize",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 100,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      }
-    ],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "faults.read"
-      ]
-    ]
-  },
-  {
-    "id": "PublishFault",
-    "label": "Publish Fault",
-    "group": "Fault definitions",
-    "method": "POST",
-    "path": "/api/v1/faults/{id}/publications",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": null,
-    "policies": [
-      [
-        "knowledge.publish"
-      ]
-    ]
-  },
-  {
-    "id": "LookupApprovedFault",
-    "label": "Lookup Approved Fault",
-    "group": "Fault definitions",
-    "method": "GET",
-    "path": "/api/v1/faults/lookup",
-    "parameters": [
-      {
-        "name": "code",
-        "where": "query",
-        "required": true,
-        "schema": {
-          "type": "string"
-        }
-      },
-      {
-        "name": "system",
-        "where": "query",
-        "required": true,
-        "schema": {
-          "type": "string"
-        }
-      },
-      {
-        "name": "model",
-        "where": "query",
-        "required": true,
-        "schema": {
-          "type": "string"
-        }
-      },
-      {
-        "name": "software",
-        "where": "query",
-        "required": true,
-        "schema": {
-          "type": "string"
-        }
-      }
-    ],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "knowledge.read"
-      ]
-    ]
-  },
-  {
-    "id": "CreateIncident",
-    "label": "Create Incident",
-    "group": "Incidents",
-    "method": "POST",
-    "path": "/api/v1/incidents",
-    "parameters": [],
-    "headers": [
-      "Idempotency-Key"
-    ],
-    "body": {
-      "required": [
-        "vehicleId",
-        "driverId",
-        "sourceEventId",
-        "code",
-        "system",
-        "model",
-        "softwareVersion",
-        "occurredAt"
-      ],
-      "type": "object",
-      "properties": {
-        "vehicleId": {
-          "type": "string",
-          "format": "uuid"
-        },
-        "driverId": {
-          "type": "string",
-          "format": "uuid"
-        },
-        "sourceEventId": {
-          "type": "string"
-        },
-        "code": {
-          "type": "string"
-        },
-        "system": {
-          "type": "string"
-        },
-        "model": {
-          "type": "string"
-        },
-        "softwareVersion": {
-          "type": "string"
-        },
-        "occurredAt": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "faults.write"
-      ],
-      [
-        "knowledge.read"
-      ]
-    ]
+    "policies": [["faults.write"]]
   },
   {
     "id": "ListIncidents",
@@ -2073,10 +506,7 @@
           "maximum": 2147483647,
           "minimum": 1,
           "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
+          "type": ["integer", "string"],
           "format": "int32"
         }
       },
@@ -2088,10 +518,7 @@
           "maximum": 100,
           "minimum": 1,
           "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
+          "type": ["integer", "string"],
           "format": "int32"
         }
       },
@@ -2124,16 +551,40 @@
     "headers": [],
     "body": null,
     "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "knowledge.read"
-      ]
+      ["faults.read"],
+      ["vehicles.read", "vehicles.read.own"],
+      ["drivers.read", "drivers.read.own"],
+      ["knowledge.read"]
+    ]
+  },
+  {
+    "id": "CreateIncident",
+    "label": "Create Incident",
+    "group": "Incidents",
+    "method": "POST",
+    "path": "/api/v1/incidents",
+    "parameters": [],
+    "headers": ["Idempotency-Key"],
+    "body": {
+      "required": ["vehicleId", "code"],
+      "type": "object",
+      "properties": {
+        "vehicleId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "code": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "policies": [
+      ["faults.read"],
+      ["vehicles.read", "vehicles.read.own"],
+      ["drivers.read", "drivers.read.own"],
+      ["knowledge.read"],
+      ["faults.write"]
     ]
   },
   {
@@ -2156,24 +607,18 @@
     "headers": [],
     "body": null,
     "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "knowledge.read"
-      ]
+      ["faults.read"],
+      ["vehicles.read", "vehicles.read.own"],
+      ["drivers.read", "drivers.read.own"],
+      ["knowledge.read"]
     ]
   },
   {
-    "id": "IncidentHistory",
-    "label": "Incident History",
+    "id": "UpdateIncident",
+    "label": "Update Incident",
     "group": "Incidents",
-    "method": "GET",
-    "path": "/api/v1/incidents/{id}/history",
+    "method": "PUT",
+    "path": "/api/v1/incidents/{id}",
     "parameters": [
       {
         "name": "id",
@@ -2183,7 +628,64 @@
           "type": "string",
           "format": "uuid"
         }
+      }
+    ],
+    "headers": ["If-Match", "Idempotency-Key"],
+    "body": {
+      "required": ["status"],
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "resolution": {
+          "type": ["null", "string"]
+        }
       },
+      "additionalProperties": false
+    },
+    "policies": [
+      ["faults.read"],
+      ["vehicles.read", "vehicles.read.own"],
+      ["drivers.read", "drivers.read.own"],
+      ["knowledge.read"],
+      ["faults.write"]
+    ]
+  },
+  {
+    "id": "DeleteIncident",
+    "label": "Delete Incident",
+    "group": "Incidents",
+    "method": "DELETE",
+    "path": "/api/v1/incidents/{id}",
+    "parameters": [
+      {
+        "name": "id",
+        "where": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "headers": ["If-Match", "Idempotency-Key"],
+    "body": null,
+    "policies": [
+      ["faults.read"],
+      ["vehicles.read", "vehicles.read.own"],
+      ["drivers.read", "drivers.read.own"],
+      ["knowledge.read"],
+      ["faults.write"]
+    ]
+  },
+  {
+    "id": "ListDriverNotifications",
+    "label": "List Driver Notifications",
+    "group": "Notifications",
+    "method": "GET",
+    "path": "/api/v1/notifications",
+    "parameters": [
       {
         "name": "page",
         "where": "query",
@@ -2192,10 +694,7 @@
           "maximum": 2147483647,
           "minimum": 1,
           "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
+          "type": ["integer", "string"],
           "format": "int32"
         }
       },
@@ -2207,300 +706,7 @@
           "maximum": 100,
           "minimum": 1,
           "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      }
-    ],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "knowledge.read"
-      ]
-    ]
-  },
-  {
-    "id": "TransitionIncident",
-    "label": "Transition Incident",
-    "group": "Incidents",
-    "method": "PUT",
-    "path": "/api/v1/incidents/{id}/status",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": {
-      "required": [
-        "status"
-      ],
-      "type": "object",
-      "properties": {
-        "status": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "faults.write"
-      ]
-    ]
-  },
-  {
-    "id": "FailIncidentWork",
-    "label": "Fail Incident Work",
-    "group": "Incidents",
-    "method": "POST",
-    "path": "/api/v1/incidents/{id}/failures",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": {
-      "required": [
-        "code"
-      ],
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "faults.write"
-      ]
-    ]
-  },
-  {
-    "id": "RetryIncidentWork",
-    "label": "Retry Incident Work",
-    "group": "Incidents",
-    "method": "POST",
-    "path": "/api/v1/incidents/{id}/retries",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": null,
-    "policies": [
-      [
-        "faults.write"
-      ]
-    ]
-  },
-  {
-    "id": "EscalateIncident",
-    "label": "Escalate Incident",
-    "group": "Incidents",
-    "method": "POST",
-    "path": "/api/v1/incidents/{id}/escalations",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": null,
-    "policies": [
-      [
-        "escalations.write"
-      ]
-    ]
-  },
-  {
-    "id": "InvestigateIncident",
-    "label": "Investigate Incident",
-    "group": "Incidents",
-    "method": "POST",
-    "path": "/api/v1/incidents/{id}/investigations",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": {
-      "type": "object",
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "knowledge.read"
-      ],
-      [
-        "faults.write"
-      ]
-    ]
-  },
-  {
-    "id": "ListIncidentInvestigations",
-    "label": "List Incident Investigations",
-    "group": "Agent activity",
-    "method": "GET",
-    "path": "/api/v1/incidents/{id}/investigations",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      },
-      {
-        "name": "Page",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 2147483647,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      },
-      {
-        "name": "PageSize",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 100,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      }
-    ],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "knowledge.read"
-      ]
-    ]
-  },
-  {
-    "id": "ListDriverNotifications",
-    "label": "List Driver Notifications",
-    "group": "Notifications",
-    "method": "GET",
-    "path": "/api/v1/notifications",
-    "parameters": [
-      {
-        "name": "Page",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 2147483647,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      },
-      {
-        "name": "PageSize",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 100,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
+          "type": ["integer", "string"],
           "format": "int32"
         }
       },
@@ -2526,120 +732,25 @@
     "headers": [],
     "body": null,
     "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "drivers.read",
-        "drivers.read.own"
-      ],
-      [
-        "knowledge.read"
-      ]
+      ["faults.read"],
+      ["vehicles.read", "vehicles.read.own"],
+      ["drivers.read", "drivers.read.own"],
+      ["knowledge.read"]
     ]
   },
   {
-    "id": "ListIncidentNotifications",
-    "label": "List Incident Notifications",
-    "group": "Notifications",
-    "method": "GET",
-    "path": "/api/v1/incidents/{id}/notifications",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      },
-      {
-        "name": "page",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 2147483647,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      },
-      {
-        "name": "pageSize",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 100,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      }
-    ],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "drivers.read",
-        "drivers.read.own"
-      ],
-      [
-        "knowledge.read"
-      ]
-    ]
-  },
-  {
-    "id": "EnqueueIncidentNotification",
-    "label": "Enqueue Incident Notification",
+    "id": "CreateNotification",
+    "label": "Create Notification",
     "group": "Notifications",
     "method": "POST",
-    "path": "/api/v1/incidents/{id}/notifications",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
+    "path": "/api/v1/notifications",
+    "parameters": [],
+    "headers": ["Idempotency-Key"],
     "body": {
-      "required": [
-        "sourceKind",
-        "sourceId"
-      ],
+      "required": ["incidentId"],
       "type": "object",
       "properties": {
-        "sourceKind": {
-          "type": "string"
-        },
-        "sourceId": {
+        "incidentId": {
           "type": "string",
           "format": "uuid"
         }
@@ -2647,23 +758,11 @@
       "additionalProperties": false
     },
     "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "drivers.read",
-        "drivers.read.own"
-      ],
-      [
-        "knowledge.read"
-      ],
-      [
-        "faults.write"
-      ]
+      ["faults.read"],
+      ["vehicles.read", "vehicles.read.own"],
+      ["drivers.read", "drivers.read.own"],
+      ["knowledge.read"],
+      ["faults.write"]
     ]
   },
   {
@@ -2686,28 +785,18 @@
     "headers": [],
     "body": null,
     "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "drivers.read",
-        "drivers.read.own"
-      ],
-      [
-        "knowledge.read"
-      ]
+      ["faults.read"],
+      ["vehicles.read", "vehicles.read.own"],
+      ["drivers.read", "drivers.read.own"],
+      ["knowledge.read"]
     ]
   },
   {
-    "id": "NotificationHistory",
-    "label": "Notification History",
+    "id": "UpdateNotification",
+    "label": "Update Notification",
     "group": "Notifications",
-    "method": "GET",
-    "path": "/api/v1/notifications/{id}/history",
+    "method": "PUT",
+    "path": "/api/v1/notifications/{id}",
     "parameters": [
       {
         "name": "id",
@@ -2717,7 +806,61 @@
           "type": "string",
           "format": "uuid"
         }
+      }
+    ],
+    "headers": ["If-Match", "Idempotency-Key"],
+    "body": {
+      "required": ["state"],
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string"
+        }
       },
+      "additionalProperties": false
+    },
+    "policies": [
+      ["faults.read"],
+      ["vehicles.read", "vehicles.read.own"],
+      ["drivers.read", "drivers.read.own"],
+      ["knowledge.read"],
+      ["faults.write"]
+    ]
+  },
+  {
+    "id": "DeleteNotification",
+    "label": "Delete Notification",
+    "group": "Notifications",
+    "method": "DELETE",
+    "path": "/api/v1/notifications/{id}",
+    "parameters": [
+      {
+        "name": "id",
+        "where": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "headers": ["If-Match", "Idempotency-Key"],
+    "body": null,
+    "policies": [
+      ["faults.read"],
+      ["vehicles.read", "vehicles.read.own"],
+      ["drivers.read", "drivers.read.own"],
+      ["knowledge.read"],
+      ["faults.write"]
+    ]
+  },
+  {
+    "id": "ListOntology",
+    "label": "List Ontology",
+    "group": "Ontology",
+    "method": "GET",
+    "path": "/api/v1/ontology",
+    "parameters": [
       {
         "name": "page",
         "where": "query",
@@ -2726,10 +869,7 @@
           "maximum": 2147483647,
           "minimum": 1,
           "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
+          "type": ["integer", "string"],
           "format": "int32"
         }
       },
@@ -2741,257 +881,31 @@
           "maximum": 100,
           "minimum": 1,
           "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
+          "type": ["integer", "string"],
           "format": "int32"
         }
       }
     ],
     "headers": [],
     "body": null,
-    "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "drivers.read",
-        "drivers.read.own"
-      ],
-      [
-        "knowledge.read"
-      ]
-    ]
+    "policies": [["knowledge.read"]]
   },
   {
-    "id": "DispatchNotification",
-    "label": "Dispatch Notification",
-    "group": "Notifications",
-    "method": "POST",
-    "path": "/api/v1/notifications/{id}/dispatches",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": {
-      "type": "object",
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "drivers.read",
-        "drivers.read.own"
-      ],
-      [
-        "knowledge.read"
-      ],
-      [
-        "faults.write"
-      ]
-    ]
-  },
-  {
-    "id": "CancelNotification",
-    "label": "Cancel Notification",
-    "group": "Notifications",
-    "method": "POST",
-    "path": "/api/v1/notifications/{id}/cancellations",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": {
-      "type": "object",
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "faults.read"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "drivers.read",
-        "drivers.read.own"
-      ],
-      [
-        "knowledge.read"
-      ],
-      [
-        "faults.write"
-      ]
-    ]
-  },
-  {
-    "id": "GetNotificationPreferences",
-    "label": "Get Notification Preferences",
-    "group": "Notifications",
-    "method": "GET",
-    "path": "/api/v1/drivers/{id}/notification-preferences",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "drivers.read",
-        "drivers.read.own"
-      ]
-    ]
-  },
-  {
-    "id": "UpdateNotificationPreferences",
-    "label": "Update Notification Preferences",
-    "group": "Notifications",
-    "method": "PUT",
-    "path": "/api/v1/drivers/{id}/notification-preferences",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": {
-      "required": [
-        "enabled",
-        "contact"
-      ],
-      "type": "object",
-      "properties": {
-        "enabled": {
-          "type": "boolean"
-        },
-        "contact": {
-          "type": [
-            "null",
-            "string"
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "drivers.read",
-        "drivers.read.own"
-      ],
-      [
-        "drivers.write"
-      ]
-    ]
-  },
-  {
-    "id": "ListOntologyRelationships",
-    "label": "List Ontology Relationships",
-    "group": "Ontology",
-    "method": "GET",
-    "path": "/api/v1/ontology/relationships",
-    "parameters": [],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "knowledge.read"
-      ]
-    ]
-  },
-  {
-    "id": "GetOntologyDraft",
-    "label": "Get Ontology Draft",
-    "group": "Ontology",
-    "method": "GET",
-    "path": "/api/v1/ontology/draft",
-    "parameters": [],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "knowledge.publish"
-      ]
-    ]
-  },
-  {
-    "id": "CreateOntologyDraft",
-    "label": "Create Ontology Draft",
+    "id": "CreateOntology",
+    "label": "Create Ontology",
     "group": "Ontology",
     "method": "POST",
-    "path": "/api/v1/ontology/draft",
+    "path": "/api/v1/ontology",
     "parameters": [],
-    "headers": [
-      "Idempotency-Key"
-    ],
+    "headers": ["Idempotency-Key"],
     "body": {
-      "required": [
-        "concepts",
-        "relationships",
-        "rules"
-      ],
+      "required": ["concepts", "relationships", "rules"],
       "type": "object",
       "properties": {
         "concepts": {
           "type": "array",
           "items": {
-            "required": [
-              "id",
-              "kind",
-              "system",
-              "label",
-              "allowedRemedyKinds"
-            ],
+            "required": ["id", "kind", "system", "label", "allowedRemedyKinds"],
             "type": "object",
             "properties": {
               "id": {
@@ -3019,12 +933,7 @@
         "relationships": {
           "type": "array",
           "items": {
-            "required": [
-              "id",
-              "kind",
-              "from",
-              "to"
-            ],
+            "required": ["id", "kind", "from", "to"],
             "type": "object",
             "properties": {
               "id": {
@@ -3085,23 +994,14 @@
               },
               "priority": {
                 "pattern": "^-?(?:0|[1-9]\\d*)$",
-                "type": [
-                  "integer",
-                  "string"
-                ],
+                "type": ["integer", "string"],
                 "format": "int32"
               },
               "model": {
-                "type": [
-                  "null",
-                  "string"
-                ]
+                "type": ["null", "string"]
               },
               "softwareVersion": {
-                "type": [
-                  "null",
-                  "string"
-                ]
+                "type": ["null", "string"]
               }
             },
             "additionalProperties": false
@@ -3110,40 +1010,55 @@
       },
       "additionalProperties": false
     },
-    "policies": [
-      [
-        "knowledge.publish"
-      ]
-    ]
+    "policies": [["knowledge.publish"]]
   },
   {
-    "id": "UpdateOntologyDraft",
-    "label": "Update Ontology Draft",
+    "id": "GetOntology",
+    "label": "Get Ontology",
+    "group": "Ontology",
+    "method": "GET",
+    "path": "/api/v1/ontology/{id}",
+    "parameters": [
+      {
+        "name": "id",
+        "where": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "headers": [],
+    "body": null,
+    "policies": [["knowledge.read"]]
+  },
+  {
+    "id": "UpdateOntology",
+    "label": "Update Ontology",
     "group": "Ontology",
     "method": "PUT",
-    "path": "/api/v1/ontology/draft",
-    "parameters": [],
-    "headers": [
-      "If-Match"
+    "path": "/api/v1/ontology/{id}",
+    "parameters": [
+      {
+        "name": "id",
+        "where": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
     ],
+    "headers": ["If-Match"],
     "body": {
-      "required": [
-        "concepts",
-        "relationships",
-        "rules"
-      ],
+      "required": ["concepts", "relationships", "rules"],
       "type": "object",
       "properties": {
         "concepts": {
           "type": "array",
           "items": {
-            "required": [
-              "id",
-              "kind",
-              "system",
-              "label",
-              "allowedRemedyKinds"
-            ],
+            "required": ["id", "kind", "system", "label", "allowedRemedyKinds"],
             "type": "object",
             "properties": {
               "id": {
@@ -3171,12 +1086,7 @@
         "relationships": {
           "type": "array",
           "items": {
-            "required": [
-              "id",
-              "kind",
-              "from",
-              "to"
-            ],
+            "required": ["id", "kind", "from", "to"],
             "type": "object",
             "properties": {
               "id": {
@@ -3237,23 +1147,14 @@
               },
               "priority": {
                 "pattern": "^-?(?:0|[1-9]\\d*)$",
-                "type": [
-                  "integer",
-                  "string"
-                ],
+                "type": ["integer", "string"],
                 "format": "int32"
               },
               "model": {
-                "type": [
-                  "null",
-                  "string"
-                ]
+                "type": ["null", "string"]
               },
               "softwareVersion": {
-                "type": [
-                  "null",
-                  "string"
-                ]
+                "type": ["null", "string"]
               }
             },
             "additionalProperties": false
@@ -3262,160 +1163,14 @@
       },
       "additionalProperties": false
     },
-    "policies": [
-      [
-        "knowledge.publish"
-      ]
-    ]
+    "policies": [["knowledge.publish"]]
   },
   {
-    "id": "OntologyHistory",
-    "label": "Ontology History",
+    "id": "DeleteOntology",
+    "label": "Delete Ontology",
     "group": "Ontology",
-    "method": "GET",
-    "path": "/api/v1/ontology/history",
-    "parameters": [
-      {
-        "name": "page",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 2147483647,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      },
-      {
-        "name": "pageSize",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 100,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      }
-    ],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "knowledge.publish"
-      ]
-    ]
-  },
-  {
-    "id": "PublishOntology",
-    "label": "Publish Ontology",
-    "group": "Ontology",
-    "method": "POST",
-    "path": "/api/v1/ontology/publications",
-    "parameters": [],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": null,
-    "policies": [
-      [
-        "knowledge.publish"
-      ]
-    ]
-  },
-  {
-    "id": "GetApprovedOntology",
-    "label": "Get Approved Ontology",
-    "group": "Ontology",
-    "method": "GET",
-    "path": "/api/v1/ontology/publications/{version}",
-    "parameters": [
-      {
-        "name": "version",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": "integer",
-          "format": "int64"
-        }
-      }
-    ],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "knowledge.read"
-      ]
-    ]
-  },
-  {
-    "id": "EvaluateOntology",
-    "label": "Evaluate Ontology",
-    "group": "Ontology",
-    "method": "POST",
-    "path": "/api/v1/ontology/evaluations",
-    "parameters": [],
-    "headers": [
-      "Idempotency-Key"
-    ],
-    "body": {
-      "required": [
-        "publicationVersion",
-        "system",
-        "symptoms",
-        "model",
-        "softwareVersion"
-      ],
-      "type": "object",
-      "properties": {
-        "publicationVersion": {
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int64"
-        },
-        "system": {
-          "type": "string"
-        },
-        "symptoms": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "model": {
-          "type": "string"
-        },
-        "softwareVersion": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "knowledge.read"
-      ]
-    ]
-  },
-  {
-    "id": "GetOntologyEvaluation",
-    "label": "Get Ontology Evaluation",
-    "group": "Ontology",
-    "method": "GET",
-    "path": "/api/v1/ontology/evaluations/{id}",
+    "method": "DELETE",
+    "path": "/api/v1/ontology/{id}",
     "parameters": [
       {
         "name": "id",
@@ -3427,69 +1182,9 @@
         }
       }
     ],
-    "headers": [],
+    "headers": ["If-Match", "Idempotency-Key"],
     "body": null,
-    "policies": [
-      [
-        "knowledge.read"
-      ]
-    ]
-  },
-  {
-    "id": "GetOperationalHealth",
-    "label": "Get Operational Health",
-    "group": "Operational health",
-    "method": "GET",
-    "path": "/api/v1/admin/health",
-    "parameters": [],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "integrations.manage"
-      ]
-    ]
-  },
-  {
-    "id": "DispatchVehicleFault",
-    "label": "Dispatch Vehicle Fault",
-    "group": "Vehicles",
-    "method": "POST",
-    "path": "/api/v1/vehicle-fault-dispatches",
-    "parameters": [],
-    "headers": [
-      "Idempotency-Key"
-    ],
-    "body": {
-      "required": [
-        "vehicleId",
-        "code"
-      ],
-      "type": "object",
-      "properties": {
-        "vehicleId": {
-          "type": "string",
-          "format": "uuid"
-        },
-        "code": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "faults.write"
-      ],
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ],
-      [
-        "drivers.read",
-        "drivers.read.own"
-      ]
-    ]
+    "policies": [["knowledge.publish"]]
   },
   {
     "id": "ListVehicles",
@@ -3514,10 +1209,7 @@
           "maximum": 2147483647,
           "minimum": 1,
           "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
+          "type": ["integer", "string"],
           "format": "int32"
         }
       },
@@ -3529,22 +1221,14 @@
           "maximum": 100,
           "minimum": 1,
           "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
+          "type": ["integer", "string"],
           "format": "int32"
         }
       }
     ],
     "headers": [],
     "body": null,
-    "policies": [
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ]
-    ]
+    "policies": [["vehicles.read", "vehicles.read.own"]]
   },
   {
     "id": "CreateVehicle",
@@ -3553,14 +1237,9 @@
     "method": "POST",
     "path": "/api/v1/vehicles",
     "parameters": [],
-    "headers": [
-      "Idempotency-Key"
-    ],
+    "headers": ["Idempotency-Key"],
     "body": {
-      "required": [
-        "identifier",
-        "system"
-      ],
+      "required": ["identifier", "system"],
       "type": "object",
       "properties": {
         "identifier": {
@@ -3572,11 +1251,7 @@
       },
       "additionalProperties": false
     },
-    "policies": [
-      [
-        "vehicles.write"
-      ]
-    ]
+    "policies": [["vehicles.write"]]
   },
   {
     "id": "GetVehicle",
@@ -3597,12 +1272,7 @@
     ],
     "headers": [],
     "body": null,
-    "policies": [
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ]
-    ]
+    "policies": [["vehicles.read", "vehicles.read.own"]]
   },
   {
     "id": "UpdateVehicle",
@@ -3621,14 +1291,9 @@
         }
       }
     ],
-    "headers": [
-      "If-Match"
-    ],
+    "headers": ["If-Match"],
     "body": {
-      "required": [
-        "identifier",
-        "system"
-      ],
+      "required": ["identifier", "system"],
       "type": "object",
       "properties": {
         "identifier": {
@@ -3640,15 +1305,11 @@
       },
       "additionalProperties": false
     },
-    "policies": [
-      [
-        "vehicles.write"
-      ]
-    ]
+    "policies": [["vehicles.write"]]
   },
   {
-    "id": "DeactivateVehicle",
-    "label": "Deactivate Vehicle",
+    "id": "DeleteVehicle",
+    "label": "Delete Vehicle",
     "group": "Vehicles",
     "method": "DELETE",
     "path": "/api/v1/vehicles/{id}",
@@ -3663,152 +1324,8 @@
         }
       }
     ],
-    "headers": [
-      "If-Match"
-    ],
+    "headers": ["If-Match"],
     "body": null,
-    "policies": [
-      [
-        "vehicles.write"
-      ]
-    ]
-  },
-  {
-    "id": "ListVehicleAssociations",
-    "label": "List Vehicle Associations",
-    "group": "Vehicles",
-    "method": "GET",
-    "path": "/api/v1/vehicles/{id}/associations",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      },
-      {
-        "name": "page",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 2147483647,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      },
-      {
-        "name": "pageSize",
-        "where": "query",
-        "required": false,
-        "schema": {
-          "maximum": 100,
-          "minimum": 1,
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
-          "type": [
-            "integer",
-            "string"
-          ],
-          "format": "int32"
-        }
-      }
-    ],
-    "headers": [],
-    "body": null,
-    "policies": [
-      [
-        "vehicles.read",
-        "vehicles.read.own"
-      ]
-    ]
-  },
-  {
-    "id": "AssociateVehicle",
-    "label": "Associate Vehicle",
-    "group": "Vehicles",
-    "method": "POST",
-    "path": "/api/v1/vehicles/{id}/associations",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match",
-      "Idempotency-Key"
-    ],
-    "body": {
-      "required": [
-        "driverId"
-      ],
-      "type": "object",
-      "properties": {
-        "driverId": {
-          "type": "string",
-          "format": "uuid"
-        }
-      },
-      "additionalProperties": false
-    },
-    "policies": [
-      [
-        "vehicles.write"
-      ],
-      [
-        "drivers.write"
-      ]
-    ]
-  },
-  {
-    "id": "EndVehicleAssociation",
-    "label": "End Vehicle Association",
-    "group": "Vehicles",
-    "method": "DELETE",
-    "path": "/api/v1/vehicles/{id}/associations/{associationId}",
-    "parameters": [
-      {
-        "name": "id",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      },
-      {
-        "name": "associationId",
-        "where": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
-    ],
-    "headers": [
-      "If-Match"
-    ],
-    "body": null,
-    "policies": [
-      [
-        "vehicles.write"
-      ],
-      [
-        "drivers.write"
-      ]
-    ]
+    "policies": [["vehicles.write"]]
   }
 ]

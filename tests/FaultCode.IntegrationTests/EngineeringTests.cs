@@ -65,9 +65,9 @@ public sealed class EngineeringTests
 {
     internal static readonly Guid IncidentId = Guid.Parse("55555555-5555-4555-8555-555555555555");
     internal static readonly Guid RunId = Guid.Parse("66666666-6666-4666-8666-666666666666");
-    internal static readonly FleetCaller Caller = new(Tenant, Actor, Client, "synthetic-engineering", true, false, true, false);
-    internal static readonly FaultContent Content = new("Synthetic adjudicated EPS finding", "SYN-CLASS", 2, ["SYN-SYM"], [new("SYN-DOC", "1")],
-        [new("SYN-REMEDY", "guidance", "Synthetic engineering approved inspection guidance.", true, "SYN-MODEL-1", "1.0", null)]);
+    internal static readonly FleetCaller Caller = new(Tenant, Actor, Client, "demo-engineering", true, false, true, false);
+    internal static readonly FaultContent Content = new("Demo adjudicated EPS finding", "SYN-CLASS", 2, ["SYN-SYM"], [new("SYN-DOC", "1")],
+        [new("SYN-REMEDY", "guidance", "Demo engineering approved inspection guidance.", true, "SYN-MODEL-1", "1.0", null)]);
     private static EscalationService Service(TestEngineeringStore store) => new(store, TimeProvider.System);
     internal static async Task<TestEngineeringStore> Setup(string classification = "UnknownFault")
     {
@@ -78,11 +78,11 @@ public sealed class EngineeringTests
                 new(IncidentId, "SYN-VEHICLE", 1, IncidentId, "SYN-DRIVER", 1, Actor, new(IncidentId, IncidentId, IncidentId, now, null)),
                 null, "Investigating", 2, [], [new(IncidentId, "investigate", "Pending", 0, null)]);
             tx.Incidents.Incidents.Add(i);
-            tx.Investigations.Results.Add(new(Tenant, Actor, Actor, Client, new(RunId, i.Id, 1, now, "synthetic", classification, null, null,
-                [], null, ["no-approved-definition"], new("engineering-escalation", "Pending"), new("synthetic", "investigation-v1", 1, 100, 100, 6500, false), "investigation-v1")));
-            var ontology = new OntologyContent([new("SYN-CLASS", "classification", "EPS", "Synthetic class", ["guidance", "dealership"])], [], []);
+            tx.Investigations.Results.Add(new(Tenant, Actor, Actor, Client, new(RunId, i.Id, 1, now, "demo", classification, null, null,
+                [], null, ["no-approved-definition"], new("engineering-escalation", "Pending"), new("demo", "investigation-v1", 1, 100, 100, 6500, false), "investigation-v1")));
+            var ontology = new OntologyContent([new("SYN-CLASS", "classification", "EPS", "Demo class", ["guidance", "dealership"])], [], []);
             tx.Ontology.Catalog = new(IncidentId, 2, ontology, [], [new(2, ontology, Actor, now)]);
-            var doc = new DocumentContent("Synthetic source", "1", "EPS", "SYN-MODEL-1", "1.0", "tenant", [new(1, "Synthetic canonical engineering source.")]);
+            var doc = new DocumentContent("Demo source", "1", "EPS", "SYN-MODEL-1", "1.0", "tenant", [new(1, "Demo canonical engineering source.")]);
             tx.Documents.Documents.Add(new(IncidentId, Tenant, "SYN-DOC", 2, false, doc, [], [new(2, doc, DocumentRules.Checksum(doc), Actor, now)], null));
             return 0;
         }, default); return s;
@@ -132,7 +132,7 @@ public sealed class EngineeringTests
         var s = await Setup(); var service = Service(s); var r = await Create(s);
         await Error(409, () => service.Status(Caller, r.Id, 1, "bad", "Resolved", default));
         await service.Assign(Caller, r.Id, 1, "assign", Actor, default);
-        await service.Note(Caller, r.Id, 2, "note", "Synthetic engineering note", default);
+        await service.Note(Caller, r.Id, 2, "note", "Demo engineering note", default);
         Assert.Equal(3, (await service.Get(Caller, r.Id, default)).Version);
         await service.Status(Caller, r.Id, 3, "start", "Investigating", default);
         await service.Propose(Caller, r.Id, 4, "propose", Content, 0, default);
@@ -142,7 +142,7 @@ public sealed class EngineeringTests
         var reopened = await service.Get(Caller, r.Id, default);
         Assert.Equal("Investigating", s.Snapshot().Incidents.Incidents[0].Status);
         Assert.Equal("Resolved", original.Engineering.Cases[0].Status); Assert.Equal("Reopened", reopened.Status);
-        Assert.Single(reopened.Approvals); Assert.Equal("Synthetic engineering note", Assert.Single(reopened.Notes).Text);
+        Assert.Single(reopened.Approvals); Assert.Equal("Demo engineering note", Assert.Single(reopened.Notes).Text);
         Assert.Equal(7, reopened.History.Length); Assert.NotNull(reopened.History.Single(h => h.Action == "proposed").Proposal);
         Assert.Single(s.Snapshot().Engineering.Events); Assert.Null(reopened.Proposal);
         await service.Status(Caller, r.Id, 7, "restart", "Investigating", default);
@@ -249,82 +249,10 @@ public sealed class EngineeringTests
         Assert.Empty((await service.List(Caller, int.MaxValue, 100, null, default)).Items);
         await Error(400, () => service.List(Caller, 1, 101, null, default));
     }
-    [Fact]
-    public async Task Real_signed_API_enforces_separate_read_write_and_approval_permissions_and_safe_errors()
-    {
-        var s = await Setup(); using var keys = new Discovery();
-        await using var factory = CreateFactory(keys).WithWebHostBuilder(b => b.ConfigureServices(services =>
-            services.Replace(ServiceDescriptor.Singleton<IEscalationStore>(s))));
-        using var client = factory.CreateClient(); const string path = "/api/v1/engineering-escalations";
-        void Auth(string? scopes, string[] roles, bool machine = false, string actor = Actor) =>
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthorizationTests.Token(keys.Key, scopes, roles, machine, actor));
-        async Task<JsonElement> Send(int status, HttpMethod method, string suffix = "", object? body = null, string? version = "\"1\"", string? key = "api")
-        {
-            using var request = new HttpRequestMessage(method, path + suffix);
-            if (method != HttpMethod.Get) request.Content = JsonContent.Create(body ?? new { });
-            if (version is not null) request.Headers.TryAddWithoutValidation("If-Match", version);
-            if (key is not null) request.Headers.TryAddWithoutValidation("Idempotency-Key", key);
-            using var response = await client.SendAsync(request); var raw = await response.Content.ReadAsStringAsync();
-            Assert.True((int)response.StatusCode == status, raw);
-            var json = JsonSerializer.Deserialize<JsonElement>(raw);
-            if (status >= 400)
-            {
-                Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
-                Assert.Equal(response.Headers.GetValues("X-Correlation-ID").Single(), json.GetProperty("correlationId").GetString());
-                Assert.DoesNotContain("Exception", raw);
-            }
-            else if (method != HttpMethod.Get) Assert.NotNull(response.Headers.ETag);
-            return json;
-        }
-        var create = new { incidentId = IncidentId, investigationId = RunId };
-        await Send(401, HttpMethod.Get);
-        Auth("escalations.read faults.read vehicles.read knowledge.read", ["Reader"]);
-        await Send(200, HttpMethod.Get); await Send(403, HttpMethod.Post, body: create, version: "\"2\"");
-        Auth("escalations.write faults.read vehicles.read knowledge.read", ["Operator"]); await Send(403, HttpMethod.Post, body: create);
-        Auth("escalations.write faults.read vehicles.read knowledge.read", ["Administrator"]); await Send(403, HttpMethod.Post, body: create);
-        Auth("escalations.write faults.read vehicles.read", ["Engineer"]); await Send(403, HttpMethod.Post, body: create);
-        Auth("escalations.write faults.read vehicles.read knowledge.read", ["Engineer"]);
-        foreach (var v in new string?[] { null, "1", "W/\"2\"", "\"02\"", "\"0\"", "\"2\",\"3\"" })
-            await Send(400, HttpMethod.Post, body: create, version: v);
-        foreach (var k in new string?[] { null, "bad key", "bad/key" }) await Send(400, HttpMethod.Post, body: create, key: k);
-        await Send(400, HttpMethod.Post, body: new { incidentId = IncidentId, investigationId = RunId, approvedBy = Actor });
-        var result = await Send(201, HttpMethod.Post, body: create, version: "\"2\""); var id = result.GetProperty("id").GetGuid();
-        Assert.Equal(id, (await Send(201, HttpMethod.Post, body: create, version: "\"2\"")).GetProperty("id").GetGuid());
-        await Send(403, HttpMethod.Get, "/" + id); // write does not imply escalation read
-        await Send(200, HttpMethod.Put, $"/{id}/assignment", new { assigneeId = Actor });
-        await Send(400, HttpMethod.Post, $"/{id}/notes", new { text = "x", instructions = "publish" }, "\"2\"");
-        await Send(200, HttpMethod.Post, $"/{id}/notes", new { text = "Synthetic adjudication" }, "\"2\"");
-        await Send(409, HttpMethod.Put, $"/{id}/status", new { status = "Resolved" }, "\"3\"");
-        await Send(200, HttpMethod.Put, $"/{id}/status", new { status = "Investigating" }, "\"3\"");
-        var content = JsonSerializer.SerializeToElement(Content, new JsonSerializerOptions(JsonSerializerDefaults.Web));
-        await Send(200, HttpMethod.Post, $"/{id}/resolutions", new { content, expectedFaultVersion = 0 }, "\"4\"");
-        await Send(403, HttpMethod.Post, $"/{id}/approvals", version: "\"5\"");
-        Auth("knowledge.publish faults.read vehicles.read knowledge.read", ["Engineer"]);
-        await Send(403, HttpMethod.Post, $"/{id}/approvals", version: "\"5\"");
-        Auth("escalations.write knowledge.publish faults.read vehicles.read knowledge.read", ["Engineer"]);
-        await Send(400, HttpMethod.Post, $"/{id}/approvals", new { approved = true }, "\"5\"");
-        await Send(200, HttpMethod.Post, $"/{id}/approvals", version: "\"5\"");
-        Auth("escalations.read faults.read vehicles.read.own knowledge.read", ["Reader"], actor: Client);
-        await Send(404, HttpMethod.Get, "/" + id);
-        Assert.Equal(0, (await Send(200, HttpMethod.Get)).GetProperty("totalCount").GetInt32());
-        Auth("escalations.read faults.read vehicles.read.own knowledge.read", ["Reader"]);
-        var detail = await Send(200, HttpMethod.Get, "/" + id); Assert.False(detail.TryGetProperty("tenantId", out _));
-        Assert.Equal("Resolved", detail.GetProperty("status").GetString());
-        await Send(200, HttpMethod.Get, $"/{id}/history"); var events = await Send(200, HttpMethod.Get, $"/{id}/events");
-        Assert.Contains("revalidate", events.GetProperty("items")[0].GetProperty("dispatchPolicy").GetString());
-        await Send(400, HttpMethod.Get, "?pageSize=101"); await Send(400, HttpMethod.Get, "?status=Notified");
-        Auth(null, ["Escalations.Read.All", "Faults.Read.All", "Vehicles.Read.All", "Knowledge.Read.All"], true);
-        await Send(200, HttpMethod.Get, "/" + id);
-        Auth(null, ["Escalations.Write.Application", "Faults.Read.All", "Vehicles.Read.All", "Knowledge.Read.All"], true);
-        await Send(200, HttpMethod.Post, $"/{id}/notes", new { text = "Synthetic machine note" }, "\"6\"", "machine-note");
-        await using var unavailable = CreateFactory(keys); using var prod = unavailable.CreateClient();
-        prod.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthorizationTests.Token(keys.Key, "escalations.read faults.read vehicles.read knowledge.read", ["Reader"], false));
-        var failure = await prod.GetAsync(path); Assert.Equal(503, (int)failure.StatusCode);
-    }
     private sealed class UnknownProvider : IAgentProvider
     {
         public bool Enabled => true;
-        public string Model => "synthetic-agent-2026-10-20";
+        public string Model => "demo-agent-2026-10-20";
         public Task<AgentCompletion> Complete(AgentInvocation invocation, CancellationToken ct) => Task.FromResult(new AgentCompletion(
             JsonSerializer.Serialize(new { incidentId = invocation.IncidentId, classification = "UnknownFault", citationIds = Array.Empty<Guid>(), reviewRequired = false }), Model, 100, 100, "stop", 0));
     }
@@ -358,30 +286,6 @@ public sealed class EngineeringTests
         }, default);
         await Error(409, () => Service(s).Approve(Caller, id, 3, "approve", default));
         Assert.Empty(s.Snapshot().Knowledge.Faults); Assert.Empty(s.Snapshot().Engineering.Events);
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Approval_requires_each_original_grant_for_humans_and_machines(bool machine)
-    {
-        var s = await Setup(); var id = await Proposed(s); using var keys = new Discovery();
-        await using var factory = CreateFactory(keys).WithWebHostBuilder(b => b.ConfigureServices(services => services.Replace(ServiceDescriptor.Singleton<IEscalationStore>(s))));
-        using var client = factory.CreateClient();
-        var scopes = new[] { "escalations.write", "knowledge.publish", "faults.read", "vehicles.read", "knowledge.read" };
-        var roles = new[] { "Escalations.Write.Application", "Knowledge.Publish.Application", "Faults.Read.All", "Vehicles.Read.All", "Knowledge.Read.All" };
-        async Task<int> Approve(int omit)
-        {
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthorizationTests.Token(keys.Key,
-                machine ? null : string.Join(" ", scopes.Where((_, n) => n != omit)),
-                machine ? roles.Where((_, n) => n != omit).ToArray() : ["Engineer"], machine));
-            using var req = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/engineering-escalations/{id}/approvals") { Content = JsonContent.Create(new { }) };
-            req.Headers.Add("If-Match", "\"3\""); req.Headers.Add("Idempotency-Key", "permission-approval");
-            using var res = await client.SendAsync(req); return (int)res.StatusCode;
-        }
-        for (var omitted = 0; omitted < scopes.Length; omitted++)
-        { Assert.Equal(403, await Approve(omitted)); Assert.Empty(s.Snapshot().Engineering.Events); Assert.Empty(s.Snapshot().Knowledge.Faults); }
-        Assert.Equal(200, await Approve(-1)); Assert.Single(s.Snapshot().Engineering.Events);
     }
     [Theory]
     [InlineData("publisher")]

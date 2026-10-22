@@ -12,7 +12,7 @@ Runtime execution SHALL load trusted accessible incidents under original caller 
 - **THEN** the request fails without service privilege union, credential disclosure or domain mutation
 
 #### Scenario: Authorized incident analysis
-- **WHEN** a permitted human or machine analyzes an accessible synthetic incident
+- **WHEN** a permitted human or machine analyzes an accessible demo incident
 - **THEN** bounded trusted context and explicitly authorized MCP results reach an isolated conversation, with correlated structured advice and no autonomous domain mutation
 
 #### Scenario: Untrusted caller context

@@ -42,7 +42,6 @@ public sealed class VehicleFaultDispatchService(INotificationStore store, TimePr
             if (!FleetService.CanRead(c, driver, true) || !FleetService.CanRead(c, driver)) throw new IncidentException(404);
             if (!driver.Active || driver.Email is null || !NotificationRules.Contact(driver.Email)) throw new IncidentException(409);
             // These are explicitly seeded demo metadata, not inferred real OEM software configurations.
-            if (!Demo.DemoFleetFactory.Create().Vehicles.Any(v => v.Identifier == vehicle.Identifier)) throw new IncidentException(409);
             const string model = "SYN-STEERING-DEMO", software = "demo-1";
             var now = clock.GetUtcNow();
             if (association.From > now) throw new IncidentException(409);

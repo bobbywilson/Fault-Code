@@ -17,4 +17,4 @@ None.
 - `api-contracts`: additive explicit engineering API contracts.
 
 ## Impact
-Domain/Application/API/Infrastructure, synthetic tests, generated OpenAPI, Docker source allowlist and docs. Dependencies FAU-11/12/14/17. ADR-009/012; DEC-001/003 remain unresolved. No provider, database, deployment, model tools, account changes or external delivery.
+Domain/Application/API/Infrastructure, demo tests, generated OpenAPI, Docker source allowlist and docs. Dependencies FAU-11/12/14/17. ADR-009/012; DEC-001/003 remain unresolved. No provider, database, deployment, model tools, account changes or external delivery.

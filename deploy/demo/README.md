@@ -108,3 +108,9 @@ here; never copy the local private key to production or claim rotation is active
 
 See `docs/deployment/teardown-plan.md` for scoped recovery/removal. Destructive
 persistent-data deletion requires separate approval; never prune Docker globally.
+
+## Current authorized activation (2026-10-22)
+
+The user superseded the earlier main-only/paused rollout: merge into development, require all seven same-source Linux checks, publish four source-labeled image digests and auto-deploy that exact revision. This directory is now the complete seven-service stack: API, administration, SQL Server Express, Qdrant, Mailpit, static Mintlify documentation and HTTPS proxy. The existing host is approved with independent project networks/volumes; LALAI has no runtime or deployment dependency.
+
+Private runtime-config.json/runtime.env and the demo certificate remain only under the root-owned project directory. Migrations use an explicit temporary SA connection; the serving API uses the Fault Code-only reader/writer SQL principal. Seed commands are idempotent and vector indexing precedes application acceptance. Server configuration comes from the verified immutable API image. App/API, /docs/, /swagger/ and session-protected /mailpit/ all use faultcodeai.com. Mailpit does not relay external mail. Check actual provider status: Datadog creates links, while its status updates currently return Seat Required.

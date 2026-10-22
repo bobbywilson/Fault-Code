@@ -26,7 +26,8 @@ public static class EntraAuthentication
                 "Entra:ClientId must be a canonical nonempty API client GUID when enabled.")
             .ValidateOnStart();
 
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer();
         services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
             .Configure<IOptions<EntraOptions>>((options, configured) =>
         {

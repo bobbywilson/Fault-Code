@@ -33,19 +33,23 @@ export class Api {
     headers: Record<string, string> = {},
   ): Promise<{ data: any; etag: string | null }> {
     if (!apiPath(path)) throw new Error('Invalid API boundary');
-    const token = await this.auth.token();
-    const response = await fetch(path, {
+    const authorization = await this.auth.apiHeaders();
+    const target = this.auth.kind() === 'demo' ? '/workspace' + path : path;
+    const response = await fetch(target, {
       method,
       redirect: 'error',
-      credentials: 'omit',
+      credentials: 'same-origin',
       cache: 'no-store',
-      headers: { ...headers, 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { ...headers, 'Content-Type': 'application/json', ...authorization },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     if (!response.ok) {
       if (response.status === 401) this.auth.expire();
       throw new ApiError(response.status, response.headers.get('X-Correlation-ID') ?? '');
     }
-    return { data: await response.json(), etag: response.headers.get('ETag') };
+    return {
+      data: response.status === 204 ? undefined : await response.json(),
+      etag: response.headers.get('ETag'),
+    };
   }
 }

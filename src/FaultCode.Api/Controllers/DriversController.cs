@@ -38,7 +38,7 @@ public sealed class DriversController(FleetService fleet, IAuthorizationService 
     public async Task<ActionResult<MutationResponse>> Update(Guid id, UpdateDriverRequest request,
         [FromHeader(Name = "If-Match")] string version, CancellationToken ct) =>
         Mutation(await fleet.UpdateDriver(Caller, id, new(request.DisplayName, request.Email, request.EmailNotifications), Version(version), ct), false, "");
-    [HttpDelete("{id:guid}", Name = "DeactivateDriver")]
+    [HttpDelete("{id:guid}", Name = "DeleteDriver")]
     [Authorize(Policy = "drivers.write")]
     [ProducesResponseType<MutationResponse>(200)]
     public async Task<ActionResult<MutationResponse>> Deactivate(Guid id, [FromHeader(Name = "If-Match")] string version, CancellationToken ct) =>

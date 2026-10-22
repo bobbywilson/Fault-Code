@@ -33,13 +33,13 @@ public sealed class ReadinessTests
         {
             Enabled = true,
             Endpoint = "http://qdrant:6333",
-            ApiKey = "synthetic-probe-key"
+            ApiKey = "demo-probe-key"
         }));
         var result = await probe.CheckHealthAsync(new HealthCheckContext());
         Assert.Equal(expected, result.Status);
         Assert.Equal("http://qdrant:6333/collections", handler.Url);
-        Assert.Equal("synthetic-probe-key", handler.Key);
-        Assert.DoesNotContain("synthetic-probe-key", result.Description ?? "");
+        Assert.Equal("demo-probe-key", handler.Key);
+        Assert.DoesNotContain("demo-probe-key", result.Description ?? "");
         Assert.Null(result.Exception);
     }
 
@@ -50,7 +50,7 @@ public sealed class ReadinessTests
     {
         using var client = new HttpClient(new FailureHandler(cancel));
         var probe = new QdrantReadinessCheck(client, Options.Create(new QdrantOptions
-        { Enabled = true, ApiKey = "synthetic-key" }));
+        { Enabled = true, ApiKey = "demo-key" }));
         var result = await probe.CheckHealthAsync(new HealthCheckContext());
         Assert.Equal(HealthStatus.Unhealthy, result.Status);
         Assert.Equal("Qdrant is unavailable.", result.Description);
@@ -65,7 +65,7 @@ public sealed class ReadinessTests
             builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Qdrant:Enabled"] = "true",
-                ["Qdrant:ApiKey"] = "synthetic-key"
+                ["Qdrant:ApiKey"] = "demo-key"
             }));
             builder.ConfigureServices(services => services.AddHttpClient<QdrantReadinessCheck>()
                 .ConfigurePrimaryHttpMessageHandler(() => new ProbeHandler(HttpStatusCode.Unauthorized)));
@@ -80,8 +80,8 @@ public sealed class ReadinessTests
     [Theory]
     [InlineData(null, "http://qdrant:6333", "Qdrant:ApiKey")]
     [InlineData("", "http://qdrant:6333", "Qdrant:ApiKey")]
-    [InlineData("synthetic-key", "not-a-url", "Qdrant:Endpoint")]
-    [InlineData("synthetic-key", "http://user:secret@qdrant:6333", "Qdrant:Endpoint")]
+    [InlineData("demo-key", "not-a-url", "Qdrant:Endpoint")]
+    [InlineData("demo-key", "http://user:secret@qdrant:6333", "Qdrant:Endpoint")]
     public async Task Enabled_configuration_rejects_missing_key_and_invalid_endpoint(string? key, string endpoint, string setting)
     {
         var directory = Directory.CreateTempSubdirectory("faultcode-qdrant-startup-");
@@ -97,7 +97,7 @@ public sealed class ReadinessTests
             }
         };
         process.StartInfo.ArgumentList.Add(typeof(Program).Assembly.Location);
-        process.StartInfo.Environment["FaultCode__ApplicationName"] = "Synthetic startup test";
+        process.StartInfo.Environment["FaultCode__ApplicationName"] = "Demo startup test";
         process.StartInfo.Environment["ASPNETCORE_ENVIRONMENT"] = "Production";
         process.StartInfo.Environment["ASPNETCORE_URLS"] = "http://127.0.0.1:0";
         process.StartInfo.Environment["Qdrant__Enabled"] = "true";
@@ -119,7 +119,7 @@ public sealed class ReadinessTests
             var output = await stdout + await stderr;
             Assert.NotEqual(0, process.ExitCode);
             Assert.Contains(setting, output);
-            Assert.DoesNotContain("synthetic-key", output);
+            Assert.DoesNotContain("demo-key", output);
             Assert.DoesNotContain("user:secret", output);
         }
         finally
@@ -148,6 +148,6 @@ public sealed class ReadinessTests
     private sealed class FailureHandler(bool cancel) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            => throw (cancel ? new OperationCanceledException("synthetic-key") : new HttpRequestException("synthetic-key"));
+            => throw (cancel ? new OperationCanceledException("demo-key") : new HttpRequestException("demo-key"));
     }
 }

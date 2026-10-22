@@ -15,8 +15,9 @@ trap 'echo "Disposable demo stack failed at line $LINENO" >&2; docker compose -p
 source_sha=$(git rev-parse HEAD)
 docker build --target runtime --build-arg "SOURCE_REVISION=$source_sha" -t "$project-api:ci" .
 docker build --build-arg "SOURCE_REVISION=$source_sha" -t "$project-web:ci" frontend
+docker build --build-arg "SOURCE_REVISION=$source_sha" -f mintlify/Dockerfile -t "$project-docs:ci" mintlify
 docker build -f docker/Qdrant.Dockerfile --label "org.opencontainers.image.revision=$source_sha" -t "$project-qdrant:ci" .
-mkdir -p "$temp/tls" "$temp/acme"
+mkdir -p "$temp/tls" "$temp/acme" "$temp/entra-api"
 cp deploy/demo/{compose.yaml,nginx.conf,browser-config.json} "$temp/"
 # Private test CA material stays in this temporary directory and is never trusted globally.
 openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=faultcodeai.com \
@@ -26,8 +27,13 @@ openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=faultcodeai.com \
 # disposable test key is readable only through its private0700 parent or the
 # proxy-only bind mount. Production keys remain root-owned0600.
 chmod 644 "$temp/tls/privkey.pem"
-export API_IMAGE="$project-api:ci" WEB_IMAGE="$project-web:ci" QDRANT_IMAGE="$project-qdrant:ci"
+export API_IMAGE="$project-api:ci" WEB_IMAGE="$project-web:ci" QDRANT_IMAGE="$project-qdrant:ci" DOCS_IMAGE="$project-docs:ci"
 export FAULTCODE_QDRANT_API_KEY="$(openssl rand -hex 32)"
+export FAULTCODE_SQL_SA_PASSWORD="Fc1!$(openssl rand -hex 24)"
+export FAULTCODE_SQL_CONNECTION="Server=sql;Database=FaultCode;User ID=sa;Password=$FAULTCODE_SQL_SA_PASSWORD;Encrypt=True;TrustServerCertificate=True"
+export FAULTCODE_AGENT_MODEL=gpt-4.1-mini-2025-04-14 FAULTCODE_EMBEDDING_MODEL=text-embedding-3-small
+export FAULTCODE_OPENAI_KEY=isolated-test-key FAULTCODE_DATADOG_INCIDENT_TOKEN=isolated-test-key
+export FAULTCODE_AGENTS_ENABLED=false FAULTCODE_EMBEDDINGS_ENABLED=false
 docker compose -p "$project" -f "$temp/compose.yaml" config --format json > "$temp/compose.json"
 python3 - "$temp/compose.json" <<'PY'
 import json,sys
@@ -42,17 +48,21 @@ assert all('cpus' in service and 'mem_limit' in service for service in d['servic
 assert d['networks']['data']['internal']
 p.write_text(json.dumps(d))
 PY
+docker compose -p "$project" -f "$temp/compose.json" up -d --wait --wait-timeout 240 sql qdrant mailpit documentation
+docker compose -p "$project" -f "$temp/compose.json" run --rm --no-deps -e Database__Command=migrate api
 docker compose -p "$project" -f "$temp/compose.json" up -d --wait --wait-timeout 180
 port=$(docker compose -p "$project" -f "$temp/compose.json" port proxy 8443 | tail -1 | awk -F: '{print $NF}')
 curl_flags=(--connect-timeout 5 --max-time 15 --resolve "faultcodeai.com:$port:127.0.0.1" --cacert "$temp/tls/fullchain.pem")
 curl "${curl_flags[@]}" --fail --silent --show-error "https://faultcodeai.com:$port/admin/incidents" | grep -q '<app-root>'
-curl "${curl_flags[@]}" --fail --silent --show-error "https://faultcodeai.com:$port/api/v1/health" >/dev/null
-status=$(curl "${curl_flags[@]}" --silent --output /dev/null --write-out '%{http_code}' "https://faultcodeai.com:$port/api/v1/authorization/me")
+curl "${curl_flags[@]}" --fail --silent --show-error "https://faultcodeai.com:$port/health/ready" >/dev/null
+status=$(curl "${curl_flags[@]}" --silent --output /dev/null --write-out '%{http_code}' "https://faultcodeai.com:$port/api/v1/vehicles")
 test "$status" = 401
 if curl "${curl_flags[@]}" --fail --silent -H 'Host: unrelated.invalid' "https://faultcodeai.com:$port/" >/dev/null; then
   echo 'Unrelated hostname unexpectedly accepted' >&2; exit 1
 fi
-for service in api administration qdrant; do
+curl "${curl_flags[@]}" --fail --silent --show-error "https://faultcodeai.com:$port/docs/" >/dev/null
+curl "${curl_flags[@]}" --fail --silent --show-error "https://faultcodeai.com:$port/swagger/index.html" >/dev/null
+for service in api administration qdrant documentation; do
   container=$(docker compose -p "$project" -f "$temp/compose.json" ps -q "$service")
   test "$(docker inspect "$container" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$source_sha"
 done

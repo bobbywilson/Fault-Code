@@ -16,7 +16,7 @@ public sealed class OntologyService(IOntologyStore store, TimeProvider clock)
     }
     private static T Valid<T>(Func<T> operation)
     { try { return operation(); } catch (ArgumentException) { throw new KnowledgeException(400); } }
-    private static OntologyCatalog Catalog(OntologyState s) => s.Catalog ?? throw new KnowledgeException(404);
+    private static OntologyCatalog Catalog(OntologyState s) => s.Catalog is { Retired: false } c ? c : throw new KnowledgeException(404);
     private static void Version(OntologyCatalog c, long expected)
     { if (expected < 1) throw new KnowledgeException(400); if (c.Version != expected) throw new KnowledgeException(409); }
     private async Task<OntologyState> Read(KnowledgeCaller c, CancellationToken ct)
@@ -34,7 +34,13 @@ public sealed class OntologyService(IOntologyStore store, TimeProvider clock)
         var canonical = Valid(() => OntologyRules.Canonical(content));
         return Mutate(c, "ontology.create", key, canonical, s =>
         {
-            if (s.Catalog is not null) throw new KnowledgeException(409);
+            if (s.Catalog is { Retired: false }) throw new KnowledgeException(409);
+            if (s.Catalog is { Retired: true } old)
+            {
+                var next = checked(old.Version + 1);
+                s.Catalog = old with { Retired = false, Version = next, Draft = canonical, History = old.History.Add(new(next, canonical, "recreated", c.ActorId, clock.GetUtcNow())) };
+                return new(old.Id, next);
+            }
             var now = clock.GetUtcNow(); var id = Guid.NewGuid();
             s.Catalog = new(id, 1, canonical, [new(1, canonical, "draft", c.ActorId, now)], []);
             return new(id, 1);
@@ -61,6 +67,16 @@ public sealed class OntologyService(IOntologyStore store, TimeProvider clock)
             return new(catalog.Id, version);
         }, ct);
     }
+    public Task<OntologyMutation> Delete(KnowledgeCaller c, Guid id, long expected, string key, CancellationToken ct) =>
+        Mutate(c, "ontology.delete", key, new { id, expected }, s =>
+        {
+            var catalog = Catalog(s); if (catalog.Id != id) throw new KnowledgeException(404); Version(catalog, expected);
+            // Published knowledge may still pin this version. Retain it rather than invalidating fault evidence.
+            if (catalog.Publications.Length > 0) throw new KnowledgeException(409);
+            var version = checked(catalog.Version + 1);
+            s.Catalog = catalog with { Retired = true, Version = version, History = catalog.History.Add(new(version, catalog.Draft, "retired", c.ActorId, clock.GetUtcNow())) };
+            return new(catalog.Id, version);
+        }, ct);
     public Task<OntologyMutation> Publish(KnowledgeCaller c, long expected, string key, CancellationToken ct) =>
         Mutate(c, "ontology.publish", key, expected, s =>
         {

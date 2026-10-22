@@ -2,7 +2,7 @@
 
 ## Approved focused demo UI
 
-Navigation: Incidents, Vehicles, Drivers, Notifications, Users & roles, Ontology. The generic logo/name and Protected workspace badge are removed. All pages use Spartan/Tailwind and Lucide; centered tables share the standard content width. Fleet is seed-only, with separate name/email columns and no management controls. Vehicle labels show Chevrolet Silverado or GMC Sierra without numeric suffixes.
+Navigation: Dashboard, Vehicles, Drivers, Incidents, Notifications, Users (owner only), Ontology, Fault codes, Token and Tickets. The generic logo/name and Protected workspace badge are removed. All pages use Spartan/Tailwind and Lucide; centered tables share the standard content width. Fleet is seed-only, with separate name/email columns and no management controls. Vehicle labels show Chevrolet Silverado or GMC Sierra without numeric suffixes.
 
 Incidents is a vehicle-originated investigation table with links to vehicle, driver and notification records. Drivers links to filtered notifications. Notifications lists all visible driver messages and delivery statuses as a data table, using the new authenticated list endpoint rather than requiring an incident ID form.
 
@@ -78,7 +78,7 @@ npx playwright install chromium
 npm run e2e
 ```
 
-The separate e2e build replaces only the auth module with `tests/auth.fixture.ts`; production source/assets never import it. Playwright intercepts the test session and API. Unit tests validate configuration, wrapper lifecycle, fields, same-origin token boundaries and401 handling. Browser tests cover the three synthetic workflow boundaries, permission conjunctions,403/503, expiry, retry keys,409, recorded pagination/detail, HTML escaping, late responses, mobile/focus and axe accessibility. They do not prove a live Entra login or durable/provider delivery.
+The separate e2e build replaces only the auth module with `tests/auth.fixture.ts`; production source/assets never import it. Playwright intercepts the test session and API. Unit tests validate configuration, wrapper lifecycle, fields, same-origin token boundaries and401 handling. Browser tests cover the three demo workflow boundaries, permission conjunctions,403/503, expiry, retry keys,409, recorded pagination/detail, HTML escaping, late responses, mobile/focus and axe accessibility. They do not prove a live Entra login or durable/provider delivery.
 
 Linux CI runs locked backend build/tests/contracts/format, real disposable Qdrant acceptance, existing container lifecycle checks, frontend unit/browser checks, and `scripts/administration-smoke.sh`. The latter builds actual production images, verifies nonzero frontend UID, default config, absence of test fixture markers, real proxied API401 and a production browser setup route. Native Windows/macOS checks do not gate Linux delivery; cancelled native runs are never reported as passed.
 
@@ -96,7 +96,7 @@ Verification: production Angular build passed (931.74kB initial, 205.47kB estima
 
 ## Fault-code ontology browser (2026-10-21)
 
-The user requested viewing the fault-code ontology on entry rather than creating one. `/admin/ontology` now opens a read-only, searchable Spartan relationship table covering fault codes, incidents, vehicles, drivers, vehicle associations, notifications, classifications, symptoms, remedies and engineering cases. The model reference is curated from current domain contracts in `frontend/src/app/ontology-model.ts`, with explicit source fields for maintenance. Rows describe the model, not tenant records or saved ontology publications. Browse links open the existing operational pages. No ontology API read/mutation is issued on entry, and no Create/Update/Publish controls appear on this route. Versioned taxonomy APIs and their authorization remain unchanged for engineering clients.
+The user requested viewing the fault-code ontology on entry rather than creating one. `/admin/ontology` now opens a read-only, searchable Spartan relationship table covering fault codes, incidents, vehicles, drivers, vehicle associations, notifications, classifications, symptoms, remedies and engineering cases. The model reference is curated from current domain contracts in `frontend/src/app/domain-model.json`, with explicit source fields for maintenance. Rows describe the model, not tenant records or saved ontology publications. The table has only Concept, Relationship, Related concept and Meaning columns. Browse links and the action column are removed. No ontology API read/mutation is issued on entry, and no Create/Update/Publish controls appear on this route. Versioned taxonomy APIs and their authorization remain unchanged for engineering clients.
 
 Verified: production build, ten browser regressions including relationship search/navigation, no ontology requests on entry and desktop Axe; existing mobile accessibility case also passes. Captured the real Entra-authenticated local route and all eleven signed-in pages on October21. These screenshots show actual current access and initial-page state; they do not establish durable storage or successful execution of every operational action. Deployment remains paused.
 
@@ -116,3 +116,31 @@ The header uses generated Spartan Avatar and Dropdown Menu components. The suppl
 After explicit user approval, Microsoft confirmed Bobby Wilson's Operator role on the Fault Code API enterprise application in the dedicated tenant. The application refreshes its first API token on startup so changed roles are evaluated without trusting local role flags. The real signed-in Vehicles page then enabled Dispatch fault code and opened a form preselected with the clicked vehicle and its driver. This verifies permissions and form navigation, not persisted intake, agent execution or email capture of an incident.
 
 Incidents no longer renders a large service-unavailable alert or correlation reference. The user requested a records-only table without unavailable/load-error text. Failed API requests remain failures and do not create rows or a successful empty count; the UI keeps the header and disables paging.
+
+
+## Six-resource API and Entra Users clarification
+The public API now exposes only five CRUD operations for each of incidents, vehicles, drivers, notifications, fault codes and ontology. Vehicle dispatch uses POST /api/v1/incidents with vehicleId/code; resolution uses PUT /api/v1/incidents/{id}. Notification retry uses PUT /api/v1/notifications/{id}. Vehicle reads include permitted associated drivers and catalog data. The read-only ontology is a versioned client reference, not an editable resource. Users displays the signed-in Entra identity, roles, API access token, copy and force-refresh controls; user/role creation and assignment remain in Entra. Refresh does not revoke an existing JWT. No personal-token issuance endpoint exists.
+
+## Dashboard, navigation and incident review (2026-10-22)
+
+Dashboard explains the agentic flow/Shriram first, followed by OpenSpec/Kristof and ontology/Nathan, using the user's topic associations without invented quotations. Red outlines distinguish the three name badges. The responsive diagram shows dispatch, SQL records, Agent Framework/MCP, exact Qdrant lookup, known/unknown handling and Mailpit delivery. Development stack sits below those sections; a sidebar footer link beneath API reference anchors directly to it. Both footer icons have collapsed-sidebar tooltips. Navigation orders Vehicles, Drivers and Incidents after Dashboard.
+
+Vehicle selectors distinguish catalog codes from an unlisted system-valid code, allowing both lookup outcomes without adding invented approved knowledge. Dispatch keeps the selected value and reports completion with a toast.
+
+Incident review replaces the generic GET submit controls with required resolution notes (maximum2,000 characters) and Resolve incident. It invokes the existing conditional/idempotent PUT; SQL retains findings, author, time and version. A separate Qdrant case-evidence collection indexes code plus findings, and scoped MCP lookup must match the canonical SQL record before the agent sends a follow-up. Unknown codes can be resolved without publishing a catalog remedy. Failed index/agent/delivery work remains auditable and retryable.
+
+View in Datadog opens the actual Incident Management record, using the public incident number returned by Datadog and retained in SQL. No log-search, guessed ID or generic landing-page fallback is used. Before a provider record is accepted the button remains disabled. Create/status updates use a server-only adapter; provider sync state is independent of driver email delivery. Ambiguous creates are retained as Unknown and cannot be blindly repeated. Existing records can be backfilled with the explicit operator command `Database__Command=sync-datadog-incidents` after credentials are configured. No public endpoint was added.
+
+Datadog Incident Management onboarding is reachable separately from Log Management. The latter remains blocked by the observed free plan. The approved incident-only credential expires January22,2027 and is server-only. All five existing local incidents have real acknowledged Datadog records. The public testing link reads Test API, and Kristof's section calls out Playwright checks against specified journeys.
+
+A later status-sync test returned Datadog403 Seat Required. The existing direct link remains usable; the failed projection is not reported as synchronized. Application resolution and Mailpit follow-up still complete.
+
+## Ticket review and Spartan controls
+
+The authenticated Tickets page reads the Fault Code Linear workspace and FAU team through server-managed, read-only GraphQL requests. Reviewers use their existing Fault Code sign-in; they do not need Linear accounts. The searchable table filters by status and opens the description, acceptance criteria, status, priority, assignee, labels, project/milestone, cycle, estimate, dates, comments, attachments and related/subtask tickets inside the app.
+
+`GET /workspace/tickets` and `GET /workspace/tickets/{id}` are browser support routes, excluded from the public OpenAPI resource surface. The server independently validates delegated `faults.read` or the bounded demo session; anonymous callers, Driver-only identities and machine tokens are rejected. `LinearReview:ApiKey` stays server-side, restricted in Linear to Read permission and the Fault Code team. The adapter checks organization `fault-code` and team `FAU`, uses a fixed upstream URL, implements no mutations, pages results, rejects partial GraphQL errors and bounded-overflow results, and records retrieval time. List caching lasts two minutes; Refresh requests fresh data. Failures cannot masquerade as empty lists. Raw HTML and external images from ticket Markdown do not execute or load; Angular sanitization remains enabled.
+
+Vehicle fault selectors, shared action selectors, schema enum fields and ticket status filtering use Spartan Select with portalled, labeled listboxes and keyboard support. Buttons, fields, inputs, textareas, tables, dialogs, menus, badges, alerts, avatars, navigation and toasts use the installed Spartan Helm components. Structural HTML and ticket prose remain semantic content rather than replacement UI widgets.
+
+Local verification covers the real read-only FAU credential, pagination/scope/error/authorization tests, in-app details and comments, safe Markdown, stale responses, keyboard selection, accessibility and mobile overflow. Hosted promotion remains paused.

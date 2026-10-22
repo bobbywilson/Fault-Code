@@ -1,6 +1,6 @@
 ## ADDED Requirements
 
-### Requirement: Canonical synthetic document lifecycle
+### Requirement: Canonical demo document lifecycle
 Documents SHALL retain tenant-local originals, immutable approved versions, server approver/time, source version, system, exact model/software applicability and tenant or publisher access. Exact knowledge.publish SHALL manage drafts, publication, deletion and reindex. Draft edits SHALL NOT alter approved content; deletion SHALL withdraw retrieval. Production canonical storage SHALL return503 until approved durable storage exists.
 #### Scenario: Draft approval and withdrawal
 - **GIVEN** an Engineer with exact knowledge.publish
@@ -10,13 +10,13 @@ Documents SHALL retain tenant-local originals, immutable approved versions, serv
 ### Requirement: Reproducible document index
 Chunks SHALL have deterministic tenant/document/publication/page/offset/checksum identities and preserve original page text and source citations. OpenAI model/dimensions and chunk algorithm SHALL identify an isolated cosine Qdrant collection. Collection/model/vector incompatibility and provider failure SHALL return503; retries and reindex SHALL converge without duplicates. Qdrant SHALL remain derived, never canonical.
 #### Scenario: Repeat replace and reindex
-- **WHEN** approved synthetic pages are indexed repeatedly, replaced or reindexed after index loss
+- **WHEN** approved demo pages are indexed repeatedly, replaced or reindexed after index loss
 - **THEN** identical chunk IDs converge, new approved versions replace retrieval, originals reproduce chunks, dimensions and collection distance are checked, malformed/nonfinite/zero vectors fail503 and provider outage never confirms unknown knowledge
 
 ### Requirement: Authoritative evidence retrieval
 Search SHALL require exact knowledge.read, filter tenant/approval/system/applicability/access before vector ranking and revalidate hits against canonical approved chunks. Only tenant-visible or original-publisher documents SHALL be accessible. Low/no evidence SHALL be explicit. Conflicting source text SHALL remain unadjudicated evidence, never automatic repair guidance. Document instructions SHALL confer no authorization or tool execution.
 #### Scenario: Access malicious text and missing evidence
-- **GIVEN** tenant-visible, publisher-only, draft, stale and malicious synthetic documents
+- **GIVEN** tenant-visible, publisher-only, draft, stale and malicious demo documents
 - **WHEN** a Reader, publisher or application searches
 - **THEN** only matching current approved accessible chunks meet the fixed score floor; citations include page/source/publication/checksum/approval; missing evidence is explicit, returned text is labelled untrusted and no model generation/tool action occurs
 #### Scenario: Unindexed approval

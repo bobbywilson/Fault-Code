@@ -7,6 +7,7 @@ using FaultCode.Infrastructure;
 using Xunit;
 
 namespace FaultCode.IntegrationTests;
+
 public sealed class MailpitFactAttribute : FactAttribute
 {
     public MailpitFactAttribute()

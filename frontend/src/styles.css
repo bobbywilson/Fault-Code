@@ -95,6 +95,7 @@ a[href],
 button:not(:disabled),
 [role='button']:not([aria-disabled='true']),
 [role='menuitem']:not([aria-disabled='true']),
+[role='option']:not([aria-disabled='true']),
 tbody tr {
   cursor: pointer;
 }

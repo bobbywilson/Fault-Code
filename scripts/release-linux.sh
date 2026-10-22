@@ -47,24 +47,24 @@ probe() {
   done
   test "$healthy" = true
   test "$(curl --connect-timeout 2 --max-time 5 -fsS "$address/health/ready")" = Healthy
-  test "$(curl --connect-timeout 2 --max-time 5 -s -o /dev/null -w '%{http_code}' "$address/api/v1/authorization/me")" = 401
+  test "$(curl --connect-timeout 2 --max-time 5 -s -o /dev/null -w '%{http_code}' "$address/api/v1/vehicles")" = 401
   test "$(docker exec "$task" id -u)" != 0
   # Public fixtures must remain identical to the running prior source after rollback.
-  curl --connect-timeout 2 --max-time 5 -fsS "$address/api/v1/examples" > "artifacts/release/$stage-examples.json"
+  curl --connect-timeout 2 --max-time 5 -fsS "$address/openapi/v1.json" > "artifacts/release/$stage-contract.json"
   python3 - "$stage" "$revision" "$config" "$(docker inspect "$task" --format '{{.Image}}')" <<'PY'
 import json,sys
 with open('artifacts/release/rollback.jsonl', 'a') as f:
     f.write(json.dumps(dict(zip(['stage','source','applicationName','imageId'],sys.argv[1:])),sort_keys=True)+'\n')
 PY
 }
-start "$previous" "$base_sha" 'Synthetic prior configuration' prior
+start "$previous" "$base_sha" 'Demo prior configuration' prior
 docker rm -f "$task" >/dev/null
-start "$candidate" "$source_sha" 'Synthetic candidate configuration' candidate
+start "$candidate" "$source_sha" 'Demo candidate configuration' candidate
 docker restart "$task" >/dev/null
-probe "$candidate" "$source_sha" 'Synthetic candidate configuration' restart
+probe "$candidate" "$source_sha" 'Demo candidate configuration' restart
 docker rm -f "$task" >/dev/null
-start "$previous" "$base_sha" 'Synthetic prior configuration' rollback
-cmp artifacts/release/prior-examples.json artifacts/release/rollback-examples.json
+start "$previous" "$base_sha" 'Demo prior configuration' rollback
+cmp artifacts/release/prior-contract.json artifacts/release/rollback-contract.json
 # Invalid configuration must stop startup rather than silently start with defaults.
 docker run -d --name "$task-invalid" --network "$task" -e 'FaultCode__ApplicationName= ' "$candidate" >/dev/null
 invalid_stopped=false

@@ -18,4 +18,4 @@ None.
 - `api-contracts`: additive investigation endpoints and exact policies.
 
 ## Impact
-Application orchestration/storage contracts, Infrastructure unavailable adapter and existing Agent Framework adapter, API DTOs/controllers/OpenAPI, synthetic integration/SDK evaluations and documentation. No provider selection, account, outbound activation, durable adapter, notification delivery, engineering case or vehicle operation.
+Application orchestration/storage contracts, Infrastructure unavailable adapter and existing Agent Framework adapter, API DTOs/controllers/OpenAPI, demo integration/SDK evaluations and documentation. No provider selection, account, outbound activation, durable adapter, notification delivery, engineering case or vehicle operation.

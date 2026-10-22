@@ -1,5 +1,7 @@
 name: SQL Server fleet integration
 on:
+  push:
+    branches: [development, main]
   pull_request:
   workflow_dispatch:
 permissions:

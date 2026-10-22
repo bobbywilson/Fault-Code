@@ -19,7 +19,7 @@ public sealed class LocalNotificationSink : INotificationDelivery
     public Task<DeliveryAcknowledgement> Send(LocalDelivery message, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-        if (!FaultCode.Domain.NotificationRules.Contact(message.SyntheticContact)) throw new IncidentException(400);
+        if (!FaultCode.Domain.NotificationRules.Contact(message.DemoContact)) throw new IncidentException(400);
         var prior = accepted.GetOrAdd(message.NotificationId, message);
         if (prior != message) throw new IncidentException(409);
         return Task.FromResult(new DeliveryAcknowledgement("local-" + message.NotificationId.ToString("N")));

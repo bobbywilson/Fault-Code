@@ -9,7 +9,7 @@ Define observable Fault Code development infrastructure requirements and accepta
 The development environment SHALL support Docker Compose with API/supporting services and Qdrant, isolated networking, health checks, persisted local volumes and documented Linux startup/reset procedures.
 
 #### Scenario: Reproducible local environment acceptance
-- **GIVEN** synthetic authorized Fault Code test context with the stated preconditions
+- **GIVEN** demo authorized Fault Code test context with the stated preconditions
 - **WHEN** a developer follows setup instructions from a clean checkout
 - **THEN** services build, report health and connect by service DNS; a restart preserves expected data and destructive volume reset is explicitly distinguished
 
@@ -17,7 +17,7 @@ The development environment SHALL support Docker Compose with API/supporting ser
 Container runtime SHALL use external secret configuration and bounded service exposure; no unapproved relational or cloud service SHALL be provisioned.
 
 #### Scenario: Safe service configuration acceptance
-- **GIVEN** synthetic authorized Fault Code test context with the stated preconditions
+- **GIVEN** demo authorized Fault Code test context with the stated preconditions
 - **WHEN** Qdrant is unavailable or credentials are missing
 - **THEN** dependent operations fail clearly without exposing secrets; no fallback creates a cloud resource or silently chooses a database
 
@@ -56,17 +56,17 @@ The container environment SHALL require an externally supplied Qdrant API key. M
 - **THEN** readiness returns HTTP 503 with generic status and no credential value
 
 ### Requirement: Verified local data lifecycle
-Local Qdrant data SHALL survive service restarts and ordinary Compose teardown/recreation. Documentation SHALL distinguish retained volumes from explicitly destructive volume deletion. Automated Linux smoke tests SHALL verify persistence with synthetic data and isolate their project and volumes from developer resources.
+Local Qdrant data SHALL survive service restarts and ordinary Compose teardown/recreation. Documentation SHALL distinguish retained volumes from explicitly destructive volume deletion. Automated Linux smoke tests SHALL verify persistence with demo data and isolate their project and volumes from developer resources.
 
-#### Scenario: Retained synthetic data
-- **GIVEN** a synthetic test collection in an isolated smoke project
+#### Scenario: Retained demo data
+- **GIVEN** a demo test collection in an isolated smoke project
 - **WHEN** services restart and are torn down without volume deletion and recreated
-- **THEN** the collection and synthetic point remain readable
+- **THEN** the collection and demo point remain readable
 
 #### Scenario: Explicit destructive reset
 - **GIVEN** a disposable smoke project
 - **WHEN** its explicitly destructive volume reset runs
-- **THEN** the recreated Qdrant instance has no prior synthetic collection and other projects are untouched
+- **THEN** the recreated Qdrant instance has no prior demo collection and other projects are untouched
 
 ### Requirement: Local hostname proxy
 The environment SHALL provide a loopback reverse proxy for faultcode.test with process health checks. Documentation SHALL distinguish tested proxy routing from the separate host resolver entry needed for port-free browser access.

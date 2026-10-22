@@ -21,6 +21,7 @@ LABEL org.opencontainers.image.source="https://github.com/bobbywilson/Fault-Code
 WORKDIR /app
 COPY --from=build /app ./
 COPY --from=build /probe /probe
+COPY deploy/demo/ /deployment/
 ENV ASPNETCORE_HTTP_PORTS=8080
 USER $APP_UID
 EXPOSE 8080

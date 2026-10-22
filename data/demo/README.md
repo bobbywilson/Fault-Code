@@ -1,6 +1,6 @@
-# Synthetic steering seed preparation
+# Demo steering seed preparation
 
-Part of FAU-11/FAU-12. `steering-faults.json` contains nine clearly synthetic demo fault drafts and their matching classification concepts, covering the approved EPS, steer-by-wire and steering ADAS scope. Codes are application-owned SYN-* examples, not genuine Nexteer/OEM DTCs. The Nexteer source supports product scope only, not diagnostic mappings or remedies. No vehicle/driver identifiers or private credentials are included.
+Part of FAU-11/FAU-12. `steering-faults.json` contains nine clearly demo demo fault drafts and their matching classification concepts, covering the approved EPS, steer-by-wire and steering ADAS scope. Codes are application-owned SYN-* examples, not genuine Nexteer/OEM DTCs. The Nexteer source supports product scope only, not diagnostic mappings or remedies. No vehicle/driver identifiers or private credentials are included.
 
 This manifest has **not been loaded into a database**. SQL Server 2025 Express is now approved; the fault-knowledge adapter and real database loading are still incomplete. Do not wire this file into a fake production in-memory store or represent prepared drafts as approved published knowledge. A future authenticated seed importer must idempotently create/reconcile exact entries, publish only reviewed content, preserve unrelated tenant data and verify durable restart behavior. Remedy candidates remain unapproved. Real manufacturer-code imports require an authoritative, permitted OEM/model/software-specific catalog.
 
@@ -16,7 +16,7 @@ This manifest has **not been loaded into a database**. SQL Server 2025 Express i
 | SYN-SIERRA-001 | Casey Taylor |
 | SYN-SIERRA-002 | Riley Parker |
 
-Emails are `alex.morgan@example.com`, `jordan.lee@example.com`, `casey.taylor@example.com`, and `riley.parker@example.com`. Notifications are disabled. Owner GUIDs are synthetic placeholders, not real Entra identities, and grant no directory roles. VINs and real customer data are not fabricated. Vehicle identifiers identify the selected truck examples; this does not assert verified OEM steering configurations or diagnostic mappings.
+Emails are `alex.morgan@example.com`, `jordan.lee@example.com`, `casey.taylor@example.com`, and `riley.parker@example.com`. Notifications are disabled. Owner GUIDs are demo placeholders, not real Entra identities, and grant no directory roles. VINs and real customer data are not fabricated. Vehicle identifiers identify the selected truck examples; this does not assert verified OEM steering configurations or diagnostic mappings.
 
 Invoke `await new DemoFleetSeeder(fleetService).SeedAsync(trustedCaller, cancellationToken)` only from an explicit trusted administrative runner after the SQL Server fleet store is configured. The runner must authorize driver/vehicle writes and construct the caller from validated identity, not request-supplied privilege flags. The seeder is not registered on API startup and exposes no public endpoint. Use the same actor/client for replay/resume. A different actor, changed payload, preexisting conflicting identifier or concurrent version change must be reviewed rather than force-overwritten. Multiple individual transactions can commit before interruption; stable replay keys permit safe continuation.
 

@@ -9,7 +9,7 @@ Provide Linux API/Qdrant packaging and repeatable isolated verification. Do not 
 - Internal Qdrant network plus project-scoped edge network for API/proxy loopback publishing; loopback API port 5081 avoids the existing native 5080 listener. Qdrant is reachable by qdrant:6333 only. Nginx proxy uses port 80 by default, configurable, and forwards to api:8080. Named Qdrant storage/snapshot volumes preserve local data.
 - A container-only enabled Qdrant readiness check uses HttpClient with two-second timeout and generic status. Native foundation remains provider-independent; liveness never probes dependencies. No Qdrant SDK or embedding/model decision is needed.
 - Local env file is ignored, example contains no key, Compose requires FAULTCODE_QDRANT_API_KEY. No OpenAI/Entra credentials are needed yet. Do not print rendered Compose config with real keys.
-- Smoke script uses unique Compose project, ephemeral key and ports, synthetic collection/point. Test restart, stop/start dependency failure, bad credentials, down/up retention, destructive reset, proxy, non-root and build-context secret canary exclusion. CI runs on Ubuntu; existing native matrix remains.
+- Smoke script uses unique Compose project, ephemeral key and ports, demo collection/point. Test restart, stop/start dependency failure, bad credentials, down/up retention, destructive reset, proxy, non-root and build-context secret canary exclusion. CI runs on Ubuntu; existing native matrix remains.
 ## Risks / Trade-offs
 - Daemon unavailable locally -> run static/native checks and Linux CI; keep observed runtime acceptance tasks pending until evidence exists. Do not archive prematurely.
 - Exact tags can be republished -> pin verified multi-platform manifest digests; refresh deliberately and never use latest.
@@ -18,6 +18,6 @@ Provide Linux API/Qdrant packaging and repeatable isolated verification. Do not 
 ## Migration Plan
 Build/start Compose from checkout with generated local key. Stop without volumes to retain data; explicit down --volumes deletes only this project's data. Rollback stops this Compose project; native development remains usable.
 ## Verification mapping
-Safe packaging -> context scan/build canary/non-root and published-port assertions. Networking/readiness -> health wait, API ready/live, Qdrant stop/start, mismatched-key integration test. Credentials -> missing-key config test and API startup validation tests. Lifecycle -> synthetic point across restart/down/up and absence after reset. Hostname -> proxy Host-header smoke. Existing native tests/format remain mandatory. UI/agent tests are inapplicable because no UI or agent exists.
+Safe packaging -> context scan/build canary/non-root and published-port assertions. Networking/readiness -> health wait, API ready/live, Qdrant stop/start, mismatched-key integration test. Credentials -> missing-key config test and API startup validation tests. Lifecycle -> demo point across restart/down/up and absence after reset. Hostname -> proxy Host-header smoke. Existing native tests/format remain mandatory. UI/agent tests are inapplicable because no UI or agent exists.
 
 Image sources: https://github.com/dotnet/dotnet-docker/blob/main/README.aspnet.md and https://github.com/qdrant/qdrant/releases/tag/v1.19.2. Official registry manifests verified for amd64/arm64 on 2026-10-20.

@@ -758,6 +758,11 @@
           "OpenTelemetry": "1.20.1"
         }
       },
+      "Swashbuckle.AspNetCore.SwaggerUI": {
+        "type": "Transitive",
+        "resolved": "10.2.3",
+        "contentHash": "nthWONRs/FJ4yyG206g1cC52WEG8EqrjuMWjGdR+5XG7lbjFto6NqcI9EMICgVFom/UivIjUVwI76ZHbHwTPfQ=="
+      },
       "System.ClientModel": {
         "type": "Transitive",
         "resolved": "1.15.0",
@@ -859,7 +864,9 @@
           "FaultCode.Infrastructure": "[1.0.0, )",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.13, )",
           "Microsoft.AspNetCore.OpenApi": "[10.0.13, )",
-          "ModelContextProtocol.AspNetCore": "[2.3.0, )"
+          "Microsoft.Identity.Client": "[4.84.2, )",
+          "ModelContextProtocol.AspNetCore": "[2.3.0, )",
+          "Swashbuckle.AspNetCore.SwaggerUI": "[10.2.3, )"
         }
       },
       "faultcode.application": {

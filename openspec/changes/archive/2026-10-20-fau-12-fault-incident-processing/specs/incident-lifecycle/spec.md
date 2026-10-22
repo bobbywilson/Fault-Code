@@ -1,9 +1,9 @@
 ## ADDED Requirements
 
-### Requirement: Source bound synthetic intake
-Intake SHALL require faults.write and knowledge.read, use authenticated tenant/client as source, normalize synthetic codes and validate event ID, UTC occurrence, model/software and active applicable fleet association. Unknown or unpublished codes SHALL be accepted; unavailable authoritative knowledge SHALL return503 without claiming unknown.
+### Requirement: Source bound demo intake
+Intake SHALL require faults.write and knowledge.read, use authenticated tenant/client as source, normalize demo codes and validate event ID, UTC occurrence, model/software and active applicable fleet association. Unknown or unpublished codes SHALL be accepted; unavailable authoritative knowledge SHALL return503 without claiming unknown.
 #### Scenario: Valid and invalid events
-- **WHEN** known and unknown synthetic events arrive with active same-tenant context
+- **WHEN** known and unknown demo events arrive with active same-tenant context
 - **THEN** accept both with server IDs and immutable approved-only provenance; reject invalid source/data/timestamps/association400, absent resources404 and missing permissions401/403
 #### Scenario: Source spoofing
 - **WHEN** input attempts to provide tenant, source client, owner or approval data

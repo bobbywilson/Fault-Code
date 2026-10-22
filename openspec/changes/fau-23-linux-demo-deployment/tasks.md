@@ -23,3 +23,9 @@
 - Four local security tests, Bash syntax, local API/Angular Docker builds and all21 strict OpenSpec validations passed. All six GitHub checks passed on implementation b426397, including disposable production Compose/HTTPS/readiness/API401 packaging. Subsequent inventory-only commits require their own CI result; no live behavior is inferred.
 - Authenticated LALAI dashboard baseline: queue/scheduler, development runner, model access and memory storage have fresh Healthy evidence. Windows session is Unknown with evidence dated2026-10-18; full Simone runtime verification remains incomplete.
 - Dedicated HTTPS renewal service/timer and atomic certificate installation hook are prepared; verify actual issuance, webroot renewal and reload on the host before claiming operation. Production machine-certificate rotation remains unimplemented; the API/SPA do not themselves need a private machine certificate.
+
+## Authorized development deployment follow-up
+- [x] Reconcile user approval for current-development deployment and same-host isolated containers, static Mintlify /docs, Swagger and session-protected Mailpit /mailpit with capture-only delivery.
+- [x] Prepare seven-service configuration, immutable docs image, required SQL CI gate, explicit migration/seed/index sequence and private server configuration without LALAI service operations.
+- [ ] Push and self-review all scoped code, record actual PR approval constraints and merge only after successful checks.
+- [ ] Verify automatic development deployment, authenticated app/API/token/tickets, known/unknown/resolution email capture, TLS/docs/Mailpit and retained persistence on the public domain.

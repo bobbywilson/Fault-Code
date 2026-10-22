@@ -27,7 +27,7 @@ The agent accesses bounded authorized MCP tools describing and operating the ser
 
 ## UI clarification
 
-Vehicles lists vehicles and associated drivers with a fault dispatch action. Drivers lists driver email addresses. Use synthetic Chevrolet Silverado/GMC Sierra examples and fictional consenting-demo placeholders; no verified OEM fault mappings are implied. The Ontology page is a **non-editable relationship table**, superseding the earlier request for Angular ontology CRUD. Remove Fault definitions, Documents, Engineering, Agent activity and Operational health pages from navigation; keep the backend services needed by the workflow. Remaining UI includes Incidents, Vehicles, Drivers, Ontology, Notifications, Users & roles. All mutations use authenticated APIs. Successful event ingestion is not proof that an email was delivered.
+Vehicles lists vehicles and associated drivers with a fault dispatch action. Drivers lists driver email addresses. Use demo Chevrolet Silverado/GMC Sierra examples and fictional consenting-demo placeholders; no verified OEM fault mappings are implied. The Ontology page is a **non-editable relationship table**, superseding the earlier request for Angular ontology CRUD. Remove Fault definitions, Documents, Engineering, Agent activity and Operational health pages from navigation; keep the backend services needed by the workflow. Remaining UI includes Incidents, Vehicles, Drivers, Ontology, Notifications, Users & roles. All mutations use authenticated APIs. Successful event ingestion is not proof that an email was delivered.
 
 ## Identity and API boundary
 
@@ -56,3 +56,6 @@ Incidents and Notifications retain their short navigation names. All tables, inc
 
 ## Required backend integrations override
 Datadog telemetry and Mailpit email capture are mandatory backend integrations. Microsoft365 email is cancelled. Remove the Integrations navigation item and redirect its previous URL. Mailpit capture is required for both local and Linux; Linux Compose includes it by default. Do not modify LALAI resources or purchase mailbox/subscription licensing without authorization. Missing Datadog credentials/ingestion evidence or Linux capture acceptance are blockers; none may be reported as optional or complete.
+
+## Browser password demo account — later October21 decision
+The user explicitly selected username/password authentication for the frontend and a shared demo account. This supersedes the Entra-only browser requirement for that account. External `/api/v1` consumers still require dedicated Entra bearer tokens. The server verifies a provisioned ASP.NET Core Identity password hash, holds expiring sessions behind HttpOnly/SameSite cookies, rate-limits sign-in, and validates CSRF for browser mutations. A browser-only `/workspace/api/v1` boundary reuses application services and authorization while restricting demo actions to incident dispatch/status and notification processing. Demo sessions cannot issue Entra tokens, administer Users, publish knowledge, or mutate fleet/reference data. Microsoft owner sign-in remains available separately. No anonymous access is enabled. See browser-demo-login.md.

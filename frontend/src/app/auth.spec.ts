@@ -56,7 +56,7 @@ vi.mock('@azure/msal-angular', async () => {
       acquireTokenSilent() {
         return fake.silentError
           ? throwError(() => new Error('provider detail must not leak'))
-          : of({ accessToken: 'synthetic-unit-token' });
+          : of({ accessToken: 'demo-unit-token' });
       }
     },
   };
@@ -79,15 +79,42 @@ afterEach(() => {
   fake.login.mockClear();
   fake.logout.mockClear();
 });
-function auth(c: any = config) {
+function auth(c: any = config, url = 'http://localhost:4200/admin/incidents') {
+  const u = new URL(url);
+  vi.stubGlobal('location', {
+    origin: u.origin,
+    hostname: u.hostname,
+    pathname: u.pathname,
+    search: u.search,
+    hash: u.hash,
+    replace: vi.fn(),
+  });
   vi.stubGlobal(
     'fetch',
-    vi.fn().mockResolvedValue(new Response(JSON.stringify(c), { status: 200 })),
+    vi
+      .fn()
+      .mockImplementation((url) =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify(
+              url === '/session' ? { demoAvailable: false, csrfToken: 'test-csrf', user: null } : c,
+            ),
+            { status: 200 },
+          ),
+        ),
+      ),
   );
   TestBed.configureTestingModule({ providers: [{ provide: Location, useValue: {} }] });
   return TestBed.inject(Auth);
 }
 describe('MSAL wrapper lifecycle with isolated library doubles', () => {
+  it('moves alternate local previews to the registered origin before requesting credentials', async () => {
+    const a = auth(config, 'http://127.0.0.1:4201/admin/vehicles');
+    await a.initialize();
+    expect(location.replace).toHaveBeenCalledWith('http://localhost:4200/admin/vehicles');
+    expect(fetch).not.toHaveBeenCalled();
+    expect(a.state()).toBe('loading');
+  });
   it('keeps missing configuration fail-closed without creating a session', async () => {
     const a = auth({});
     await a.initialize();
@@ -102,7 +129,7 @@ describe('MSAL wrapper lifecycle with isolated library doubles', () => {
     expect(fake.settings.auth.redirectUri).toBe(location.origin + '/auth/callback');
     expect(fake.settings.cache.cacheLocation).toBe('sessionStorage');
     expect(fake.settings.system.loggerOptions.piiLoggingEnabled).toBe(false);
-    expect(await a.token()).toBe('synthetic-unit-token');
+    expect(await a.token()).toBe('demo-unit-token');
     await a.logout();
     expect(a.state()).toBe('signed-out');
     expect(fake.logout).toHaveBeenCalledOnce();
@@ -123,5 +150,54 @@ describe('MSAL wrapper lifecycle with isolated library doubles', () => {
     fake.silentError = true;
     await expect(a.token()).rejects.toThrow('session');
     expect(a.state()).toBe('error');
+  });
+});
+
+describe('password demo session', () => {
+  it('uses server session identity and CSRF without issuing a bearer token', async () => {
+    const a = auth();
+    const user = {
+      id: '55555555-5555-4555-8555-555555555555',
+      displayName: 'John Henry',
+      email: '',
+      roles: ['Reader', 'Operator'],
+      permissions: ['faults.read', 'faults.write'],
+      tokenExpiresAt: null,
+    };
+    let signedIn = false;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation((url, options) => {
+        if (url === '/session/login') {
+          expect(options.headers['X-FaultCode-CSRF']).toBe('test-csrf');
+          signedIn = true;
+          return Promise.resolve(new Response(null, { status: 204 }));
+        }
+        if (url === '/session/logout') {
+          signedIn = false;
+          return Promise.resolve(new Response(null, { status: 204 }));
+        }
+        return Promise.resolve(
+          new Response(
+            JSON.stringify(
+              url === '/session'
+                ? { demoAvailable: true, csrfToken: 'test-csrf', user: signedIn ? user : null }
+                : config,
+            ),
+            { status: 200 },
+          ),
+        );
+      }),
+    );
+    await a.initialize();
+    await a.loginDemo('demo', 'test-only-password');
+    expect(a.kind()).toBe('demo');
+    expect(a.state()).toBe('signed-in');
+    expect(await a.identity()).toEqual(user);
+    expect(await a.apiHeaders()).toEqual({ 'X-FaultCode-CSRF': 'test-csrf' });
+    await expect(a.token()).rejects.toThrow('session');
+    await a.logout();
+    expect(a.state()).toBe('signed-out');
+    expect(a.kind()).toBe('entra');
   });
 });

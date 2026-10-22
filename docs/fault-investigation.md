@@ -1,6 +1,6 @@
 # Fault investigation
 
-Part of FAU-17. Trusted application orchestration combines current approved fault lookup, pinned ontology evaluation and canonical traditional RAG with bounded Microsoft Agent Framework/OpenAI assessment. The model receives curated synthetic context only; no MCP tools, identity token, secrets, environment inventory, filesystem, shell or general network capability. The read services behind MCP are reused in-process under the original caller; MCP remains a separate authenticated consumer interface.
+Part of FAU-17. Trusted application orchestration combines current approved fault lookup, pinned ontology evaluation and canonical traditional RAG with bounded Microsoft Agent Framework/OpenAI assessment. The model receives curated demo context only; no MCP tools, identity token, secrets, environment inventory, filesystem, shell or general network capability. The read services behind MCP are reused in-process under the original caller; MCP remains a separate authenticated consumer interface.
 
 ## API
 
@@ -38,7 +38,7 @@ Production UnavailableInvestigationStore returns503; there is no production memo
 
 ## Evaluation
 
-InvestigationTests runs deterministic fixtures for A/B/C, score0.85/0.8/0.5, missing/contradictory/injected sources, unapproved/inapplicable patches, missing rule/publication and wrong source/classification versions. Acceptance requires100 percent fixture routing and exact provenance, zero unsupported selected guidance, plus replay/rollback, authorization, schema and bounded-runtime tests. These are synthetic acceptance thresholds, not observed production metrics. The actual SDK mocked-HTTP test checks native strict schema, no tools and curated context. Existing separate Qdrant CI exercises the real retrieval adapter with deterministic embeddings; no live OpenAI inference is claimed.
+InvestigationTests runs deterministic fixtures for A/B/C, score0.85/0.8/0.5, missing/contradictory/injected sources, unapproved/inapplicable patches, missing rule/publication and wrong source/classification versions. Acceptance requires100 percent fixture routing and exact provenance, zero unsupported selected guidance, plus replay/rollback, authorization, schema and bounded-runtime tests. These are demo acceptance thresholds, not observed production metrics. The actual SDK mocked-HTTP test checks native strict schema, no tools and curated context. Existing separate Qdrant CI exercises the real retrieval adapter with deterministic embeddings; no live OpenAI inference is claimed.
 
 All returned citations must support the same selected approved remedy text. Different individually approved remedy texts are also unadjudicated conflict and require review. API responses carry an explicit untrusted historical evidence policy.
 

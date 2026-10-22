@@ -16,17 +16,14 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "API guide",
         "groups": [
           {
             "group": "Start here",
             "pages": [
               "index",
               "authentication",
-              "conventions",
-              "workflows",
-              "operations",
-              "release"
+              "conventions"
             ]
           }
         ]
@@ -36,5 +33,9 @@
         "openapi": "openapi.json"
       }
     ]
+  },
+  "appearance": {
+    "default": "light",
+    "strict": true
   }
 }

@@ -15,7 +15,8 @@ public sealed record OntologyOutcome(string? RuleId, string? ClassificationId, s
 public sealed record OntologyRevision(long Version, OntologyContent Content, string State, string ActorId, DateTimeOffset At);
 public sealed record OntologyPublication(long Version, OntologyContent Content, string ApprovedBy, DateTimeOffset ApprovedAt);
 public sealed record OntologyCatalog(Guid Id, long Version, OntologyContent Draft, ImmutableArray<OntologyRevision> History,
-    ImmutableArray<OntologyPublication> Publications);
+    ImmutableArray<OntologyPublication> Publications)
+{ public bool Retired { get; init; } }
 public sealed record OntologyEvaluation(Guid Id, long PublicationVersion, OntologyInput Input, OntologyOutcome Outcome,
     string EvaluatedBy, DateTimeOffset EvaluatedAt, string ApprovedBy, DateTimeOffset ApprovedAt);
 
@@ -24,7 +25,7 @@ public static class OntologyRules
     public static bool System(string? value) => value is "EPS" or "steer-by-wire" or "steering-ADAS";
     private static bool Id(string? value) => value is not null && value.Length <= 100 && !value.Any(char.IsControl)
         && Regex.IsMatch(value, "^SYN-[A-Za-z0-9][A-Za-z0-9_-]*$", RegexOptions.CultureInvariant);
-    private static bool Applicability(string? model, string? software) => FaultRules.SyntheticModel(model) && FaultRules.Software(software)
+    private static bool Applicability(string? model, string? software) => FaultRules.DemoModel(model) && FaultRules.Software(software)
         && !model!.Any(char.IsControl) && !software!.Any(char.IsControl);
     private static bool Kinds(ImmutableArray<string> kinds) => !kinds.IsDefault && kinds.Length <= 2
         && kinds.All(x => x is "guidance" or "dealership") && kinds.Distinct(StringComparer.Ordinal).Count() == kinds.Length;

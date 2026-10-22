@@ -25,8 +25,15 @@ internal static class WorkflowCodec
         {
             var payload = JsonSerializer.Serialize(value, Json);
             using var document = JsonDocument.Parse(payload);
-            var row = new WorkflowRecord { TenantId = tenant, Kind = kind, Key = key, Payload = payload, Position = position,
-                Version = document.RootElement.TryGetProperty("version", out var version) && version.TryGetInt64(out var v) ? v : 0 };
+            var row = new WorkflowRecord
+            {
+                TenantId = tenant,
+                Kind = kind,
+                Key = key,
+                Payload = payload,
+                Position = position,
+                Version = document.RootElement.TryGetProperty("version", out var version) && version.TryGetInt64(out var v) ? v : 0
+            };
             if (value is Incident incident)
             {
                 if (incident.TenantId != tenant) throw new IncidentException(403);
@@ -43,7 +50,7 @@ internal static class WorkflowCodec
         void List<T>(string kind, IReadOnlyList<T> values, Func<T, string>? key = null)
         { for (var i = 0; i < values.Count; i++) Add(kind, key?.Invoke(values[i]) ?? i.ToString(CultureInfo.InvariantCulture), values[i], i); }
         void Map<T>(string kind, IReadOnlyDictionary<string, T> values) =>
-            List(kind, values.OrderBy(x => x.Key, StringComparer.Ordinal).ToArray(), x => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(x.Key)))) ;
+            List(kind, values.OrderBy(x => x.Key, StringComparer.Ordinal).ToArray(), x => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(x.Key))));
         var c = state.Context;
         List("incident", c.Incidents.Incidents, x => x.Id.ToString("D"));
         List("incident-audit", c.Incidents.Audit); Map("incident-replay", c.Incidents.Replays); Map("incident-source", c.Incidents.Sources);

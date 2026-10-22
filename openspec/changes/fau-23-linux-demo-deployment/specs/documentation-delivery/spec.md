@@ -24,3 +24,14 @@ Deployment acceptance SHALL distinguish process/dependency health from durable b
 #### Scenario: Missing durable adapter
 - **WHEN** the current API intentionally returns503 for a business operation
 - **THEN** record that operation incomplete rather than treating a healthy container or sign-in page as complete application acceptance
+
+### Requirement: Complete same-domain application services
+The Linux deployment SHALL serve Angular, REST/MCP, public static Mintlify docs, API testing and authenticated Mailpit under faultcodeai.com. SQL Server Express, Qdrant and server-side credentials SHALL support real workflows with private database/vector ports. Deployment SHALL migrate, seed and index before accepting health, preserve persistent volumes and leave LALAI services unchanged.
+
+#### Scenario: Accepted development release
+- **WHEN** every required Linux check passes for the current development revision
+- **THEN** its source-labeled immutable app, API, vector and documentation images deploy, SQL migration and seeds succeed, protected API calls require authentication, and public HTTPS plus documentation and authenticated Mailpit are verified
+
+#### Scenario: Capture-only email
+- **WHEN** dispatch or resolution sends a driver notification
+- **THEN** Mailpit retains the message and the domain viewer requires authentication; no relay or external driver delivery is enabled

@@ -14,7 +14,7 @@ Part of FAU-19. October21,2026: locked restore, zero-warning Release build, form
 
 ## Contracts and tooling
 
-67 protected operations/51 paths (8 additive operations/6 paths). Complete generated REST is compatible with committed baseline AND actual FAU-18 Ubuntu CI artifact at /Users/bobbywilson/Documents/Codex/2026-10-21/fault-code-fau-18/work/fau18-ci-contracts/openapi/faultcode-v1.json. Seven breaking fixtures reject; actual five SDK MCP schemas and success/error examples validate unchanged.102 explicit Docker inputs pass credential-pattern scan. Compose config passes using a disposable synthetic key. Local Docker daemon unavailable; actual container/Qdrant acceptance requires exact-source CI.
+67 protected operations/51 paths (8 additive operations/6 paths). Complete generated REST is compatible with committed baseline AND actual FAU-18 Ubuntu CI artifact at /Users/bobbywilson/Documents/Codex/2026-10-21/fault-code-fau-18/work/fau18-ci-contracts/openapi/faultcode-v1.json. Seven breaking fixtures reject; actual five SDK MCP schemas and success/error examples validate unchanged.102 explicit Docker inputs pass credential-pattern scan. Compose config passes using a disposable demo key. Local Docker daemon unavailable; actual container/Qdrant acceptance requires exact-source CI.
 
 Official strict scoped OpenSpec validation preceded implementation. Official archive and all-main strict validation complete the lifecycle; exact-source CI and COMMENTED self-review/disabled author Approve evidence are checked before authorized normal merge. Keep Linear open for Bobby review.
 

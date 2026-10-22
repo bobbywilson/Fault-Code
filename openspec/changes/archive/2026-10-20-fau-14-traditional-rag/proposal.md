@@ -4,7 +4,7 @@
 Part of FAU-14. Investigations need authorized, approved document evidence with reproducible citations. Existing Qdrant readiness supplies no ingestion or retrieval behavior.
 
 ## What Changes
-- Add bounded synthetic document lifecycle, server approval, deterministic page chunks, checksums and original-storage abstraction.
+- Add bounded demo document lifecycle, server approval, deterministic page chunks, checksums and original-storage abstraction.
 - Add configurable OpenAI embeddings and compatible Qdrant derived collections, replacement/deletion/reindex and approved-only retrieval with authoritative revalidation.
 - Add exact knowledge.publish management and knowledge.read retrieval APIs, DTOs, examples and outage/security evaluations.
 - Keep DEC-001/003 canonical durable storage unavailable and DEC-004 model selection explicit; no paid calls, provisioning or production memory fallback.

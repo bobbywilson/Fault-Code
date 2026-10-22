@@ -1,3 +1,4 @@
+import { HlmDialogImports } from '@spartan-ng/helm/dialog';
 import { HlmToasterImports } from '@spartan-ng/helm/sonner';
 import { toast } from '@spartan-ng/brain/sonner';
 import { HlmAvatar, HlmAvatarImage, HlmAvatarFallback } from '@spartan-ng/helm/avatar';
@@ -23,14 +24,23 @@ import { HlmBreadcrumbImports } from '@spartan-ng/helm/breadcrumb';
 import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmInput } from '@spartan-ng/helm/input';
-import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
+import { HlmSelectImports } from '@spartan-ng/helm/select';
+import { HlmTextarea } from '@spartan-ng/helm/textarea';
 import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  lucideLayoutDashboard,
+  lucideArrowRight,
+  lucideArrowDown,
+  lucideDatabase,
+  lucideMail,
   lucideTriangleAlert,
   lucideCar,
   lucideUsers,
   lucideWrench,
+  lucideCopy,
+  lucideKeyRound,
+  lucideChevronDown,
   lucideNetwork,
   lucideFiles,
   lucideFlaskConical,
@@ -43,8 +53,10 @@ import { Auth } from './auth';
 import { Api, ApiError } from './api';
 import { Fields } from './fields';
 import { Records } from './records';
+import { Tickets } from './tickets';
 import { Schema, initial, validate, clean } from './schema';
 import operations from './operations.json';
+import domainModel from './domain-model.json';
 interface Operation {
   id: string;
   label: string;
@@ -58,19 +70,23 @@ interface Operation {
 }
 const ops = operations as Operation[];
 export const areas = [
-  ['Incidents', 'incidents'],
+  ['Dashboard', 'dashboard'],
   ['Vehicles', 'vehicles'],
   ['Drivers', 'drivers'],
+  ['Incidents', 'incidents'],
   ['Notifications', 'notifications'],
-  ['Users & roles', 'users'],
+  ['Users', 'users'],
   ['Ontology', 'ontology'],
   ['Fault codes', 'fault-codes'],
+  ['Token', 'token'],
+  ['Tickets', 'tickets'],
 ];
 @Component({
   selector: 'app-workspace',
   imports: [
     DatePipe,
     HlmToasterImports,
+    HlmDialogImports,
     RouterLink,
     RouterLinkActive,
     FormsModule,
@@ -92,18 +108,28 @@ export const areas = [
     HlmBreadcrumbImports,
     HlmFieldImports,
     HlmInput,
-    HlmNativeSelectImports,
+    HlmSelectImports,
+    HlmTextarea,
     HlmCheckbox,
     NgIcon,
     Fields,
     Records,
+    Tickets,
   ],
   providers: [
     provideIcons({
+      lucideLayoutDashboard,
+      lucideArrowRight,
+      lucideArrowDown,
+      lucideDatabase,
+      lucideMail,
       lucideTriangleAlert,
       lucideCar,
       lucideUsers,
       lucideWrench,
+      lucideCopy,
+      lucideKeyRound,
+      lucideChevronDown,
       lucideNetwork,
       lucideFiles,
       lucideFlaskConical,
@@ -115,7 +141,7 @@ export const areas = [
   ],
   template: ` <hlm-toaster />
     <a hlmBtn class="sr-only focus:not-sr-only focus:fixed focus:z-50" href="#main"
-      >Skip to workspace</a
+      >Skip to content</a
     >
     <div hlmSidebarWrapper>
       @if (auth.state() === 'signed-in') {
@@ -130,7 +156,7 @@ export const areas = [
               <div hlmSidebarGroupLabel>Workspace</div>
               <nav hlmSidebarGroupContent aria-label="Administration">
                 <ul hlmSidebarMenu>
-                  @for (item of areas; track item[1]; let index = $index) {
+                  @for (item of visibleAreas(); track item[1]) {
                     <li hlmSidebarMenuItem>
                       <a
                         hlmSidebarMenuButton
@@ -141,7 +167,7 @@ export const areas = [
                         ariaCurrentWhenActive="page"
                         [tooltip]="item[0]"
                       >
-                        <ng-icon [name]="icons[index]" /><span>{{ item[0] }}</span>
+                        <ng-icon [name]="icons[areas.indexOf(item)]" /><span>{{ item[0] }}</span>
                       </a>
                     </li>
                   }
@@ -152,8 +178,22 @@ export const areas = [
           <div hlmSidebarFooter>
             <ul hlmSidebarMenu>
               <li hlmSidebarMenuItem>
-                <a hlmSidebarMenuButton href="/openapi/v1.json" target="_blank" rel="noopener"
+                <a
+                  hlmSidebarMenuButton
+                  tooltip="API reference"
+                  [href]="documentationUrl"
+                  target="_blank"
+                  rel="noopener"
                   ><ng-icon name="lucideArrowUpRight" /><span>API reference</span></a
+                >
+              </li>
+              <li hlmSidebarMenuItem>
+                <a
+                  hlmSidebarMenuButton
+                  tooltip="Development stack"
+                  routerLink="/admin/dashboard"
+                  fragment="development-stack"
+                  ><ng-icon name="lucideFiles" /><span>Development stack</span></a
                 >
               </li>
             </ul>
@@ -165,28 +205,37 @@ export const areas = [
           <div class="flex items-center gap-3">
             @if (auth.state() === 'signed-in') {
               <button hlmSidebarTrigger></button>
+              <nav hlmBreadcrumb>
+                <ol hlmBreadcrumbList>
+                  <li hlmBreadcrumbItem><span hlmBreadcrumbLink>Workspace</span></li>
+                  <li hlmBreadcrumbSeparator></li>
+                  <li hlmBreadcrumbItem>
+                    <span hlmBreadcrumbPage>{{ group() }}</span>
+                  </li>
+                </ol>
+              </nav>
+            } @else {
+              <nav aria-label="Documentation" class="flex flex-wrap items-center gap-2">
+                <a hlmBtn variant="outline" [href]="documentationUrl" target="_blank" rel="noopener"
+                  >API documentation</a
+                >
+                <a hlmBtn variant="outline" [href]="apiTestingUrl" target="_blank" rel="noopener"
+                  >Test API</a
+                >
+              </nav>
             }
-            <nav hlmBreadcrumb>
-              <ol hlmBreadcrumbList>
-                <li hlmBreadcrumbItem><span hlmBreadcrumbLink>Workspace</span></li>
-                <li hlmBreadcrumbSeparator></li>
-                <li hlmBreadcrumbItem>
-                  <span hlmBreadcrumbPage>{{ group() }}</span>
-                </li>
-              </ol>
-            </nav>
           </div>
           @if (auth.state() === 'signed-in') {
             <button
               hlmBtn
               variant="ghost"
-              size="icon"
-              class="rounded-full"
+              size="sm"
+              class="gap-1 rounded-full px-1"
+              [attr.aria-label]="'Account menu for ' + auth.profileName() + ' ' + accountInitials()"
               [hlmDropdownMenuTrigger]="accountMenu"
               align="end"
             >
-              <span class="sr-only">Account menu for {{ auth.profileName() }}</span>
-              <hlm-avatar>
+              <hlm-avatar aria-hidden="true">
                 @if (auth.profilePhoto()) {
                   <img
                     hlmAvatarImage
@@ -196,6 +245,7 @@ export const areas = [
                 }
                 <span hlmAvatarFallback class="text-foreground">{{ accountInitials() }}</span>
               </hlm-avatar>
+              <ng-icon name="lucideChevronDown" class="size-3" aria-hidden="true" />
             </button>
             <ng-template #accountMenu>
               <hlm-dropdown-menu class="min-w-44" aria-label="Account">
@@ -210,16 +260,24 @@ export const areas = [
           class="mx-auto flex w-full flex-1 flex-col gap-6 p-4 md:p-8"
           [class.max-w-6xl]="group() !== 'Incidents'"
           [class.max-w-7xl]="group() === 'Incidents'"
+          [class.items-center]="auth.state() !== 'signed-in'"
+          [class.justify-center]="auth.state() !== 'signed-in'"
         >
-          <div class="space-y-2">
-            <div class="flex items-center gap-3">
-              <h1 class="text-2xl font-semibold tracking-tight">{{ group() }}</h1>
-              <span hlmBadge variant="secondary">{{
-                group() === 'Ontology' ? 'Model reference' : 'Administration'
-              }}</span>
+          @if (auth.state() === 'signed-in') {
+            <div class="space-y-2">
+              <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-semibold tracking-tight">{{ group() }}</h1>
+                <span hlmBadge variant="secondary">{{
+                  group() === 'Dashboard'
+                    ? 'Overview'
+                    : group() === 'Ontology'
+                      ? 'Model reference'
+                      : 'Administration'
+                }}</span>
+              </div>
+              <p class="max-w-2xl text-sm text-muted-foreground">{{ description() }}</p>
             </div>
-            <p class="max-w-2xl text-sm text-muted-foreground">{{ description() }}</p>
-          </div>
+          }
           @if (auth.state() === 'loading') {
             <div role="status" hlmAlert>Loading secure workspace…</div>
           } @else if (auth.state() === 'unconfigured') {
@@ -238,17 +296,271 @@ export const areas = [
               Sign-in could not be completed. Reload and try again.
             </div>
           } @else if (auth.state() !== 'signed-in') {
-            <section hlmCard class="p-6">
+            <section hlmCard class="w-full max-w-lg p-6" aria-label="Sign in">
               <h2 hlmCardTitle>
                 {{
                   auth.state() === 'expired' ? 'Your session has expired' : 'Sign in to continue'
                 }}
               </h2>
               <p>Your workspace requires an authorized Fault Code account.</p>
-              <button hlmBtn class="w-fit" (click)="login()">Sign in with Microsoft</button>
+              @if (auth.demoAvailable()) {
+                <form class="flex flex-col gap-4" (ngSubmit)="loginDemo()">
+                  <div hlmField>
+                    <label hlmFieldLabel for="demo-username">Username</label
+                    ><input
+                      hlmInput
+                      id="demo-username"
+                      name="username"
+                      autocomplete="username"
+                      required
+                      maxlength="64"
+                      [(ngModel)]="demoUsername"
+                    />
+                  </div>
+                  <div hlmField>
+                    <label hlmFieldLabel for="demo-password">Password</label
+                    ><input
+                      hlmInput
+                      id="demo-password"
+                      name="password"
+                      type="password"
+                      autocomplete="current-password"
+                      required
+                      maxlength="256"
+                      [(ngModel)]="demoPassword"
+                    />
+                  </div>
+                  @if (demoLoginError()) {
+                    <p role="alert" class="text-sm text-destructive">{{ demoLoginError() }}</p>
+                  }
+                  <div class="grid grid-cols-2 gap-2">
+                    <button
+                      hlmBtn
+                      type="submit"
+                      class="h-auto min-h-8 w-full whitespace-normal py-2"
+                      [disabled]="demoLoginBusy() || !demoUsername || !demoPassword"
+                    >
+                      Sign in with credentials
+                    </button>
+                    <button
+                      hlmBtn
+                      type="button"
+                      variant="outline"
+                      class="h-auto min-h-8 w-full whitespace-normal py-2"
+                      [disabled]="demoLoginBusy()"
+                      (click)="login()"
+                    >
+                      Sign in with Microsoft
+                    </button>
+                  </div>
+                </form>
+              } @else {
+                <button hlmBtn class="w-fit" (click)="login()">Sign in with Microsoft</button>
+              }
             </section>
           } @else {
-            @if (group() === 'Vehicles' || group() === 'Drivers') {
+            @if (group() === 'Tickets') {
+              <app-tickets />
+            } @else if (group() === 'Dashboard') {
+              <section hlmCard class="gap-5 p-6" aria-label="Agentic fault flow">
+                <div class="space-y-2">
+                  <span hlmBadge variant="outline" class="border-red-600"
+                    >Agentic flow · Shriram</span
+                  >
+                  <h2 hlmCardTitle>From a vehicle signal to driver guidance</h2>
+                  <p class="max-w-3xl text-sm leading-relaxed text-muted-foreground">
+                    A fault code starts a traceable investigation. The agent coordinates scoped
+                    tools; the service verifies the evidence, controls record changes and records
+                    delivery.
+                  </p>
+                </div>
+                <div role="group" aria-label="Fault investigation flow diagram" class="space-y-4">
+                  <ol class="grid gap-8 md:grid-cols-4" aria-label="Fault processing steps">
+                    @for (step of dashboardFlow; track step.title; let last = $last) {
+                      <li class="relative">
+                        <div hlmCard class="h-full gap-3 bg-muted/30 p-4">
+                          <div class="flex items-center justify-between">
+                            <ng-icon [name]="step.icon" class="size-5" aria-hidden="true" />
+                            <span class="text-xs text-muted-foreground">{{ step.number }}</span>
+                          </div>
+                          <h3 class="text-sm font-semibold">{{ step.title }}</h3>
+                          <p class="text-xs leading-relaxed text-muted-foreground">
+                            {{ step.detail }}
+                          </p>
+                        </div>
+                        @if (!last) {
+                          <ng-icon
+                            name="lucideArrowRight"
+                            aria-hidden="true"
+                            class="absolute -bottom-6 left-1/2 size-4 -translate-x-1/2 rotate-90 text-muted-foreground md:-right-6 md:bottom-auto md:left-auto md:top-1/2 md:translate-x-0 md:-translate-y-1/2 md:rotate-0"
+                          />
+                        }
+                      </li>
+                    }
+                  </ol>
+                  <div class="flex flex-col items-center gap-2 py-1" aria-hidden="true">
+                    <ng-icon name="lucideArrowDown" class="size-4 text-muted-foreground" />
+                    <span hlmBadge variant="secondary">Is the code verified?</span>
+                  </div>
+                  <div class="grid gap-4 md:grid-cols-2">
+                    <section hlmCard class="gap-2 p-4" aria-label="Known fault path">
+                      <span hlmBadge variant="secondary" class="w-fit">Known fault</span>
+                      <h3 class="text-sm font-semibold">Explain the verified meaning</h3>
+                      <p class="text-sm leading-relaxed text-muted-foreground">
+                        Use approved fault knowledge and applicable remedy guidance. The agent
+                        prepares an evidence-grounded email; the service validates it before
+                        sending.
+                      </p>
+                    </section>
+                    <section hlmCard class="gap-2 p-4" aria-label="Unknown fault path">
+                      <span hlmBadge variant="outline" class="w-fit">Unknown fault</span>
+                      <h3 class="text-sm font-semibold">Investigate, then follow up</h3>
+                      <p class="text-sm leading-relaxed text-muted-foreground">
+                        Retain the incident and tell the driver it is being investigated. Resolving
+                        the incident triggers a follow-up notification with the available verified
+                        facts.
+                      </p>
+                    </section>
+                  </div>
+                  <div class="flex justify-center" aria-hidden="true">
+                    <ng-icon name="lucideArrowDown" class="size-4 text-muted-foreground" />
+                  </div>
+                  <div hlmCard class="flex-row items-start gap-3 bg-muted/30 p-4">
+                    <ng-icon name="lucideMail" class="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+                    <div class="space-y-1">
+                      <h3 class="text-sm font-semibold">Driver notification + delivery history</h3>
+                      <p class="text-sm leading-relaxed text-muted-foreground">
+                        Mailpit captures the email. The notification keeps its message, status and
+                        delivery attempts linked to the driver and incident.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+                  <p class="max-w-2xl text-xs leading-relaxed text-muted-foreground">
+                    Workflow traceability: incident, lookup, agent tools and email delivery. Datadog
+                    is the telemetry destination; this diagram is a workflow reference, not a live
+                    ingestion status.
+                  </p>
+                  <a hlmBtn variant="outline" routerLink="/admin/vehicles"
+                    >Try vehicle dispatch
+                    <ng-icon name="lucideArrowUpRight" class="ml-2 size-4" aria-hidden="true"
+                  /></a>
+                </div>
+              </section>
+              <div class="grid gap-6 lg:grid-cols-2">
+                <section hlmCard class="gap-4 p-6" aria-label="OpenSpec overview">
+                  <div class="space-y-2">
+                    <span hlmBadge variant="outline" class="border-red-600"
+                      >OpenSpec · Kristof</span
+                    >
+                    <h2 hlmCardTitle>Specify the behavior before changing it</h2>
+                    <p class="text-sm leading-relaxed text-muted-foreground">
+                      OpenSpec keeps the intended behavior and acceptance scenarios alongside the
+                      application code. A change captures its proposal, specifications, design and
+                      implementation tasks so the work can be checked against explicit requirements.
+                    </p>
+                  </div>
+                  <ol class="space-y-2 text-sm">
+                    <li>
+                      <span class="font-medium">Propose</span
+                      ><span class="text-muted-foreground"> — describe the problem and scope.</span>
+                    </li>
+                    <li>
+                      <span class="font-medium">Specify</span
+                      ><span class="text-muted-foreground">
+                        — define requirements and acceptance scenarios.</span
+                      >
+                    </li>
+                    <li>
+                      <span class="font-medium">Implement and validate</span
+                      ><span class="text-muted-foreground">
+                        — follow tasks and verify the behavior.</span
+                      >
+                    </li>
+                    <li>
+                      <span class="font-medium">Archive</span
+                      ><span class="text-muted-foreground">
+                        — reconcile completed changes into the lasting specifications.</span
+                      >
+                    </li>
+                  </ol>
+                  <p class="text-sm leading-relaxed text-muted-foreground">
+                    <span class="font-medium text-foreground">Playwright</span> checks the specified
+                    user journeys in the browser, including fault dispatch, incident resolution,
+                    navigation and accessibility.
+                  </p>
+                  <p class="text-xs text-muted-foreground">
+                    Package: <code>&#64;fission-ai/openspec</code>
+                  </p>
+                  <a
+                    hlmBtn
+                    variant="outline"
+                    class="mt-auto w-fit"
+                    href="https://github.com/Fission-AI/OpenSpec"
+                    target="_blank"
+                    rel="noopener"
+                    >OpenSpec package
+                    <ng-icon name="lucideArrowUpRight" class="ml-2 size-4" aria-hidden="true"
+                  /></a>
+                </section>
+                <section hlmCard class="gap-4 p-6" aria-label="Ontology overview">
+                  <div class="space-y-2">
+                    <span hlmBadge variant="outline" class="border-red-600">Ontology · Nathan</span>
+                    <h2 hlmCardTitle>A shared model of the fault domain</h2>
+                    <p class="text-sm leading-relaxed text-muted-foreground">
+                      The ontology names the concepts and relationships that give fault knowledge
+                      its meaning. A fault code is reported in an incident; the incident belongs to
+                      a vehicle, involves a driver and has notifications. Symptoms, classifications
+                      and remedies add context for investigation.
+                    </p>
+                  </div>
+                  <div
+                    class="flex flex-wrap items-center gap-2"
+                    aria-label="Core ontology concepts"
+                  >
+                    @for (
+                      concept of ['Fault code', 'Incident', 'Vehicle', 'Driver', 'Notification'];
+                      track concept
+                    ) {
+                      <span hlmBadge variant="secondary">{{ concept }}</span>
+                    }
+                  </div>
+                  <p class="text-sm leading-relaxed text-muted-foreground">
+                    The ontology describes how concepts relate. SQL Server stores the actual
+                    records; Qdrant supports lookup and retrieval. Similarity alone never
+                    establishes a fault diagnosis.
+                  </p>
+                  <a hlmBtn variant="outline" class="mt-auto w-fit" routerLink="/admin/ontology"
+                    >Explore ontology
+                    <ng-icon name="lucideArrowUpRight" class="ml-2 size-4" aria-hidden="true"
+                  /></a>
+                </section>
+              </div>
+              <section
+                hlmCard
+                id="development-stack"
+                class="scroll-mt-6 gap-4 p-6"
+                aria-label="Development stack"
+              >
+                <div class="space-y-2">
+                  <h2 hlmCardTitle>Development stack</h2>
+                  <p class="text-sm text-muted-foreground">
+                    The tools and services used to build and run Fault Code.
+                  </p>
+                </div>
+                <dl class="grid gap-5 sm:grid-cols-2">
+                  @for (layer of developmentStack; track layer.name) {
+                    <div class="space-y-1 border-l-2 border-border pl-4">
+                      <dt class="text-sm font-semibold">{{ layer.name }}</dt>
+                      <dd class="text-sm leading-relaxed text-muted-foreground">
+                        {{ layer.detail }}
+                      </dd>
+                    </div>
+                  }
+                </dl>
+              </section>
+            } @else if (group() === 'Vehicles' || group() === 'Drivers') {
               <section hlmCard class="gap-4 p-6" [attr.aria-label]="group() + ' list'">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                   <h2 hlmCardTitle>
@@ -346,20 +658,32 @@ export const areas = [
                                   >Fault code for {{ vehicleName(row) }} —
                                   {{ driverName(row.drivers[0] || {}) }}</label
                                 >
-                                <hlm-native-select
-                                  [selectId]="'fault-code-' + row.id"
-                                  selectClass="min-w-52"
-                                  [ngModel]="selectedFaults()[row.id] || ''"
-                                  (ngModelChange)="selectVehicleFault(row.id, $event)"
+                                <hlm-select
+                                  [value]="selectedFaults()[row.id] || ''"
+                                  (valueChange)="selectVehicleFault(row.id, $event ?? '')"
                                   [disabled]="
                                     dispatching()[row.id] || !row.active || !canDispatch()
                                   "
                                 >
-                                  <option value="">Select fault code</option>
-                                  @for (fault of vehicleFaultCodes(row); track fault.code) {
-                                    <option [value]="fault.code">{{ fault.code }}</option>
-                                  }
-                                </hlm-native-select>
+                                  <hlm-select-trigger
+                                    [buttonId]="'fault-code-' + row.id"
+                                    class="w-full min-w-52"
+                                  >
+                                    <hlm-select-value placeholder="Select fault code" />
+                                  </hlm-select-trigger>
+                                  <hlm-select-content
+                                    *hlmSelectPortal
+                                    role="region"
+                                    aria-label="Fault code choices"
+                                  >
+                                    @for (fault of vehicleFaultCodes(row); track fault.code) {
+                                      <hlm-select-item [value]="fault.code">
+                                        {{ fault.code }} —
+                                        {{ fault.unlisted ? 'Unknown' : 'Catalog' }}
+                                      </hlm-select-item>
+                                    }
+                                  </hlm-select-content>
+                                </hlm-select>
                               </td>
                               <td hlmTd>
                                 <button
@@ -623,7 +947,43 @@ export const areas = [
                           <tr hlmTr>
                             <td hlmTd>{{ row.driverName }}</td>
                             <td hlmTd>{{ row.email }}</td>
-                            <td hlmTd class="max-w-lg whitespace-normal">{{ row.message }}</td>
+                            <td hlmTd>
+                              <hlm-dialog>
+                                <button
+                                  hlmBtn
+                                  variant="outline"
+                                  size="sm"
+                                  hlmDialogTrigger
+                                  [disabled]="!row.message"
+                                >
+                                  View message
+                                </button>
+                                <hlm-dialog-content *hlmDialogPortal class="max-w-2xl">
+                                  <hlm-dialog-header
+                                    ><h3 hlmDialogTitle>Driver email</h3>
+                                    <p hlmDialogDescription>
+                                      {{ row.driverName }} · {{ row.email }}
+                                    </p></hlm-dialog-header
+                                  >
+                                  <p
+                                    class="max-h-[60vh] overflow-y-auto whitespace-pre-wrap text-sm"
+                                  >
+                                    {{ row.message }}
+                                  </p>
+                                </hlm-dialog-content>
+                              </hlm-dialog>
+                              @if (!row.message && canDispatch()) {
+                                <button
+                                  hlmBtn
+                                  variant="outline"
+                                  size="sm"
+                                  [disabled]="processingNotifications()[row.id]"
+                                  (click)="processNotification(row)"
+                                >
+                                  Process email
+                                </button>
+                              }
+                            </td>
                             <td hlmTd>{{ row.state }}</td>
                             <td hlmTd>{{ row.createdAt | date: 'medium' }}</td>
                             <td hlmTd>{{ row.attemptCount ?? 0 }}</td>
@@ -652,10 +1012,67 @@ export const areas = [
                   </button>
                 </div>
               </section>
-            } @else if (group() === 'Users & roles') {
-              <section hlmCard class="gap-4 p-6" aria-label="Users and roles list">
+            } @else if (group() === 'Token') {
+              <section hlmCard class="gap-4 p-6" aria-label="API token">
+                <div class="flex items-center justify-between gap-3">
+                  <h2 hlmCardTitle>API token</h2>
+                  <button
+                    hlmBtn
+                    variant="outline"
+                    [disabled]="tokenBusy()"
+                    (click)="loadToken(true)"
+                  >
+                    Refresh token
+                  </button>
+                </div>
+                <p class="text-sm text-muted-foreground">
+                  {{
+                    auth.kind() === 'demo'
+                      ? 'Entra application token for Fault Code Demo API.'
+                      : 'Your Entra access token for the Fault Code API.'
+                  }}
+                </p>
+                @if (tokenBusy()) {
+                  <p role="status">Loading token…</p>
+                }
+                @if (tokenError()) {
+                  <p role="alert">{{ tokenError() }}</p>
+                }
+                @if (accessToken()) {
+                  <div class="flex w-full items-center gap-2 md:w-1/2">
+                    <input
+                      hlmInput
+                      aria-label="Entra API access token"
+                      readonly
+                      class="min-w-0 flex-1 font-mono text-xs"
+                      [value]="accessToken()"
+                    />
+                    <button
+                      hlmBtn
+                      variant="outline"
+                      size="icon-sm"
+                      aria-label="Copy Entra API access token"
+                      (click)="copyAccessToken()"
+                    >
+                      <ng-icon name="lucideCopy" />
+                    </button>
+                  </div>
+                  <p class="text-sm text-muted-foreground">Identity: {{ tokenIdentity() }}</p>
+                  @if (tokenExpiresAt()) {
+                    <p class="text-sm text-muted-foreground">
+                      Expires {{ tokenExpiresAt() | date: 'medium' }}
+                    </p>
+                  }
+                }
+              </section>
+            } @else if (group() === 'Users' && auth.kind() === 'demo') {
+              <section hlmCard class="p-6">
+                <p>This account cannot access user administration.</p>
+              </section>
+            } @else if (group() === 'Users') {
+              <section hlmCard class="gap-4 p-6" aria-label="Users list">
                 <div class="flex items-center justify-between">
-                  <h2 class="font-semibold">Users & roles</h2>
+                  <h2 class="font-semibold">Users</h2>
                   <button hlmBtn variant="outline" [disabled]="busy()" (click)="reloadUsers()">
                     Refresh
                   </button>
@@ -667,7 +1084,7 @@ export const areas = [
                   <p role="alert">{{ message() }}</p>
                 }
                 <div hlmTableContainer>
-                  <table hlmTable class="text-left" aria-label="Users and roles records">
+                  <table hlmTable class="text-left" aria-label="Users records">
                     <thead hlmTHead>
                       <tr hlmTr>
                         <th hlmTh>Name</th>
@@ -789,9 +1206,6 @@ export const areas = [
                         <th hlmTh scope="col">Relationship</th>
                         <th hlmTh scope="col">Related concept</th>
                         <th hlmTh scope="col">Meaning</th>
-                        <th hlmTh scope="col">
-                          <span class="sr-only">Browse related records</span>
-                        </th>
                       </tr>
                     </thead>
                     <tbody hlmTBody>
@@ -803,27 +1217,10 @@ export const areas = [
                             <span hlmBadge variant="outline">{{ row.to }}</span>
                           </td>
                           <td hlmTd class="min-w-64 whitespace-normal">{{ row.detail }}</td>
-                          <td hlmTd>
-                            @if (row.route) {
-                              <a
-                                hlmBtn
-                                variant="ghost"
-                                size="sm"
-                                [routerLink]="'/admin/' + row.route"
-                                [attr.aria-label]="
-                                  'Browse ' +
-                                  row.to.toLowerCase() +
-                                  ' records for ' +
-                                  row.from.toLowerCase()
-                                "
-                                >Browse <ng-icon name="lucideArrowUpRight"
-                              /></a>
-                            }
-                          </td>
                         </tr>
                       } @empty {
                         <tr hlmTr>
-                          <td hlmTd colspan="5" class="py-8 text-center text-muted-foreground">
+                          <td hlmTd colspan="4" class="py-8 text-center text-muted-foreground">
                             No matching relationships. Try another search.
                           </td>
                         </tr>
@@ -839,27 +1236,92 @@ export const areas = [
                 </button>
               }
               <section hlmCard class="p-6">
-                <h2 hlmCardTitle>
-                  {{ group() === 'Incidents' ? 'Review incident' : 'Workspace actions' }}
-                </h2>
-                <div hlmField class="w-full" [class.md:w-1/2]="group() === 'Incidents'">
-                  <label hlmFieldLabel for="action">Action</label
-                  ><hlm-native-select
-                    selectId="action"
-                    [ngModel]="op()?.id ?? ''"
-                    (ngModelChange)="select($event)"
-                  >
-                    @for (action of actions(); track action.id) {
-                      <option [value]="action.id">{{ action.label }}</option>
-                    }
-                  </hlm-native-select>
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h2 hlmCardTitle>
+                    {{ group() === 'Incidents' ? 'Review incident' : 'Workspace actions' }}
+                  </h2>
+                  @if (op()?.id === 'GetIncident' && incidentDatadogUrl(); as datadogUrl) {
+                    <a
+                      hlmBtn
+                      variant="outline"
+                      [href]="datadogUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      View in Datadog <ng-icon name="lucideArrowUpRight" aria-hidden="true" />
+                    </a>
+                  } @else if (op()?.id === 'GetIncident') {
+                    <button
+                      hlmBtn
+                      variant="outline"
+                      disabled
+                      title="The Datadog incident has not been linked yet."
+                    >
+                      View in Datadog <ng-icon name="lucideArrowUpRight" aria-hidden="true" />
+                    </button>
+                  }
                 </div>
+                @if (op()?.id !== 'GetIncident') {
+                  <div hlmField class="w-full" [class.md:w-1/2]="group() === 'Incidents'">
+                    <label hlmFieldLabel for="action">Action</label>
+                    <hlm-select
+                      [itemToString]="actionLabel"
+                      [value]="op()?.id ?? ''"
+                      (valueChange)="select($event ?? '')"
+                    >
+                      <hlm-select-trigger buttonId="action" class="w-full">
+                        <hlm-select-value placeholder="Choose action" />
+                      </hlm-select-trigger>
+                      <hlm-select-content
+                        *hlmSelectPortal
+                        role="region"
+                        aria-label="Action choices"
+                      >
+                        @for (action of actions(); track action.id) {
+                          <hlm-select-item [value]="action.id">{{ action.label }}</hlm-select-item>
+                        }
+                      </hlm-select-content>
+                    </hlm-select>
+                  </div>
+                }
                 @if (permissionsLoading()) {
                   <p role="status">Checking permissions…</p>
                 } @else if (!op() || !allowed(op()!)) {
                   <div role="alert" hlmAlert variant="destructive">
                     Access denied. This action requires additional permissions.
                   </div>
+                } @else if (op()?.id === 'GetIncident') {
+                  @if (canResolveIncident()) {
+                    <form class="grid w-full gap-4 md:w-1/2" (ngSubmit)="resolveIncident()">
+                      <div hlmField>
+                        <label hlmFieldLabel for="incident-resolution">Resolution *</label>
+                        <textarea
+                          hlmTextarea
+                          id="incident-resolution"
+                          name="resolution"
+                          rows="4"
+                          maxlength="2000"
+                          required
+                          [(ngModel)]="resolutionNotes"
+                          [disabled]="busy() || data()?.status === 'Resolved'"
+                          placeholder="Record the investigation findings and recommended next step."
+                        ></textarea>
+                      </div>
+                      <button
+                        hlmBtn
+                        type="submit"
+                        class="w-fit"
+                        [disabled]="
+                          busy() ||
+                          !data()?.id ||
+                          data()?.status === 'Resolved' ||
+                          !resolutionNotes.trim()
+                        "
+                      >
+                        {{ busy() ? 'Resolving…' : 'Resolve incident' }}
+                      </button>
+                    </form>
+                  }
                 } @else if (op(); as action) {
                   <form
                     (ngSubmit)="execute()"
@@ -905,7 +1367,9 @@ export const areas = [
                           busy()
                             ? 'Working…'
                             : action.method === 'GET'
-                              ? 'Load records'
+                              ? action.id === 'GetIncident'
+                                ? 'Refresh incident'
+                                : 'Load records'
                               : action.label
                         }}
                       </button>
@@ -982,12 +1446,6 @@ export const areas = [
             }
           }
         </div>
-        <footer class="border-t px-4 py-4 text-xs text-muted-foreground md:px-8">
-          <p>
-            Fault Code · Steering investigation proof of concept. Approved remedies are
-            recommendations for dealership service.
-          </p>
-        </footer>
       </main>
     </div>`,
 })
@@ -1005,6 +1463,8 @@ export class Workspace {
   private api = inject(Api);
   areas = areas;
   incidentReview = signal(false);
+  resolutionNotes = '';
+  private resolutionAttempt: { fingerprint: string; key: string } | null = null;
   faultCodeRows = signal<any[]>([]);
   faultCodeScope = signal('');
   ontologyRows = signal<any[]>([]);
@@ -1018,19 +1478,122 @@ export class Workspace {
       ),
     );
   });
+  readonly developmentStack = [
+    {
+      name: 'Frontend',
+      detail: 'Angular 22 and TypeScript, Spartan UI, Tailwind CSS and Lucide icons.',
+    },
+    {
+      name: 'API',
+      detail: 'ASP.NET Core on .NET 10 with C# and versioned REST resource endpoints.',
+    },
+    {
+      name: 'Identity',
+      detail:
+        'Microsoft Entra for API bearer tokens and Microsoft sign-in; server-verified credentials and an HttpOnly session for John Henry.',
+    },
+    {
+      name: 'Agent and tools',
+      detail:
+        'Microsoft Agent Framework with OpenAI and a permission-aware MCP server for fault lookup and driver email.',
+    },
+    {
+      name: 'Persistence and retrieval',
+      detail:
+        'SQL Server with Entity Framework Core for records; Qdrant and OpenAI embeddings for fault knowledge and resolution retrieval.',
+    },
+    {
+      name: 'Email and telemetry',
+      detail:
+        'Mailpit captures driver emails locally and on Linux. OpenTelemetry supplies the Datadog telemetry pipeline.',
+    },
+    {
+      name: 'Specifications and API reference',
+      detail:
+        'OpenSpec requirements and scenarios; generated OpenAPI, Mintlify documentation and Swagger UI for API testing.',
+    },
+    {
+      name: 'Development and verification',
+      detail: 'Docker Compose on Linux, xUnit backend checks and Playwright browser checks.',
+    },
+  ];
+  readonly dashboardFlow = [
+    {
+      number: '01',
+      icon: 'lucideCar',
+      title: 'Vehicle reports a code',
+      detail: 'A Silverado or Sierra sends its vehicle ID and fault code.',
+    },
+    {
+      number: '02',
+      icon: 'lucideDatabase',
+      title: 'API records the event',
+      detail:
+        'Validate the request. Persist the incident and linked driver notification in SQL Server.',
+    },
+    {
+      number: '03',
+      icon: 'lucideBot',
+      title: 'Agent uses MCP tools',
+      detail: 'Microsoft Agent Framework coordinates authorized fault lookup and email tools.',
+    },
+    {
+      number: '04',
+      icon: 'lucideNetwork',
+      title: 'Verify fault knowledge',
+      detail: 'Exact Qdrant code matching is checked against approved knowledge and applicability.',
+    },
+  ];
   icons = [
-    'lucideTriangleAlert',
+    'lucideLayoutDashboard',
     'lucideCar',
     'lucideUsers',
+    'lucideTriangleAlert',
     'lucideBell',
     'lucideUsers',
     'lucideNetwork',
     'lucideWrench',
+    'lucideKeyRound',
+    'lucideFiles',
   ];
   incidentFilter = signal('');
   incidentVehicleFilter = signal('');
   fleetFilter = signal('');
   userRows = signal<any[]>([]);
+  ownAccount = signal<any>(null);
+  accessToken = signal('');
+  tokenBusy = signal(false);
+  tokenError = signal('');
+  tokenExpiresAt = signal<string | null>(null);
+  tokenIdentity = signal('');
+  processingNotifications = signal<Record<string, boolean>>({});
+  visibleAreas = computed(() =>
+    this.auth.kind() === 'demo' ? areas.filter((a) => a[1] !== 'users') : areas,
+  );
+  demoUsername = '';
+  demoPassword = '';
+  demoLoginBusy = signal(false);
+  demoLoginError = signal('');
+  async loginDemo() {
+    this.demoLoginBusy.set(true);
+    this.demoLoginError.set('');
+    try {
+      await this.auth.loginDemo(this.demoUsername, this.demoPassword);
+    } catch (e) {
+      this.demoLoginError.set(e instanceof Error ? e.message : 'Sign-in failed.');
+    } finally {
+      this.demoPassword = '';
+      this.demoLoginBusy.set(false);
+    }
+  }
+  documentationUrl =
+    location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+      ? 'http://localhost:5083'
+      : '/docs';
+  apiTestingUrl =
+    location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+      ? 'http://127.0.0.1:5080/swagger/index.html'
+      : '/swagger/index.html';
   userPage = signal(1);
   userTotal = signal(0);
   notificationRows = signal<any[]>([]);
@@ -1053,14 +1616,10 @@ export class Workspace {
   group = computed(() => areas.find((a) => a[1] === this.routeArea())?.[0] ?? 'Incidents');
   actions = computed(() =>
     this.group() === 'Vehicles'
-      ? ops.filter((o) => o.id === 'DispatchVehicleFault')
+      ? ops.filter((o) => o.id === 'CreateIncident')
       : this.group() === 'Drivers'
         ? []
-        : ops.filter(
-            (o) =>
-              o.group === this.group() &&
-              !['CreateIncident', 'DispatchVehicleFault'].includes(o.id),
-          ),
+        : ops.filter((o) => o.group === this.group() && o.id !== 'CreateIncident'),
   );
   op = signal<Operation | undefined>(undefined);
   permissions = signal<string[]>([]);
@@ -1087,6 +1646,8 @@ export class Workspace {
     });
     effect(() => {
       this.group();
+      this.accessToken.set('');
+      this.tokenError.set('');
       this.notificationDriver();
       this.incidentFilter();
       this.incidentVehicleFilter();
@@ -1108,8 +1669,9 @@ export class Workspace {
           !this.permissionsLoading()
         )
           void this.reloadIncidents();
+        if (this.group() === 'Token' && this.auth.state() === 'signed-in') void this.loadToken();
         if (
-          this.group() === 'Users & roles' &&
+          this.group() === 'Users' &&
           this.auth.state() === 'signed-in' &&
           !this.permissionsLoading()
         )
@@ -1149,9 +1711,12 @@ export class Workspace {
       }
     });
   }
+  readonly actionLabel = (id: string) => ops.find((o) => o.id === id)?.label ?? '';
   description() {
     return (
       {
+        Dashboard:
+          'The agentic flow, shared domain knowledge and specifications behind Fault Code.',
         Incidents:
           'Review vehicle fault incidents and their investigation and notification status.',
         Vehicles: 'View vehicles, their drivers and dispatch fault codes.',
@@ -1163,7 +1728,9 @@ export class Workspace {
         Ontology: 'Browse the fault-code model and its connections to operational records.',
         'Fault definitions': 'Maintain fault knowledge and engineering publication.',
         'Agent activity': 'Inspect recorded advisory and investigation activity.',
-        'Users & roles': 'Review local users and least-privilege role assignments.',
+        Users: 'View your identity and assigned roles.',
+        Token: 'View, copy or refresh the API access token.',
+        Tickets: 'Review Fault Code tickets, acceptance criteria and team discussion.',
         Integrations: 'Review authorized integration registrations.',
         'Operational health':
           'Inspect application readiness and distinguish configured services from verified integrations.',
@@ -1173,16 +1740,15 @@ export class Workspace {
   private async loadPermissions() {
     this.permissionsLoading.set(true);
     try {
-      const r = await this.api.request('/api/v1/authorization/me');
-      this.permissions.set(r.data.callerKind === 'delegated' ? r.data.permissions : []);
+      const identity = await this.auth.identity();
+      this.permissions.set(identity.permissions);
     } catch (e) {
       this.fail(e);
     } finally {
       this.permissionsLoading.set(false);
       if (this.group() === 'Incidents' && this.auth.state() === 'signed-in')
         void this.reloadIncidents();
-      if (this.group() === 'Users & roles' && this.auth.state() === 'signed-in')
-        void this.reloadUsers();
+      if (this.group() === 'Users' && this.auth.state() === 'signed-in') void this.reloadUsers();
       if (this.group() === 'Ontology' && this.auth.state() === 'signed-in')
         void this.reloadOntology();
       if (this.group() === 'Fault codes' && this.auth.state() === 'signed-in')
@@ -1194,7 +1760,7 @@ export class Workspace {
     }
   }
   driverName(driver: any): string {
-    return (driver.displayName || 'Driver details unavailable').replace(/^Synthetic\s+/, '');
+    return (driver.displayName || 'Driver details unavailable').replace(/^Demo\s+/, '');
   }
   vehicleName(vehicle: any): string {
     const match = /^SYN-(SILVERADO|SIERRA)-(\d+)$/.exec(vehicle.identifier ?? '');
@@ -1205,7 +1771,7 @@ export class Workspace {
       : vehicle.identifier;
   }
   bodyFields(action: Operation): Schema {
-    if (this.group() !== 'Vehicles' || action.id !== 'DispatchVehicleFault') return action.body!;
+    if (this.group() !== 'Vehicles' || action.id !== 'CreateIncident') return action.body!;
     return {
       ...action.body!,
       properties: Object.fromEntries(
@@ -1215,13 +1781,24 @@ export class Workspace {
     };
   }
   canDispatch() {
-    const operation = ops.find((o) => o.id === 'DispatchVehicleFault');
+    const operation = ops.find((o) => o.id === 'CreateIncident');
     return !!operation && this.allowed(operation);
   }
   vehicleFaultCodes(vehicle: any) {
-    return this.faultCodeRows().filter(
+    const catalog = this.faultCodeRows().filter(
       (f) => f.system === vehicle.system && f.vehicles.includes(this.vehicleName(vehicle)),
     );
+    const prefix = (
+      { EPS: 'SYN-EPS:', 'steer-by-wire': 'SYN-SBW:', 'steering-ADAS': 'SYN-ADAS:' } as Record<
+        string,
+        string
+      >
+    )[vehicle.system];
+    if (!prefix) return catalog;
+    let code = prefix + 'UNLISTED';
+    let suffix = 1;
+    while (catalog.some((f) => f.code === code)) code = prefix + 'UNLISTED-' + ++suffix;
+    return [...catalog, { code, unlisted: true }];
   }
   selectVehicleFault(id: string, code: string) {
     if (this.dispatching()[id]) return;
@@ -1240,7 +1817,7 @@ export class Workspace {
       !this.vehicleFaultCodes(vehicle).some((f) => f.code === code)
     )
       return;
-    const operation = ops.find((o) => o.id === 'DispatchVehicleFault')!;
+    const operation = ops.find((o) => o.id === 'CreateIncident')!;
     let replay = this.dispatchKeys.get(vehicle.id);
     if (!replay || replay.code !== code) {
       replay = { code, key: crypto.randomUUID() };
@@ -1317,49 +1894,9 @@ export class Workspace {
           }
         : await this.api.request(operation.path + '?page=' + page + '&pageSize=20');
       const rows = result.data.items ?? [];
-      const enriched = vehicles
-        ? await Promise.all(
-            rows.map(async (row: any) => {
-              await this.refreshVehicleIncidentCount(row.id, epoch);
-              try {
-                const associations: any[] = [];
-                let associationPage = 1;
-                let total = 0;
-                do {
-                  const response = await this.api.request(
-                    '/api/v1/vehicles/' +
-                      encodeURIComponent(row.id) +
-                      '/associations?page=' +
-                      associationPage +
-                      '&pageSize=100',
-                  );
-                  associations.push(...(response.data.items ?? []));
-                  total = response.data.totalCount ?? associations.length;
-                  if (!response.data.items?.length) break;
-                  associationPage++;
-                } while (associations.length < total);
-                const drivers = await Promise.all(
-                  associations
-                    .filter((a) => !a.until)
-                    .map(async (a) => {
-                      try {
-                        return (
-                          await this.api.request(
-                            '/api/v1/drivers/' + encodeURIComponent(a.driverId),
-                          )
-                        ).data;
-                      } catch {
-                        return { id: a.driverId };
-                      }
-                    }),
-                );
-                return { ...row, drivers };
-              } catch {
-                return { ...row, drivers: [], associationError: true };
-              }
-            }),
-          )
-        : rows;
+      const enriched = rows;
+      if (vehicles)
+        await Promise.all(rows.map((row: any) => this.refreshVehicleIncidentCount(row.id, epoch)));
       if (epoch !== this.epoch || this.auth.state() !== 'signed-in') return;
       this.fleetRows.set(enriched);
       this.fleetPage.set(page);
@@ -1375,13 +1912,21 @@ export class Workspace {
     return !!operation && this.allowed(operation);
   }
   async reloadUsers(page = 1) {
+    if (this.auth.kind() === 'demo') {
+      this.userRows.set([]);
+      this.accessToken.set('');
+      return;
+    }
     if (this.auth.state() !== 'signed-in' || this.permissionsLoading()) return;
     const epoch = ++this.epoch;
     this.userRows.set([]);
     this.busy.set(true);
     this.error.set(false);
     try {
-      const result = await this.api.request('/api/v1/admin/users?page=' + page + '&pageSize=20');
+      const identity = await this.auth.identity();
+      const account = { data: identity };
+      this.ownAccount.set(account.data);
+      const result = { data: { items: [identity], totalCount: 1 } };
       if (epoch !== this.epoch || this.auth.state() !== 'signed-in') return;
       this.userRows.set(result.data.items ?? []);
       this.userPage.set(page);
@@ -1392,11 +1937,80 @@ export class Workspace {
       if (epoch === this.epoch) this.busy.set(false);
     }
   }
+  async loadToken(refresh = false) {
+    if (this.tokenBusy() || this.auth.state() !== 'signed-in') return;
+    const epoch = this.epoch;
+    this.tokenBusy.set(true);
+    this.tokenError.set('');
+    this.accessToken.set('');
+    try {
+      const result = await this.auth.apiToken(refresh);
+      if (epoch !== this.epoch || this.group() !== 'Token' || this.auth.state() !== 'signed-in')
+        return;
+      this.accessToken.set(result.accessToken);
+      this.tokenExpiresAt.set(result.expiresAt);
+      this.tokenIdentity.set(result.identityName);
+      if (refresh) toast.success('Entra access token refreshed');
+    } catch {
+      if (epoch === this.epoch)
+        this.tokenError.set('Could not retrieve the API token. Try refreshing.');
+    } finally {
+      this.tokenBusy.set(false);
+    }
+  }
+  async copyAccessToken() {
+    try {
+      await navigator.clipboard.writeText(this.accessToken());
+      toast.success('Token copied');
+    } catch {
+      toast.error('Could not copy token.');
+    }
+  }
+  async processNotification(row: any) {
+    this.processingNotifications.update((v) => ({ ...v, [row.id]: true }));
+    try {
+      const current = await this.api.request('/api/v1/notifications/' + encodeURIComponent(row.id));
+      await this.api.request(
+        '/api/v1/notifications/' + encodeURIComponent(row.id),
+        'PUT',
+        { state: 'AwaitingAgent' },
+        { 'If-Match': current.etag!, 'Idempotency-Key': crypto.randomUUID() },
+      );
+      await this.reloadNotifications(this.notificationPage());
+    } catch {
+      toast.error('Email processing did not complete. Review its recorded status.');
+      await this.reloadNotifications(this.notificationPage());
+    } finally {
+      this.processingNotifications.update((v) => ({ ...v, [row.id]: false }));
+    }
+  }
   async reloadFaultCodes() {
     const epoch = this.epoch;
     this.faultCodeRows.set([]);
     try {
-      const result = await this.api.request('/api/v1/fault-code-catalog');
+      const codes: any[] = [];
+      let page = 1;
+      let total = 0;
+      do {
+        const response = await this.api.request(
+          '/api/v1/fault-codes?page=' + page + '&pageSize=100&retired=false',
+        );
+        codes.push(...(response.data.items ?? []));
+        total = response.data.totalCount ?? codes.length;
+        if (!response.data.items?.length) break;
+        page++;
+      } while (codes.length < total);
+      const result = {
+        data: {
+          items: codes.map((f) => ({
+            code: f.code,
+            system: f.system,
+            description: f.draft.description,
+            vehicles: ['Chevrolet Silverado', 'GMC Sierra'],
+          })),
+          scope: '',
+        },
+      };
       if (epoch === this.epoch && this.auth.state() === 'signed-in') {
         this.faultCodeRows.set(result.data.items ?? []);
         this.faultCodeScope.set(result.data.scope ?? '');
@@ -1409,14 +2023,9 @@ export class Workspace {
     const epoch = this.epoch;
     this.ontologyRows.set([]);
     this.ontologyError.set('');
-    try {
-      const result = await this.api.request('/api/v1/ontology/relationships');
-      if (epoch === this.epoch && this.auth.state() === 'signed-in')
-        this.ontologyRows.set(result.data.items ?? []);
-    } catch {
-      if (epoch === this.epoch) this.ontologyError.set('The relationship model is unavailable.');
-    }
+    if (this.auth.state() === 'signed-in') this.ontologyRows.set(domainModel);
   }
+
   async reloadNotifications(page = 1) {
     if (this.auth.state() !== 'signed-in' || this.permissionsLoading()) return;
     const epoch = ++this.epoch;
@@ -1456,10 +2065,59 @@ export class Workspace {
   }
   async reviewIncident(record: any) {
     this.incidentReview.set(true);
+    this.resolutionNotes = '';
     this.reset();
     this.choose(ops.find((o) => o.id === 'GetIncident'));
     this.parameters = { id: record.id };
     await this.execute();
+    this.resolutionNotes = this.data()?.resolution?.text ?? '';
+  }
+  canResolveIncident() {
+    const update = ops.find((o) => o.id === 'UpdateIncident');
+    return !!update && this.allowed(update);
+  }
+  incidentDatadogUrl() {
+    const reference = this.data()?.datadog;
+    if (!reference?.id || !Number.isSafeInteger(reference.number) || reference.number < 1)
+      return null;
+    const expected = 'https://app.datadoghq.com/incidents/' + reference.number;
+    return reference.url === expected ? expected : null;
+  }
+  async resolveIncident() {
+    const record = this.data();
+    const resolution = this.resolutionNotes.trim();
+    if (
+      this.busy() ||
+      !record?.id ||
+      record.status === 'Resolved' ||
+      !resolution ||
+      !this.canResolveIncident()
+    )
+      return;
+    const fingerprint = JSON.stringify([record.id, record.version, resolution]);
+    if (this.resolutionAttempt?.fingerprint !== fingerprint)
+      this.resolutionAttempt = { fingerprint, key: crypto.randomUUID() };
+    const epoch = ++this.epoch;
+    this.busy.set(true);
+    this.error.set(false);
+    this.message.set('');
+    try {
+      await this.api.request(
+        '/api/v1/incidents/' + encodeURIComponent(record.id),
+        'PUT',
+        { status: 'Resolved', resolution },
+        { 'If-Match': '"' + record.version + '"', 'Idempotency-Key': this.resolutionAttempt!.key },
+      );
+      const result = await this.api.request('/api/v1/incidents/' + encodeURIComponent(record.id));
+      if (epoch !== this.epoch || this.auth.state() !== 'signed-in') return;
+      this.data.set(result.data);
+      this.resolutionNotes = result.data.resolution?.text ?? resolution;
+      toast.success('Incident resolved');
+    } catch (e) {
+      if (epoch === this.epoch) this.fail(e);
+    } finally {
+      if (epoch === this.epoch) this.busy.set(false);
+    }
   }
   allowed(o: Operation) {
     return o.policies.every((a) => a.some((p) => this.permissions().includes(p)));
@@ -1532,6 +2190,7 @@ export class Workspace {
     }
   }
   async logout() {
+    this.accessToken.set('');
     this.reset();
     try {
       await this.auth.logout();

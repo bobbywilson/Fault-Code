@@ -1,7 +1,7 @@
 schema: spec-driven
 context: |
   Fault Code is an independent API-first automotive fault investigation proof of concept.
-  Use synthetic EPS, steer-by-wire and steering ADAS data; no proprietary information.
+  Use demo EPS, steer-by-wire and steering ADAS data; no proprietary information.
   Approved stack: ASP.NET Core/C#, Angular/TypeScript, Spartan UI/Tailwind, Microsoft Agent Framework/OpenAI, dedicated Entra ID Free tenant with PKCE/client credentials, Qdrant traditional RAG, MCP, OpenTelemetry/Datadog and optional Sentry, OpenAPI/Mintlify, Docker Compose/Linux.
   Never implement GraphRAG or vehicle software deployment. Angular uses the API exclusively.
   Relational database, notification delivery provider and deployment target remain undecided pending approval.

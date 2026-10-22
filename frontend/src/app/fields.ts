@@ -4,7 +4,7 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmTextarea } from '@spartan-ng/helm/textarea';
-import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
+import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
 import { Schema, kind, initial, label, nullable } from './schema';
 @Component({
@@ -15,7 +15,7 @@ import { Schema, kind, initial, label, nullable } from './schema';
     HlmFieldImports,
     HlmInput,
     HlmTextarea,
-    HlmNativeSelectImports,
+    HlmSelectImports,
     HlmCheckbox,
     forwardRef(() => Fields),
   ],
@@ -86,19 +86,20 @@ import { Schema, kind, initial, label, nullable } from './schema';
             >{{ label(name) }} {{ schema.required?.includes(name) ? '*' : '' }}</label
           >
           @if (field.enum) {
-            <hlm-native-select
-              [selectId]="key"
-              [name]="key"
-              [ngModelOptions]="{ standalone: true }"
-              [ngModel]="model[name]"
-              (ngModelChange)="model[name] = enumValue(field, $event)"
-              [required]="(schema.required?.includes(name) ?? false) && !nullable(field)"
-            >
-              <option value="">Choose…</option>
-              @for (value of field.enum; track $index) {
-                <option [value]="value">{{ value }}</option>
-              }
-            </hlm-native-select>
+            <hlm-select [value]="model[name]" (valueChange)="model[name] = $event">
+              <hlm-select-trigger [buttonId]="key" class="w-full">
+                <hlm-select-value placeholder="Choose…" />
+              </hlm-select-trigger>
+              <hlm-select-content
+                *hlmSelectPortal
+                role="region"
+                [attr.aria-label]="label(name) + ' choices'"
+              >
+                @for (value of field.enum; track $index) {
+                  <hlm-select-item [value]="value">{{ value }}</hlm-select-item>
+                }
+              </hlm-select-content>
+            </hlm-select>
           } @else if (kind(field) === 'boolean') {
             <hlm-checkbox
               [inputId]="key"
@@ -142,9 +143,6 @@ export class Fields {
   @Input({ required: true }) model!: any;
   @Input() prefix = 'field';
   nullable = nullable;
-  enumValue(field: Schema, value: string) {
-    return field.enum?.find((item) => String(item) === value) ?? value;
-  }
   toggle(name: string, s: Schema) {
     this.model[name] = this.model[name] == null ? initial({ ...s, type: kind(s) }) : null;
   }

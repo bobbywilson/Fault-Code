@@ -29,10 +29,10 @@ public sealed class SqlServerFleetTests
         var caller = new FaultCode.Application.Knowledge.KnowledgeCaller(Guid.NewGuid().ToString("D"), Guid.NewGuid().ToString("D"), Guid.NewGuid().ToString("D"), "demo-seed-test");
         var first = new SqlServerWorkflowStore(options);
         var seeder = new DemoFaultSeeder(first, TimeProvider.System);
-        using (var manifest = typeof(FaultCode.Api.Controllers.FaultCodeCatalogController).Assembly.GetManifestResourceStream("FaultCode.DemoFaultCatalog.json")!)
+        using (var manifest = typeof(FaultCode.Api.Controllers.IncidentsController).Assembly.GetManifestResourceStream("FaultCode.DemoFaultCatalog.json")!)
             Assert.Equal(9, await seeder.SeedAsync(caller, manifest, default));
         var reconnected = new SqlServerWorkflowStore(options);
-        using (var manifest = typeof(FaultCode.Api.Controllers.FaultCodeCatalogController).Assembly.GetManifestResourceStream("FaultCode.DemoFaultCatalog.json")!)
+        using (var manifest = typeof(FaultCode.Api.Controllers.IncidentsController).Assembly.GetManifestResourceStream("FaultCode.DemoFaultCatalog.json")!)
             Assert.Equal(0, await new DemoFaultSeeder(reconnected, TimeProvider.System).SeedAsync(caller, manifest, default));
         var state = await ((FaultCode.Application.Knowledge.IKnowledgeStore)reconnected).ReadAsync(caller.TenantId, default);
         Assert.Equal(9, state.Faults.Count); Assert.Equal(9, state.Audit.Count);

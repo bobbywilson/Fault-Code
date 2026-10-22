@@ -45,17 +45,39 @@ public sealed class SqlServerFleetStore(DbContextOptions<FleetDbContext> options
     }
     internal static async Task Save(FleetDbContext db, FleetState state, string tenantId, int audits, HashSet<string> replayKeys, CancellationToken ct)
     {
-            // Keep rows normalized and tenant-bound; never replace or delete unrelated records.
-            foreach (var driver in state.Drivers) await Upsert(db, driver, tenantId, driver.Id, ct);
-            foreach (var vehicle in state.Vehicles) await Upsert(db, vehicle, tenantId, vehicle.Id, ct);
-            foreach (var a in state.Associations)
-                await Upsert(db, new FleetAssociationRow { TenantId = tenantId, Id = a.Id, VehicleId = a.VehicleId,
-                    DriverId = a.DriverId, From = a.From, Until = a.Until }, tenantId, a.Id, ct);
-            foreach (var a in state.Audit.Skip(audits)) db.Audit.Add(new() { TenantId = tenantId, ActorId = a.ActorId,
-                ClientId = a.ClientId, CorrelationId = a.CorrelationId, Operation = a.Operation, ResourceId = a.ResourceId, At = a.At });
-            foreach (var (key, value) in state.Replays.Where(x => !replayKeys.Contains(x.Key)))
-                db.Replays.Add(new() { TenantId = tenantId, KeyHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(key))),
-                    Key = key, PayloadHash = value.PayloadHash, ResourceId = value.Result.Id, Version = value.Result.Version });
+        // Keep rows normalized and tenant-bound; never replace or delete unrelated records.
+        foreach (var driver in state.Drivers) await Upsert(db, driver, tenantId, driver.Id, ct);
+        foreach (var vehicle in state.Vehicles) await Upsert(db, vehicle, tenantId, vehicle.Id, ct);
+        foreach (var a in state.Associations)
+            await Upsert(db, new FleetAssociationRow
+            {
+                TenantId = tenantId,
+                Id = a.Id,
+                VehicleId = a.VehicleId,
+                DriverId = a.DriverId,
+                From = a.From,
+                Until = a.Until
+            }, tenantId, a.Id, ct);
+        foreach (var a in state.Audit.Skip(audits)) db.Audit.Add(new()
+        {
+            TenantId = tenantId,
+            ActorId = a.ActorId,
+            ClientId = a.ClientId,
+            CorrelationId = a.CorrelationId,
+            Operation = a.Operation,
+            ResourceId = a.ResourceId,
+            At = a.At
+        });
+        foreach (var (key, value) in state.Replays.Where(x => !replayKeys.Contains(x.Key)))
+            db.Replays.Add(new()
+            {
+                TenantId = tenantId,
+                KeyHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(key))),
+                Key = key,
+                PayloadHash = value.PayloadHash,
+                ResourceId = value.Result.Id,
+                Version = value.Result.Version
+            });
     }
     private static async Task Upsert<TEntity>(FleetDbContext db, TEntity row, string tenantId, Guid id, CancellationToken ct) where TEntity : class
     {

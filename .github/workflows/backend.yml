@@ -52,7 +52,7 @@ jobs:
           git fetch origin "$BASE_SHA" --depth=1
           if git cat-file -e "$BASE_SHA:contracts/openapi-v1.json" 2>/dev/null; then
             git show "$BASE_SHA:contracts/openapi-v1.json" > artifacts/base-openapi-v1.json
-            python scripts/check-api-contract.py artifacts/openapi/faultcode-v1.json artifacts/base-openapi-v1.json
+            python scripts/check-api-transition.py artifacts/openapi/faultcode-v1.json artifacts/base-openapi-v1.json
           fi
       - uses: actions/upload-artifact@v4
         with:

@@ -23,3 +23,7 @@ mintlify/playwright-report/
 
 # Spartan generator cache
 frontend/.nx/
+
+# Browser verification reports
+/test-results/
+/playwright-report/

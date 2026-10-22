@@ -35,18 +35,18 @@ public sealed class FleetService(IFleetStore store, TimeProvider clock)
         var item = Driver(await Read(caller, ct), caller, id);
         return CanRead(caller, item) ? item : throw new FleetException(404);
     }
-    public async Task<(Vehicle Vehicle, Driver Owner)> GetVehicle(FleetCaller caller, Guid id, CancellationToken ct)
+    public async Task<(Vehicle Vehicle, Driver? Owner)> GetVehicle(FleetCaller caller, Guid id, CancellationToken ct)
     {
         var state = await Read(caller, ct); var item = Vehicle(state, caller, id);
         var owner = VehicleOwner(state, caller, item);
-        return owner is not null && CanRead(caller, owner, true) ? (item, owner) : throw new FleetException(404);
+        return caller.AllVehicles || owner is not null && CanRead(caller, owner, true) ? (item, owner) : throw new FleetException(404);
     }
     public async Task<FleetPage<Driver>> Drivers(FleetCaller caller, int page, int size, bool? active, CancellationToken ct) =>
         Page((await Read(caller, ct)).Drivers.Where(d => CanRead(caller, d) && (active is null || d.Active == active)).OrderBy(d => d.Id), page, size);
     public async Task<FleetPage<Vehicle>> Vehicles(FleetCaller caller, int page, int size, bool? active, CancellationToken ct)
     {
         var state = await Read(caller, ct);
-        return Page(state.Vehicles.Where(v => VehicleOwner(state, caller, v) is { } owner && CanRead(caller, owner, true)
+        return Page(state.Vehicles.Where(v => v.TenantId == caller.TenantId && (caller.AllVehicles || VehicleOwner(state, caller, v) is { } owner && CanRead(caller, owner, true))
             && (active is null || v.Active == active)).OrderBy(v => v.Id), page, size);
     }
     private static FleetPage<T> Page<T>(IEnumerable<T> source, int page, int size)

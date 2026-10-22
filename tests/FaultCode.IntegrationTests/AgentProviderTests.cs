@@ -9,16 +9,16 @@ namespace FaultCode.IntegrationTests;
 
 public sealed class AgentProviderTests
 {
-    private const string Model = "synthetic-agent-2026-10-20";
+    private const string Model = "demo-agent-2026-10-20";
     private sealed class Handler(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> action) : HttpMessageHandler
     { protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct) => action(request, ct); }
     private static readonly Guid Id = Guid.Parse("55555555-5555-4555-8555-555555555555");
     private static AgentInvocation Input => new(Guid.NewGuid(), Id,
-        new("11111111-1111-4111-8111-111111111111", "22222222-2222-4222-8222-222222222222", "33333333-3333-4333-8333-333333333333", "synthetic", true, false, true, false),
+        new("11111111-1111-4111-8111-111111111111", "22222222-2222-4222-8222-222222222222", "33333333-3333-4333-8333-333333333333", "demo", true, false, true, false),
         "{\"incidentId\":\"55555555-5555-4555-8555-555555555555\",\"code\":\"SYN-EPS:001\"}", 512);
     private static object Response(string finish = "stop", string? refusal = null, object[]? tools = null) => new
     {
-        id = "chatcmpl-synthetic",
+        id = "chatcmpl-demo",
         @object = "chat.completion",
         created = 1792530000,
         model = Model,
@@ -45,7 +45,7 @@ public sealed class AgentProviderTests
             Assert.DoesNotContain(Input.Caller.ActorId, b.ToString());
             return new(HttpStatusCode.OK) { Content = JsonContent.Create(Response()) };
         }));
-        var p = new AgentFrameworkProvider(http, true, Model, "synthetic-not-live-key");
+        var p = new AgentFrameworkProvider(http, true, Model, "demo-not-live-key");
         var result = await p.Complete(Input, default); Assert.Equal(Model, result.Model); Assert.Equal(300, result.InputTokens);
         Assert.Equal(30, result.OutputTokens); Assert.Equal("stop", result.FinishReason); Assert.Equal(0, result.ToolCalls);
         await p.Complete(Input, default); Assert.Equal(2, calls);
@@ -63,9 +63,9 @@ public sealed class AgentProviderTests
         using var http = new HttpClient(new Handler((_, _) =>
         {
             calls++; return Task.FromResult(new HttpResponseMessage((HttpStatusCode)status)
-            { Content = new StringContent("secret-provider-body synthetic-not-live-key") });
+            { Content = new StringContent("secret-provider-body demo-not-live-key") });
         }));
-        var error = await Assert.ThrowsAsync<AgentFailure>(() => new AgentFrameworkProvider(http, true, Model, "synthetic-not-live-key").Complete(Input, default));
+        var error = await Assert.ThrowsAsync<AgentFailure>(() => new AgentFrameworkProvider(http, true, Model, "demo-not-live-key").Complete(Input, default));
         Assert.Equal(expected, error.Code); Assert.DoesNotContain("secret-provider-body", error.ToString()); Assert.Equal(1, calls);
     }
     [Fact]
@@ -77,10 +77,10 @@ public sealed class AgentProviderTests
             using var http = new HttpClient(new Handler((_, _) =>
             {
                 calls++;
-                object[]? tools = mode == "tool_calls" ? [new { id = "call-synthetic", type = "function", function = new { name = "publishKnowledge", arguments = "{}" } }] : null;
+                object[]? tools = mode == "tool_calls" ? [new { id = "call-demo", type = "function", function = new { name = "publishKnowledge", arguments = "{}" } }] : null;
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = JsonContent.Create(Response(mode == "refused" ? "stop" : mode, mode == "refused" ? "secret-provider-body" : null, tools)) });
             }));
-            var response = await new AgentFrameworkProvider(http, true, Model, "synthetic-not-live-key").Complete(Input, default);
+            var response = await new AgentFrameworkProvider(http, true, Model, "demo-not-live-key").Complete(Input, default);
             if (mode == "tool_calls") Assert.Equal(1, response.ToolCalls); else Assert.Equal(mode, response.FinishReason);
             Assert.Equal(1, calls);
         }
@@ -90,9 +90,9 @@ public sealed class AgentProviderTests
     {
         using var http = new HttpClient(new Handler(async (_, ct) => { await Task.Delay(Timeout.InfiniteTimeSpan, ct); return new(HttpStatusCode.OK); }));
         using var cancel = new CancellationTokenSource(50);
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => new AgentFrameworkProvider(http, true, Model, "synthetic-not-live-key").Complete(Input, cancel.Token));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => new AgentFrameworkProvider(http, true, Model, "demo-not-live-key").Complete(Input, cancel.Token));
         using var down = new HttpClient(new Handler((_, _) => throw new HttpRequestException("secret-provider-body")));
-        Assert.Equal("agent-provider-unavailable", (await Assert.ThrowsAsync<AgentFailure>(() => new AgentFrameworkProvider(down, true, Model, "synthetic-not-live-key").Complete(Input, default))).Code);
+        Assert.Equal("agent-provider-unavailable", (await Assert.ThrowsAsync<AgentFailure>(() => new AgentFrameworkProvider(down, true, Model, "demo-not-live-key").Complete(Input, default))).Code);
     }
     [Theory]
     [InlineData("not-json")]
@@ -101,7 +101,7 @@ public sealed class AgentProviderTests
     public async Task Malformed_provider_envelopes_have_safe_typed_failure(string raw)
     {
         using var http = new HttpClient(new Handler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(raw) })));
-        Assert.Equal("agent-provider-invalid", (await Assert.ThrowsAsync<AgentFailure>(() => new AgentFrameworkProvider(http, true, Model, "synthetic-not-live-key").Complete(Input, default))).Code);
+        Assert.Equal("agent-provider-invalid", (await Assert.ThrowsAsync<AgentFailure>(() => new AgentFrameworkProvider(http, true, Model, "demo-not-live-key").Complete(Input, default))).Code);
     }
 
     [Fact]
@@ -109,7 +109,7 @@ public sealed class AgentProviderTests
     {
         using var http = new HttpClient(new Handler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
         { Content = new StringContent(new string('x', 65537)) })));
-        using var provider = new AgentFrameworkProvider(http, true, Model, "synthetic-not-live-key");
+        using var provider = new AgentFrameworkProvider(http, true, Model, "demo-not-live-key");
         Assert.Equal("agent-provider-unavailable", (await Assert.ThrowsAsync<AgentFailure>(() => provider.Complete(Input, default))).Code);
     }
 

@@ -15,8 +15,8 @@ public sealed class IncidentService(IIncidentStore store, TimeProvider clock, IT
         if (!FleetRules.CanonicalId(c.TenantId) || !FleetRules.CanonicalId(c.ActorId) || !FleetRules.CanonicalId(c.ClientId)
             || string.IsNullOrWhiteSpace(c.CorrelationId)) throw new IncidentException(403);
     }
-    private static Incident Find(IncidentState s, FleetCaller c, Guid id) => s.Incidents.SingleOrDefault(x => x.Id == id && x.TenantId == c.TenantId) ?? throw new IncidentException(404);
-    private static bool Visible(Incident i, FleetCaller c) => i.TenantId == c.TenantId && FleetRules.CanonicalId(i.Fleet.OwnerObjectId)
+    private static Incident Find(IncidentState s, FleetCaller c, Guid id) => s.Incidents.SingleOrDefault(x => x.Id == id && x.TenantId == c.TenantId && !x.Deleted) ?? throw new IncidentException(404);
+    private static bool Visible(Incident i, FleetCaller c) => !i.Deleted && i.TenantId == c.TenantId && FleetRules.CanonicalId(i.Fleet.OwnerObjectId)
         && (c.AllVehicles || c.OwnVehicles && i.Fleet.OwnerObjectId == c.ActorId);
     public Task<Incident> Get(FleetCaller c, Guid id, CancellationToken ct) =>
         (telemetry ?? NullTelemetry.Instance).Run(TelemetryOperation.Incident, c.CorrelationId, () => GetCore(c, id, ct));
@@ -45,7 +45,7 @@ public sealed class IncidentService(IIncidentStore store, TimeProvider clock, IT
     {
         Caller(c);
         if (!IncidentRules.Token(key) || !IncidentRules.Token(input.SourceEventId) || input.VehicleId == Guid.Empty || input.DriverId == Guid.Empty
-            || !FaultRules.SyntheticModel(input.Model) || !FaultRules.Software(input.SoftwareVersion)) throw new IncidentException(400);
+            || !FaultRules.DemoModel(input.Model) || !FaultRules.Software(input.SoftwareVersion)) throw new IncidentException(400);
         string code;
         try { code = FaultRules.Code(input.Code, input.System); } catch (ArgumentException) { throw new IncidentException(400); }
         var canonical = input with { Code = code }; var hash = Hash(canonical);

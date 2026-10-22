@@ -11,16 +11,20 @@ public static class DemoFleetFactory
     public static DemoFleetData Create()
     {
         var prior = LegacyV1();
-        return prior with { Associations = [(0, 0), (1, 1), (2, 2), (3, 3)], Drivers = prior.Drivers.Select(d => d with
-        { DisplayName = d.DisplayName.Replace("Synthetic ", "", StringComparison.Ordinal), Email = d.Email!.Replace("@example.invalid", "@example.com", StringComparison.Ordinal) }).ToArray() };
+        return prior with
+        {
+            Associations = [(0, 0), (1, 1), (2, 2), (3, 3)],
+            Drivers = prior.Drivers.Select(d => d with
+            { DisplayName = d.DisplayName.Replace("Demo ", "", StringComparison.Ordinal), Email = d.Email!.Replace("@example.invalid", "@example.com", StringComparison.Ordinal) }).ToArray()
+        };
     }
     // Preserve original replay payloads when upgrading an already seeded database.
     internal static DemoFleetData LegacyV1() => new(
         [
-            new("DRV-DEMO-001", "d1000000-0000-4000-8000-000000000001", "Synthetic Alex Morgan", "alex.morgan@example.invalid", false),
-            new("DRV-DEMO-002", "d1000000-0000-4000-8000-000000000002", "Synthetic Jordan Lee", "jordan.lee@example.invalid", false),
-            new("DRV-DEMO-003", "d1000000-0000-4000-8000-000000000003", "Synthetic Casey Taylor", "casey.taylor@example.invalid", false),
-            new("DRV-DEMO-004", "d1000000-0000-4000-8000-000000000004", "Synthetic Riley Parker", "riley.parker@example.invalid", false)
+            new("DRV-DEMO-001", "d1000000-0000-4000-8000-000000000001", "Demo Alex Morgan", "alex.morgan@example.invalid", false),
+            new("DRV-DEMO-002", "d1000000-0000-4000-8000-000000000002", "Demo Jordan Lee", "jordan.lee@example.invalid", false),
+            new("DRV-DEMO-003", "d1000000-0000-4000-8000-000000000003", "Demo Casey Taylor", "casey.taylor@example.invalid", false),
+            new("DRV-DEMO-004", "d1000000-0000-4000-8000-000000000004", "Demo Riley Parker", "riley.parker@example.invalid", false)
         ],
         [
             new("SYN-SILVERADO-001", "EPS"), new("SYN-SILVERADO-002", "EPS"),

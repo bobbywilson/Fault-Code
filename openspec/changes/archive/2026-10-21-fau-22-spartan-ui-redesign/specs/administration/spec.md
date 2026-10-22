@@ -13,4 +13,4 @@ All administration views SHALL compose the supplied Spartan Helm styled componen
 
 #### Scenario: Reviewable visual evidence
 - **WHEN** the redesign is presented for review
-- **THEN** screenshots show the actual updated application on desktop and mobile, with synthetic test contexts distinguished from real Entra authentication and no fabricated production metrics
+- **THEN** screenshots show the actual updated application on desktop and mobile, with demo test contexts distinguished from real Entra authentication and no fabricated production metrics

@@ -11,16 +11,17 @@ public sealed record DriverNotification(Guid Id, string TenantId, Guid IncidentI
     FaultRemedy Remedy, ImmutableArray<NotificationEvidence> Evidence, string TemplateVersion, string Message,
     string Contact, long DriverVersion, long IncidentVersion, string State, long Version, DateTimeOffset CreatedAt,
     DateTimeOffset? NextAttemptAt, Guid? LeaseId, DateTimeOffset? LeaseUntil,
-    ImmutableArray<NotificationAttempt> Attempts, ImmutableArray<NotificationHistory> History);
+    ImmutableArray<NotificationAttempt> Attempts, ImmutableArray<NotificationHistory> History)
+{ public bool Deleted { get; init; } }
 public static class NotificationRules
 {
     public const string Template = "driver-notification-v1";
-    public static bool Contact(string? value) => EmailContact(value) || SyntheticContact(value);
+    public static bool Contact(string? value) => EmailContact(value) || DemoContact(value);
     private static bool EmailContact(string? value) => value is { Length: <= 150 }
         && System.Text.RegularExpressions.Regex.IsMatch(value, "^[a-zA-Z0-9._+-]+@example\\.com$", System.Text.RegularExpressions.RegexOptions.CultureInvariant);
-    private static bool SyntheticContact(string? value) => value is { Length: <= 60 } && value.StartsWith("SYN-", StringComparison.Ordinal)
+    private static bool DemoContact(string? value) => value is { Length: <= 60 } && value.StartsWith("SYN-", StringComparison.Ordinal)
         && value.Length > 4 && value.All(c => char.IsAsciiLetterOrDigit(c) || c == '-');
     public static string Render(Guid incident, string kind, FaultRemedy remedy) =>
-        $"Synthetic incident {incident:D}. {remedy.Description}"
+        $"Demo incident {incident:D}. {remedy.Description}"
         + (kind == "dealership-referral" ? $" Contact a dealership for assessment. Approved patch reference: {remedy.Patch!.Reference}. This is a recommendation; no vehicle software has been installed." : "");
 }

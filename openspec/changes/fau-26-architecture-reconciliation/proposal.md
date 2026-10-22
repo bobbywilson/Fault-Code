@@ -6,7 +6,7 @@ The user supplied the authoritative October21 architecture and ordered an implem
 
 ## What Changes
 
-Record the complete authoritative architecture and evidence matrix. Correct active driver/vehicle many-to-many validation, minimal Driver-role support, read-only ontology table/cause concepts, stale Mintlify contract and misleading deployment/architecture records. Preserve working behavior and synthetic-only/no-branding constraints. Record missing invitations/consent, real email, durable storage/outbox/reevaluation, agent-to-MCP bridge, live telemetry and hosted deployment as incomplete. SQL Server Express is proposed only; approval is required before engine selection/local implementation or shared-host changes.
+Record the complete authoritative architecture and evidence matrix. Correct active driver/vehicle many-to-many validation, minimal Driver-role support, read-only ontology table/cause concepts, stale Mintlify contract and misleading deployment/architecture records. Preserve working behavior and demo-only/no-branding constraints. Record missing invitations/consent, real email, durable storage/outbox/reevaluation, agent-to-MCP bridge, live telemetry and hosted deployment as incomplete. SQL Server Express is proposed only; approval is required before engine selection/local implementation or shared-host changes.
 
 ## Impact
 

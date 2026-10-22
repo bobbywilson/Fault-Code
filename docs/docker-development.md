@@ -33,7 +33,7 @@ docker compose down                 # retains named storage/snapshot volumes
 docker compose up -d --wait         # reuses those volumes
 ```
 
-Only when intentionally deleting this project's local synthetic Qdrant data:
+Only when intentionally deleting this project's local demo Qdrant data:
 
 ```sh
 docker compose down --volumes       # DESTRUCTIVE: deletes this project's volumes
@@ -49,7 +49,7 @@ bash -n scripts/container-smoke.sh
 bash scripts/container-smoke.sh
 ```
 
-Smoke uses a unique project with ephemeral credentials, random loopback ports and synthetic EPS data. It builds Linux images, waits for health, verifies proxy/DNS/readiness, non-root API, Qdrant exposure, secret-file exclusion, dependency interruption, restart, teardown retention and explicit volume reset. Cleanup deletes only its own test volumes. Native readiness tests additionally cover invalid credentials, startup validation, transport failure and cancellation. GitHub Linux containers CI runs the same script.
+Smoke uses a unique project with ephemeral credentials, random loopback ports and demo EPS data. It builds Linux images, waits for health, verifies proxy/DNS/readiness, non-root API, Qdrant exposure, secret-file exclusion, dependency interruption, restart, teardown retention and explicit volume reset. Cleanup deletes only its own test volumes. Native readiness tests additionally cover invalid credentials, startup validation, transport failure and cancellation. GitHub Linux containers CI runs the same script.
 
 If Docker cannot connect, verify its Linux engine is running before retrying. If a host port is occupied, change the local env port; do not terminate unrelated services. `docker compose ps` and `docker compose logs --tail=100 api qdrant proxy` show startup state; never share rendered `docker compose config` with real keys. If a service is unhealthy, check configuration before resetting data. Version updates require deliberate tag changes and rerunning smoke. No Docker acceptance is claimed from configuration validation alone.
 

@@ -4,7 +4,7 @@
 Notifications SHALL support known-fault guidance, applicable approved-patch dealership referrals and approved engineering resolution, recording original recipient, type, incident, template and exact evidence/publication versions. Trusted code SHALL render only current approved applicable content, never model prose. Current canonical evidence SHALL be tenant accessible and unchanged; publisher-only sources SHALL NOT become driver messages.
 
 #### Scenario: Notification triggers and referrals acceptance
-- **WHEN** an authorized consumer explicitly enqueues a persisted current supported investigation for the original active associated synthetic driver
+- **WHEN** an authorized consumer explicitly enqueues a persisted current supported investigation for the original active associated demo driver
 - **THEN** A renders the selected approved guidance; B includes the exact approved applicable patch reference and dealership recommendation, incident reference and no installation claim; no proposal dispatches automatically
 
 #### Scenario: Approved C and supersession
@@ -25,7 +25,7 @@ Notification status SHALL distinguish Pending, Sent, Failed, Cancelled and Super
 ## ADDED Requirements
 
 ### Requirement: Explicit local test preferences and recipient authority
-Local delivery SHALL require explicit enabled synthetic local preference with a bounded SYN contact label and matching current driver identity/owner, active driver/vehicle and original active association. Existing email flags SHALL NOT constitute consent. Real contacts/channel/consent policy SHALL remain DEC-002.
+Local delivery SHALL require explicit enabled demo local preference with a bounded SYN contact label and matching current driver identity/owner, active driver/vehicle and original active association. Existing email flags SHALL NOT constitute consent. Real contacts/channel/consent policy SHALL remain DEC-002.
 
 #### Scenario: Exact preference and notification permissions
 - **WHEN** accessing preference or notification APIs

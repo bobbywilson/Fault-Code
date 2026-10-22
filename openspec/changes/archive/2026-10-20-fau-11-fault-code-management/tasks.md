@@ -1,6 +1,6 @@
 # Tasks
 ## 1. Lifecycle
-- [x] 1.1 Implement immutable fault definitions, validation and ontology boundary; verify synthetic normalization and invalid-link tests and document lifecycle.
+- [x] 1.1 Implement immutable fault definitions, validation and ontology boundary; verify demo normalization and invalid-link tests and document lifecycle.
 - [x] 1.2 Implement transaction/replay/version/history/publication/filtering services; verify concurrency, rollback, cancellation and tenant-isolation tests.
 ## 2. API
 - [x] 2.1 Implement production fault routes and unavailable adapters; verify actual signed-token permission and safe-error tests, document endpoints/storage limits.

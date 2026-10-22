@@ -21,7 +21,7 @@ public sealed class DemoSeedManifestTests
         Assert.Equal(4, after.Drivers.Count); Assert.Equal(4, after.Vehicles.Count);
         Assert.Equal(7, after.Associations.Count); Assert.Equal(4, after.Associations.Count(a => a.Until is null));
         Assert.All(after.Vehicles, v => Assert.Single(after.Associations, a => a.VehicleId == v.Id && a.Until is null)); Assert.Equal(before.Audit.Count, after.Audit.Count);
-        Assert.All(after.Drivers, d => { Assert.EndsWith("@example.com", d.Email); Assert.DoesNotContain("Synthetic", d.DisplayName); Assert.False(d.EmailNotifications); });
+        Assert.All(after.Drivers, d => { Assert.EndsWith("@example.com", d.Email); Assert.DoesNotContain("Demo", d.DisplayName); Assert.False(d.EmailNotifications); });
         var vehicles = await fleet.Vehicles(caller, 1, 20, null, default);
         Assert.Equal(4, vehicles.TotalCount);
         Assert.Equal(2, vehicles.Items.Count(v => v.Identifier.Contains("SILVERADO")));
@@ -32,7 +32,7 @@ public sealed class DemoSeedManifestTests
         var ownVehicles = await fleet.Vehicles(own, 1, 20, null, default);
         Assert.Single(ownVehicles.Items);
         var read = await fleet.GetVehicle(own, ownVehicles.Items[0].Id, default);
-        Assert.Equal(jordan.Id, read.Owner.Id);
+        Assert.NotNull(read.Owner); Assert.Equal(jordan.Id, read.Owner.Id);
         Assert.DoesNotContain((await fleet.Drivers(own, 1, 20, null, default)).Items, d => d.Id == alex.Id);
         Assert.Empty((await fleet.Vehicles(own with { ActorId = "d1000000-0000-4000-8000-000000000099" }, 1, 20, null, default)).Items);
         Assert.Empty((await store.ReadAsync("d2000000-0000-4000-8000-000000000001", default)).Vehicles);
@@ -45,11 +45,11 @@ public sealed class DemoSeedManifestTests
     }
 
     [Fact]
-    public void Prepared_seed_is_explicitly_synthetic_and_passes_existing_domain_validation()
+    public void Prepared_seed_is_explicitly_demo_and_passes_existing_domain_validation()
     {
         using var json = JsonDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Seeds", "steering-faults.json")));
         var root = json.RootElement;
-        Assert.True(root.GetProperty("synthetic").GetBoolean());
+        Assert.True(root.GetProperty("demo").GetBoolean());
         Assert.Equal("prepared-not-loaded", root.GetProperty("status").GetString());
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         var ontology = JsonSerializer.Deserialize<OntologyContentRequest>(root.GetProperty("ontology"), options)!.ToDomain();

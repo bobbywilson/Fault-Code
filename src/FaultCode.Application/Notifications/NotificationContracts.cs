@@ -28,7 +28,7 @@ public interface INotificationStore
 {
     Task<T> Execute<T>(string tenant, Func<NotificationTransaction, T> action, CancellationToken ct);
 }
-public sealed record LocalDelivery(Guid NotificationId, string SyntheticContact, string Message);
+public sealed record LocalDelivery(Guid NotificationId, string DemoContact, string Message);
 public sealed record DeliveryAcknowledgement(string Receipt);
 // Future providers MUST document stable NotificationId deduplication, uncertain-acceptance reconciliation,
 // bounded acknowledgement and deadlines. No model access, credentials or external adapter selected here.

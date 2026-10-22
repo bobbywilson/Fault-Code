@@ -2,7 +2,7 @@
 ## Why
 Part of FAU-10. Vehicle and driver operations need trusted ownership, lifecycle and association history before incident intake. FAU-9 provides the permission boundary.
 ## What Changes
-- Add provider-independent vehicle/driver records, normalized synthetic identifiers, owner mapping, CRUD/list and association APIs.
+- Add provider-independent vehicle/driver records, normalized demo identifiers, owner mapping, CRUD/list and association APIs.
 - Require exact Operator write permissions, same-tenant records, own/all read filtering before pagination, strong ETags and atomic idempotent create/audit contracts.
 - Use test-only storage for executable contract verification. Production storage remains unavailable (503) pending DEC-001; no database, durable outbox, tenant or cloud provisioning.
 ## Capabilities

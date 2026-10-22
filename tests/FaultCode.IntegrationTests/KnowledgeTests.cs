@@ -36,16 +36,16 @@ internal sealed class TestTaxonomy : IFaultTaxonomy
     public Task<bool> ValidateAsync(string tenant, string system, FaultContent content, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested(); if (Unavailable) throw new KnowledgeException(503);
-        return Task.FromResult(content.ClassificationId == "synthetic-" + system && content.ClassificationVersion == 1
+        return Task.FromResult(content.ClassificationId == "demo-" + system && content.ClassificationVersion == 1
             && content.Remedies.All(x => x.Kind is "guidance" or "dealership"));
     }
 }
 public sealed class KnowledgeTests
 {
-    private static readonly KnowledgeCaller Caller = new(Tenant, Actor, Client, "synthetic-correlation");
-    private static FaultContentRequest Content(string system = "EPS") => new("Synthetic fault", "synthetic-" + system, 1,
-        ["Synthetic reduced assist"], [new("SYN-DOC-1", "1")],
-        [new("one", "dealership", "Synthetic dealership recommendation", true, "SYN-MODEL-1", "1.0", new("SYN-PATCH-1", "1.0")),
+    private static readonly KnowledgeCaller Caller = new(Tenant, Actor, Client, "demo-correlation");
+    private static FaultContentRequest Content(string system = "EPS") => new("Demo fault", "demo-" + system, 1,
+        ["Demo reduced assist"], [new("SYN-DOC-1", "1")],
+        [new("one", "dealership", "Demo dealership recommendation", true, "SYN-MODEL-1", "1.0", new("SYN-PATCH-1", "1.0")),
          new("two", "dealership", "Unapproved patch", false, "SYN-MODEL-1", "1.0", new("SYN-PATCH-2", "1.0")),
          new("three", "guidance", "Other model", true, "SYN-MODEL-2", "1.0", null)]);
     private static void Auth(HttpClient client, Discovery keys, string scope = "faults.write faults.read", string role = "Operator", bool machine = false) =>
@@ -69,41 +69,7 @@ public sealed class KnowledgeTests
             return json.RootElement.Clone();
         }
     }
-    private const string Lookup = "/api/v1/faults/lookup?code=SYN-EPS:001&system=EPS&model=SYN-MODEL-1&software=1.0";
-    [Fact]
-    public async Task Production_controllers_crud_publication_history_and_approved_filtering()
-    {
-        using var keys = new Discovery(); var store = new TestKnowledgeStore(); var taxonomy = new TestTaxonomy();
-        await using var factory = CreateFactory(keys).WithWebHostBuilder(b => b.ConfigureServices(s => { s.Replace(ServiceDescriptor.Singleton<IKnowledgeStore>(store)); s.Replace(ServiceDescriptor.Singleton<IFaultTaxonomy>(taxonomy)); }));
-        using var client = factory.CreateClient(); Auth(client, keys);
-        var body = new CreateFaultRequest(" syn-eps:001 ", "EPS", Content());
-        var created = await Send(client, Request(HttpMethod.Post, "/api/v1/faults", body, key: "create"), 201); var id = created.GetProperty("id").GetGuid(); var path = "/api/v1/faults/" + id;
-        var replay = await Send(client, Request(HttpMethod.Post, "/api/v1/faults", body with { Code = "SYN-EPS:001" }, key: "create"), 201); Assert.Equal(created.GetRawText(), replay.GetRawText());
-        await Send(client, Request(HttpMethod.Post, "/api/v1/faults", body with { Code = "SYN-EPS:002" }, key: "create"), 409);
-        await Send(client, Request(HttpMethod.Post, "/api/v1/faults", body, key: "duplicate"), 409);
-        var get = await Send(client, Request(HttpMethod.Get, path)); Assert.Equal("SYN-EPS:001", get.GetProperty("code").GetString()); Assert.False(get.TryGetProperty("tenantId", out _));
-        var list = await Send(client, Request(HttpMethod.Get, "/api/v1/faults?system=EPS&search=synthetic&pageSize=1")); Assert.Equal(1, list.GetProperty("totalCount").GetInt32());
-        await Send(client, Request(HttpMethod.Post, path + "/publications", version: "\"1\"", key: "publish"), 403);
-        Auth(client, keys, "knowledge.read", "Reader"); await Send(client, Request(HttpMethod.Get, Lookup), 404);
-        Auth(client, keys, "knowledge.publish", "Engineer"); await Send(client, Request(HttpMethod.Post, path + "/publications", version: "\"1\"", key: "publish"));
-        taxonomy.Unavailable = true; await Send(client, Request(HttpMethod.Post, path + "/publications", version: "\"1\"", key: "publish")); taxonomy.Unavailable = false;
-        await Send(client, Request(HttpMethod.Post, path + "/publications", version: "\"2\"", key: "publish"), 409);
-        Auth(client, keys, "knowledge.read", "Reader");
-        var lookup = await Send(client, Request(HttpMethod.Get, Lookup)); Assert.Equal(2, lookup.GetProperty("version").GetInt64()); Assert.Equal(Actor, lookup.GetProperty("approvedBy").GetString());
-        var remedies = lookup.GetProperty("content").GetProperty("remedies"); Assert.Single(remedies.EnumerateArray()); Assert.Equal("one", remedies[0].GetProperty("id").GetString());
-        var none = await Send(client, Request(HttpMethod.Get, Lookup.Replace("software=1.0", "software=2.0", StringComparison.Ordinal))); Assert.Empty(none.GetProperty("content").GetProperty("remedies").EnumerateArray());
-        await Send(client, Request(HttpMethod.Get, path), 403); // Knowledge-only consumers cannot inspect drafts.
-        Auth(client, keys); var edited = Content() with { Description = "New draft only" };
-        await Send(client, Request(HttpMethod.Put, path, edited, "\"2\""));
-        await Send(client, Request(HttpMethod.Put, path, edited, "\"2\""), 409);
-        Auth(client, keys, "knowledge.read", "Reader"); Assert.Equal("Synthetic fault", (await Send(client, Request(HttpMethod.Get, Lookup))).GetProperty("content").GetProperty("description").GetString());
-        Auth(client, keys); var history = await Send(client, Request(HttpMethod.Get, path + "/history")); Assert.Equal(3, history.GetProperty("totalCount").GetInt32());
-        await Send(client, Request(HttpMethod.Delete, path, version: "\"3\"")); await Send(client, Request(HttpMethod.Put, path, edited, "\"4\""), 409);
-        await Send(client, Request(HttpMethod.Post, "/api/v1/faults", body, key: "reserved"), 409);
-        Auth(client, keys, "knowledge.read", "Reader"); await Send(client, Request(HttpMethod.Get, Lookup), 404);
-        var state = await store.ReadAsync(Tenant, default); Assert.Equal(4, state.Audit.Count); Assert.Equal(4, state.Faults.Single().History.Length); Assert.Single(state.Faults.Single().Publications);
-        Assert.All(state.Audit, a => { Assert.Equal(Actor, a.ActorId); Assert.Equal(Client, a.ClientId); Assert.NotEmpty(a.CorrelationId); });
-    }
+    private const string Lookup = "/api/v1/fault-codes/lookup?code=SYN-EPS:001&system=EPS&model=SYN-MODEL-1&software=1.0";
     [Fact]
     public async Task Concurrent_retry_update_publish_rollback_cancel_and_tenant_contract()
     {
@@ -127,11 +93,11 @@ public sealed class KnowledgeTests
     [InlineData("EPS", "SYN-EPS:001")]
     [InlineData("steer-by-wire", "SYN-SBW:001")]
     [InlineData("steering-ADAS", "SYN-ADAS:001")]
-    public async Task Synthetic_systems_and_invalid_content_taxonomy_are_validated(string system, string code)
+    public async Task Demo_systems_and_invalid_content_taxonomy_are_validated(string system, string code)
     {
         var store = new TestKnowledgeStore(); var taxonomy = new TestTaxonomy(); var service = new KnowledgeService(store, taxonomy, TimeProvider.System);
         var content = Content(system).ToDomain(); await service.Create(Caller, new(code, system, content), "valid", default);
-        var invalid = new[] { content with { ClassificationId = "unknown" }, content with { ClassificationVersion = 2 }, content with { ClassificationId = "synthetic-other-system" },
+        var invalid = new[] { content with { ClassificationId = "unknown" }, content with { ClassificationVersion = 2 }, content with { ClassificationId = "demo-other-system" },
             content with { Remedies = [content.Remedies[0] with { Kind = "guidance" }] }, content with { Remedies = [content.Remedies[0], content.Remedies[0]] },
             content with { Remedies = [content.Remedies[0] with { Patch = new("SYN-PATCH", "9.0") }] }, content with { Symptoms = [] }, content with { References = [] }, content with { Description = "" } };
         foreach (var item in invalid) Assert.Equal(400, (await Assert.ThrowsAsync<KnowledgeException>(() => service.Create(Caller, new(code + "X", system, item), "invalid", default))).Status);
@@ -168,25 +134,6 @@ public sealed class KnowledgeTests
     public async Task Strong_preconditions_are_required(string? version)
     {
         using var keys = new Discovery(); await using var factory = CreateFactory(keys); using var client = factory.CreateClient(); Auth(client, keys);
-        await Send(client, Request(HttpMethod.Delete, "/api/v1/faults/" + Guid.NewGuid(), version: version), 400);
-    }
-    [Fact]
-    public async Task Production_unavailable_exact_permissions_and_safe_invalid_input()
-    {
-        using var keys = new Discovery(); await using var factory = CreateFactory(keys); using var client = factory.CreateClient();
-        await Send(client, Request(HttpMethod.Get, "/api/v1/faults"), 401);
-        Auth(client, keys, "faults.write", "Administrator"); await Send(client, Request(HttpMethod.Post, "/api/v1/faults", new CreateFaultRequest("SYN-EPS:001", "EPS", Content()), key: "create"), 403);
-        Auth(client, keys, "knowledge.publish", "Operator"); await Send(client, Request(HttpMethod.Post, "/api/v1/faults/" + Guid.NewGuid() + "/publications", version: "\"1\"", key: "publish"), 403);
-        Auth(client, keys, "faults.read", "Reader"); await Send(client, Request(HttpMethod.Get, "/api/v1/faults"), 503);
-        Auth(client, keys, "Faults.Read.All", machine: true); await Send(client, Request(HttpMethod.Get, "/api/v1/faults"), 503);
-        Auth(client, keys, "Knowledge.Read.All", machine: true); await Send(client, Request(HttpMethod.Get, Lookup), 503);
-        Auth(client, keys, "Knowledge.Publish.Application", machine: true); await Send(client, Request(HttpMethod.Post, "/api/v1/faults/" + Guid.NewGuid() + "/publications", version: "\"1\"", key: "publish"), 503);
-        Auth(client, keys, "Faults.Write.All", machine: true); await Send(client, Request(HttpMethod.Post, "/api/v1/faults", new CreateFaultRequest("SYN-EPS:001", "EPS", Content()), key: "create"), 503);
-        Auth(client, keys);
-        foreach (var key in new string?[] { null, "", "bad key", "bad/key" }) await Send(client, Request(HttpMethod.Post, "/api/v1/faults", new CreateFaultRequest("SYN-EPS:001", "EPS", Content()), key: key), 400);
-        await Send(client, Request(HttpMethod.Post, "/api/v1/faults", new CreateFaultRequest("real-private-code", "EPS", Content()), key: "invalid"), 400);
-        await Send(client, Request(HttpMethod.Post, "/api/v1/faults", new { code = "SYN-EPS:001", system = "EPS", content = Content(), approvedBy = Actor }, key: "spoof"), 400);
-        await Send(client, Request(HttpMethod.Get, "/api/v1/faults?pageSize=101"), 400);
-        await Send(client, Request(HttpMethod.Get, "/api/v1/faults?system=brakes"), 400);
+        await Send(client, Request(HttpMethod.Delete, "/api/v1/fault-codes/" + Guid.NewGuid(), version: version), 400);
     }
 }

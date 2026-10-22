@@ -37,9 +37,9 @@ Every write requires strong If-Match and Idempotency-Key. Enqueue matches incide
 
 ## Explicit local preference
 
-PUT body `{"enabled":true,"contact":"SYN-CONTACT-1"}` opts into the local synthetic sink only. Missing preference defaults disabled. Contact is a bounded SYN label, never an email/address/URL. Enabled requires contact; false permits null. Existing Driver.Email/EmailNotifications are independent and never grant local or real consent. Preference changes increment the shared driver version. Any unrelated driver update invalidates the captured preference until explicitly renewed; GET returns current driver ETag and effective disabled state when stale. Production channel/contact/consent rules remain DEC-002.
+PUT body `{"enabled":true,"contact":"SYN-CONTACT-1"}` opts into the local demo sink only. Missing preference defaults disabled. Contact is a bounded SYN label, never an email/address/URL. Enabled requires contact; false permits null. Existing Driver.Email/EmailNotifications are independent and never grant local or real consent. Preference changes increment the shared driver version. Any unrelated driver update invalidates the captured preference until explicitly renewed; GET returns current driver ETag and effective disabled state when stale. Production channel/contact/consent rules remain DEC-002.
 
-Before enqueue and each claim, require original driver identity/owner, active same-tenant driver/vehicle, original association still active, explicit current preference and valid synthetic contact. Changes after enqueue block dispatch409; never redirect a queued message. Cancel and re-investigate/reapprove to create a new source when needed. Preference changes cannot revoke a provider call that was already claimed; no real provider is enabled.
+Before enqueue and each claim, require original driver identity/owner, active same-tenant driver/vehicle, original association still active, explicit current preference and valid demo contact. Changes after enqueue block dispatch409; never redirect a queued message. Cancel and re-investigate/reapprove to create a new source when needed. Preference changes cannot revoke a provider call that was already claimed; no real provider is enabled.
 
 ## Approved content and A/B/C
 

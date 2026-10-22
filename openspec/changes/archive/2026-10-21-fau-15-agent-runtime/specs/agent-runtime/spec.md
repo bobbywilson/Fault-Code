@@ -3,7 +3,7 @@
 ### Requirement: Caller scoped advisory runs
 Runtime execution SHALL load a trusted incident under the original caller tenant/ownership, require faults.read, vehicles.access.read and knowledge.read, and return advisory output without changing domain state. Requests SHALL NOT supply identity, evidence, model instructions or privileges. Runs SHALL have server identity/correlation and isolated conversation state.
 #### Scenario: Authorized incident analysis
-- **WHEN** a permitted human or machine runs analysis of an accessible synthetic incident
+- **WHEN** a permitted human or machine runs analysis of an accessible demo incident
 - **THEN** only bounded stored incident/approved intake knowledge metadata reaches the model, original caller context is retained, and a unique correlated advisory response is returned without incident/history/work changes
 #### Scenario: Untrusted caller context
 - **WHEN** a caller lacks exact permission, requests another owner's/tenant's incident or supplies identity/instructions/evidence fields
@@ -28,7 +28,7 @@ Model output SHALL use an exact schema and server validation of incident identit
 - **THEN** no unknown-fault diagnosis is inferred; runtime classification stays undetermined when appropriate and review remains required; document retrieval/rule adjudication are deferred to FAU-17
 
 ### Requirement: Explicit runtime activation and safe failures
-Runtime SHALL use the approved Microsoft Agent Framework/OpenAI adapter with pinned SDK versions and no default model/credential. Disabled configuration SHALL fail503 safely; enabled configuration SHALL require an explicit model snapshot. Errors SHALL exclude provider bodies, prompts, tokens and secrets. Live smoke SHALL be opt-in synthetic bounded execution and excluded from paid CI.
+Runtime SHALL use the approved Microsoft Agent Framework/OpenAI adapter with pinned SDK versions and no default model/credential. Disabled configuration SHALL fail503 safely; enabled configuration SHALL require an explicit model snapshot. Errors SHALL exclude provider bodies, prompts, tokens and secrets. Live smoke SHALL be opt-in demo bounded execution and excluded from paid CI.
 #### Scenario: Missing configuration or outage
 - **WHEN** configuration is absent/invalid or provider fails
 - **THEN** startup validation or a fixed correlated failure code identifies configuration/provider/timeout/output/budget failure without sensitive text; storage outage remains503 and never confirms unknown fault

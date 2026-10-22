@@ -7,9 +7,7 @@ internal static class FleetDocumentExamples
 {
     internal static void Decorate(OpenApiOperation operation, string path)
     {
-        operation.Description += " Storage returns 503 until DEC-001 durable persistence is approved/configured. "
-            + "Read access accepts exact all-read permission OR Reader+own-read scope, then applies trusted tenant/owner filtering before count/page. "
-            + "All x-faultcode-required-policies are ANDed. Writes require strong If-Match where declared; create replay is actor/client/operation/payload scoped. DELETE soft-deactivates or ends an association. Unowned vehicles are excluded from reads.";
+        operation.Description += " Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.";
         foreach (var parameter in operation.Parameters ?? [])
             if (parameter is OpenApiParameter concrete && parameter.In == ParameterLocation.Query)
                 concrete.Name = char.ToLowerInvariant(parameter.Name![0]) + parameter.Name[1..];
@@ -17,8 +15,8 @@ internal static class FleetDocumentExamples
         {
             var requestExample = operation.OperationId switch
             {
-                "CreateDriver" => """{"identifier":"DRV-001","ownerObjectId":"33333333-3333-4333-8333-333333333333","displayName":"Synthetic Driver","email":"driver@example.invalid","emailNotifications":true}""",
-                "UpdateDriver" => """{"displayName":"Synthetic Driver","email":"driver@example.invalid","emailNotifications":true}""",
+                "CreateDriver" => """{"identifier":"DRV-001","ownerObjectId":"33333333-3333-4333-8333-333333333333","displayName":"Alex Morgan","email":"driver@example.com","emailNotifications":true}""",
+                "UpdateDriver" => """{"displayName":"Alex Morgan","email":"driver@example.com","emailNotifications":true}""",
                 "AssociateVehicle" => """{"driverId":"55555555-5555-4555-8555-555555555555"}""",
                 _ => """{"identifier":"SYN-001","system":"EPS"}"""
             };
@@ -27,7 +25,7 @@ internal static class FleetDocumentExamples
         foreach (var parameter in operation.Parameters ?? [])
             if (parameter is OpenApiParameter concrete && parameter.In == ParameterLocation.Header)
             {
-                concrete.Example = JsonValue.Create(parameter.Name == "If-Match" ? "\"1\"" : "synthetic-create-001");
+                concrete.Example = JsonValue.Create(parameter.Name == "If-Match" ? "\"1\"" : "demo-create-001");
                 concrete.Description = parameter.Name == "If-Match" ? "Single strong quoted positive resource version; stale returns 409, malformed/missing returns 400." : "1-100 ASCII letters, digits, hyphens or underscores; same actor/client/operation key and normalized payload replays atomically; changed payload returns 409.";
             }
         foreach (var (status, response) in operation.Responses!)
@@ -41,7 +39,7 @@ internal static class FleetDocumentExamples
                 concrete.Headers["ETag"] = new OpenApiHeader { Description = "Strong resource version, e.g. \"1\". Association mutations return the vehicle ETag.", Schema = new OpenApiSchema { Type = JsonSchemaType.String } };
             foreach (var media in concrete.Content.Keys.ToArray())
                 if (media != (success ? "application/json" : "application/problem+json")) concrete.Content.Remove(media);
-            var driver = """{"id":"55555555-5555-4555-8555-555555555555","identifier":"DRV-001","displayName":"Synthetic Driver","email":"driver@example.invalid","emailNotifications":true,"active":true,"version":1}""";
+            var driver = """{"id":"55555555-5555-4555-8555-555555555555","identifier":"DRV-001","displayName":"Alex Morgan","email":"driver@example.com","emailNotifications":true,"active":true,"version":1}""";
             var vehicle = """{"id":"66666666-6666-4666-8666-666666666666","identifier":"SYN-001","system":"EPS","active":true,"version":1}""";
             var association = """{"id":"77777777-7777-4777-8777-777777777777","vehicleId":"66666666-6666-4666-8666-666666666666","driverId":"55555555-5555-4555-8555-555555555555","from":"2026-10-20T12:00:00Z","until":null}""";
             var item = path.Contains("drivers", StringComparison.Ordinal) ? driver : vehicle;

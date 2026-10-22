@@ -1,6 +1,6 @@
 # FAU-16 verification
 
-Part of FAU-16. October 21, 2026: locked restore, zero-warning Release build and 276 local tests passed (37 Domain, 3 Application, 236 Integration), zero reported skips. The 23 new MCP-focused cases use the actual SDK/client and production JWT middleware with synthetic keys. Existing live OpenAI and external Qdrant tests remain ordinary local no-ops without explicit opt-in; those entries do not establish live provider verification.
+Part of FAU-16. October 21, 2026: locked restore, zero-warning Release build and 276 local tests passed (37 Domain, 3 Application, 236 Integration), zero reported skips. The 23 new MCP-focused cases use the actual SDK/client and production JWT middleware with demo keys. Existing live OpenAI and external Qdrant tests remain ordinary local no-ops without explicit opt-in; those entries do not establish live provider verification.
 
 Formatting, 82 explicit Docker source inputs, Compose configuration, all five actual SDK input/output schemas and success/error examples, generated REST schema/examples and compatibility against both the committed baseline and the complete FAU-15 generated artifact passed. Seven deliberately breaking REST fixtures were rejected. FAU-15 contract source: backend run39599417660, openapi-ubuntu-latest/faultcode-v1.json. FAU-16 adds one REST operation (47 protected, 35 paths); the separate authenticated protocol endpoint is verified through SDK discovery and specialized route coverage.
 

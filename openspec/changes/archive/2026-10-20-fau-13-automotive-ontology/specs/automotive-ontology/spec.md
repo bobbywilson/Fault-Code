@@ -1,6 +1,6 @@
 ## ADDED Requirements
 ### Requirement: Tenant ontology catalog management
-Ontology SHALL expose tenant-local bounded draft replacement for versioned subsystem, component, symptom, classification, severity, applicability and remedy concepts across the three synthetic steering systems. Stable IDs SHALL retain kind/system; invalid references, duplicate IDs/edges, incompatible relationship types and is-a/part-of cycles SHALL reject400 atomically. Draft/history management SHALL require knowledge.publish; approved reads SHALL require knowledge.read.
+Ontology SHALL expose tenant-local bounded draft replacement for versioned subsystem, component, symptom, classification, severity, applicability and remedy concepts across the three demo steering systems. Stable IDs SHALL retain kind/system; invalid references, duplicate IDs/edges, incompatible relationship types and is-a/part-of cycles SHALL reject400 atomically. Draft/history management SHALL require knowledge.publish; approved reads SHALL require knowledge.read.
 #### Scenario: Typed management and denial
 - **WHEN** an Engineer or exactly granted application replaces a catalog or a Reader attempts management
 - **THEN** valid catalog changes succeed with strong versions; invalid graphs reject400, stale versions409 and unauthorized callers401/403; drafts never appear in approved reads

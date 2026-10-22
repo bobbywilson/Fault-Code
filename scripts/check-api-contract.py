@@ -82,34 +82,26 @@ def validate_document(document):
 
 
 def self_test(document):
+    path='/api/v1/vehicles'; method='get'
+    schema=next(name for name,item in document['components']['schemas'].items() if item.get('properties'))
+    prop=next(iter(document['components']['schemas'][schema]['properties']))
     mutations = [
-        lambda d: d['paths'].pop('/api/v1/health'),
-        lambda d: d['components']['schemas']['ExampleResponse']['properties'].pop('id'),
-        lambda d: d['paths']['/api/v1/examples']['get']['parameters'][0]['schema'].update(minimum=2),
-        lambda d: d['paths']['/api/v1/examples']['get'].update(security=[{'EntraBearer': []}]),
-        lambda d: d['paths']['/api/v1/examples']['get']['responses'].pop('400'),
-        lambda d: d['paths']['/api/v1/examples']['get']['parameters'].append({'in': 'query', 'name': 'new', 'required': True, 'schema': {'type': 'string'}}),
+        lambda d: d['paths'].pop(path),
+        lambda d: d['components']['schemas'][schema]['properties'].pop(prop),
+        lambda d: d['paths'][path][method]['parameters'][0]['schema'].update(minimum=999),
+        lambda d: d['paths'][path][method].update(security=[]),
+        lambda d: d['paths'][path][method]['responses'].pop('401'),
+        lambda d: d['paths'][path][method]['parameters'].append({'in':'query','name':'new','required':True,'schema':{'type':'string'}}),
     ]
     for mutation in mutations:
-        changed = copy.deepcopy(document)
-        mutation(changed)
-        try:
-            compatible(document, changed)
-        except AssertionError:
-            continue
+        changed=copy.deepcopy(document);mutation(changed)
+        try: compatible(document,changed)
+        except AssertionError: continue
         raise AssertionError('breaking fixture unexpectedly accepted')
-    protected = copy.deepcopy(document)
-    protected['paths']['/api/v1/examples']['get']['security'] = [{'EntraBearer': []}]
-    try:
-        compatible(protected, document)
-    except AssertionError:
-        pass
-    else:
-        raise AssertionError('security removal unexpectedly accepted')
-    additive = copy.deepcopy(document)
-    additive['paths']['/api/v1/examples']['get']['parameters'].append({'in': 'query', 'name': 'optional', 'schema': {'type': 'string'}})
-    compatible(document, additive)
-    print('7 breaking fixtures rejected; additive optional parameter accepted.')
+    additive=copy.deepcopy(document)
+    additive['paths'][path][method]['parameters'].append({'in':'query','name':'optional','schema':{'type':'string'}})
+    compatible(document,additive)
+    print('6 breaking fixtures rejected; additive optional parameter accepted.')
 
 
 if __name__ == '__main__':

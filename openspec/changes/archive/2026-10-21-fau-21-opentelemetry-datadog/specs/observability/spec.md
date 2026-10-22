@@ -18,11 +18,11 @@ Optional OTLP and Datadog configurations SHALL export only sanitized application
 
 #### Scenario: Disposable collector acceptance
 - **GIVEN** an explicitly configured disposable loopback OTLP receiver
-- **WHEN** synthetic nested API, agent, MCP, retrieval and model work completes
+- **WHEN** demo nested API, agent, MCP, retrieval and model work completes
 - **THEN** real OTLP HTTP/protobuf trace/log/metric messages arrive with matching W3C trace/span IDs, parent links, outcome, latency and only measured usage
 
 #### Scenario: Sensitive request and provider failure
-- **GIVEN** a synthetic request containing malicious query, headers and incoming correlation
+- **GIVEN** a demo request containing malicious query, headers and incoming correlation
 - **WHEN** an operation fails or is retried
 - **THEN** only server-generated correlation and bounded failure categories are exported; no raw exception, request or provider content is exported and absent usage remains absent
 
@@ -41,7 +41,7 @@ Export SHALL run off business paths with bounded queues, batches, timeout and tr
 Sanitized operation spans SHALL cover ASP.NET request handling, bounded agent work, MCP, retrieval, model attempts, engineering and notification workflows plus outbound provider HTTP attempts. Application nesting SHALL retain W3C parentage without trusting incoming request context or changing authorization, model capabilities or transaction boundaries.
 
 #### Scenario: Workflow failures and permission rejection
-- **WHEN** synthetic engineering/notification operations fail, an outbound HTTP attempt is retried or an API request is rejected by authorization
+- **WHEN** demo engineering/notification operations fail, an outbound HTTP attempt is retried or an API request is rejected by authorization
 - **THEN** correlated bounded operation/outcome/error telemetry identifies the stage while business errors, permissions and transactions remain unchanged
 
 ### Requirement: Datadog activation boundary
@@ -49,4 +49,4 @@ Datadog SHALL remain optional and target an explicitly configured local Agent OT
 
 #### Scenario: Activation checklist
 - **WHEN** an operator prepares Datadog connectivity
-- **THEN** documentation requires verified account plan/cost/retention and authorized synthetic ingestion before activation; no credentials or paid ingestion are supplied by default
+- **THEN** documentation requires verified account plan/cost/retention and authorized demo ingestion before activation; no credentials or paid ingestion are supplied by default

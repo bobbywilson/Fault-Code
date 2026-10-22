@@ -31,7 +31,7 @@ public sealed class EntraConfigurationTests
         process.StartInfo.ArgumentList.Add(typeof(Program).Assembly.Location);
         process.StartInfo.Environment["ASPNETCORE_ENVIRONMENT"] = "Production";
         process.StartInfo.Environment["ASPNETCORE_URLS"] = "http://127.0.0.1:0";
-        process.StartInfo.Environment["FaultCode__ApplicationName"] = "Synthetic startup test";
+        process.StartInfo.Environment["FaultCode__ApplicationName"] = "Demo startup test";
         process.StartInfo.Environment["Entra__Enabled"] = "true";
         process.StartInfo.Environment["Entra__TenantId"] = "11111111-1111-4111-8111-111111111111";
         process.StartInfo.Environment["Entra__ClientId"] = "22222222-2222-4222-8222-222222222222";
