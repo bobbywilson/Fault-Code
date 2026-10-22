@@ -12893,6 +12893,13 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "unmatchedOnly",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {

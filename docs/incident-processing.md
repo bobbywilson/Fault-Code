@@ -63,3 +63,11 @@ Test-only copy-on-write adapter proves one-process behavior; it is not durable p
 ## FAU-16 lifecycle escalation adapter
 
 POST /api/v1/incidents/{id}/escalations requires exact escalations.write (Engineer or Escalations.Write.Application application role), strong If-Match and Idempotency-Key. It shares one service operation/replay namespace with the MCP incident_escalate tool and records the existing legal Investigating -> Escalated transition, history and safe audit. This lifecycle marker is not FAU-18 engineering case management. Production storage remains503. See mcp-tools.md for separate MCP consumer intent and model isolation.
+
+## Unmatched-incident queue (2026-10-21)
+
+The user clarified that the Incidents entry page should list vehicle reports whose code was not found in known faults. It now automatically requests `GET /api/v1/incidents?unmatchedOnly=true&page=1&pageSize=20` after real authentication and required permission resolution. The table shows code, vehicle, driver, system, reported UTC time and status, with refresh, pagination and explicit review. Manual Create Incident is removed from the administration UI; authenticated vehicle clients retain idempotent intake. Existing investigation/notification/history APIs and known occurrence records remain intact.
+
+`unmatchedOnly` is optional and defaults false for existing clients. It filters `Knowledge == null` before accessible totals/paging: no approved catalog match at intake, including unpublished/retired definitions. This preserves the intake snapshot after later catalog changes. Lookup/storage unavailability stays503; it is never recorded or displayed as unknown/empty success. The UI does not locally filter a partially paginated full list.
+
+Nine synthetic steering fault drafts and classification concepts are prepared in `data/demo/nexteer-steering-faults.json`, with public product-scope provenance and explicit non-OEM labeling. They pass existing ontology/fault validators. They are **not loaded, published or persisted**: DEC-001 engine choice is pending the user's response. No production in-memory fallback was added. Nexteer driveline scope has also been asked explicitly; preparation currently stays within approved EPS/SbW/steering-ADAS boundaries. The scoped OpenSpec change stays active until actual database seeding and restart/idempotency verification complete.

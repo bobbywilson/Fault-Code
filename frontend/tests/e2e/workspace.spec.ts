@@ -16,6 +16,11 @@ async function setup(page: Page, permissions = all) {
 }
 async function action(page: Page, area: string, id: string) {
   await page.goto('/admin/' + area);
+  if (area === 'incidents')
+    await page
+      .getByRole('button', { name: /Review incident SYN-/ })
+      .first()
+      .click();
   await page.getByLabel('Action', { exact: true }).selectOption(id);
   await expect(page.getByText('Checking permissions…')).not.toBeVisible();
 }
@@ -101,6 +106,25 @@ test('three workflows invoke authoritative investigation, approval and notificat
     const q = r.request();
     if (q.url().endsWith('/authorization/me'))
       return r.fulfill({ json: { callerKind: 'delegated', permissions: all } });
+    if (q.method() === 'GET' && new URL(q.url()).pathname === '/api/v1/incidents')
+      return r.fulfill({
+        json: {
+          items: [
+            {
+              id,
+              code: 'SYN-EPS:UNKNOWN',
+              system: 'EPS',
+              status: 'Received',
+              occurredAt: '2026-10-21T12:00:00Z',
+              fleet: { vehicleIdentifier: 'SYN-VEH-1', driverIdentifier: 'SYN-DRIVER-1' },
+              knowledge: null,
+            },
+          ],
+          page: 1,
+          pageSize: 20,
+          totalCount: 1,
+        },
+      });
     requests.push({
       url: q.url(),
       method: q.method(),
@@ -352,4 +376,56 @@ test('ontology opens a read-only fault-code relationship table with search and p
     .getByRole('link', { name: 'Browse vehicle records for incident', exact: true })
     .click();
   await expect(page.getByRole('heading', { name: 'Vehicles', exact: true })).toBeVisible();
+});
+
+test('Incidents automatically lists unmatched vehicle reports and preserves unavailable, empty and review states', async ({
+  page,
+}) => {
+  await setup(page);
+  let requested = '';
+  await page.route('**/api/v1/incidents?**', (r) => {
+    requested = r.request().url();
+    return r.fulfill({
+      json: {
+        items: [
+          {
+            id,
+            code: 'SYN-EPS:UNKNOWN',
+            system: 'EPS',
+            status: 'Received',
+            occurredAt: '2026-10-21T12:00:00Z',
+            fleet: { vehicleIdentifier: 'SYN-VEH-1', driverIdentifier: 'SYN-DRIVER-1' },
+            knowledge: null,
+          },
+        ],
+        page: 1,
+        pageSize: 20,
+        totalCount: 1,
+      },
+    });
+  });
+  await page.goto('/admin/incidents');
+  const table = page.getByRole('table', { name: /unmatched vehicle reports/ });
+  await expect(table).toContainText('SYN-EPS:UNKNOWN');
+  if (process.env['FAULTCODE_QA_DIR'])
+    await page.screenshot({
+      path: process.env['FAULTCODE_QA_DIR'] + '/incidents-table-test-fixture.png',
+      fullPage: true,
+    });
+  expect(new URL(requested).searchParams.get('unmatchedOnly')).toBe('true');
+  await expect(page.getByLabel('Action', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Create Incident', exact: true })).toHaveCount(0);
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.route('**/api/v1/incidents?**', (r) =>
+    r.fulfill({ status: 503, json: { status: 503 } }),
+  );
+  await page.getByRole('button', { name: 'Refresh', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('unavailable');
+  await expect(table).toHaveCount(0);
+  await expect(page.getByText('No unmatched incidents', { exact: true })).toHaveCount(0);
+  await page.route('**/api/v1/incidents?**', (r) =>
+    r.fulfill({ json: { items: [], page: 1, pageSize: 20, totalCount: 0 } }),
+  );
+  await page.getByRole('button', { name: 'Refresh', exact: true }).click();
+  await expect(page.getByText('No unmatched incidents', { exact: true })).toBeVisible();
 });

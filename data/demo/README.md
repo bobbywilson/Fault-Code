@@ -1,0 +1,5 @@
+# Synthetic steering seed preparation
+
+Part of FAU-11/FAU-12. `nexteer-steering-faults.json` contains nine clearly synthetic demo fault drafts and their matching classification concepts, covering the approved EPS, steer-by-wire and steering ADAS scope. Codes are application-owned SYN-* examples, not genuine Nexteer/OEM DTCs. The Nexteer source supports product scope only, not diagnostic mappings or remedies. No vehicle/driver identifiers or private credentials are included.
+
+This manifest has **not been loaded into a database**. DEC-001 relational-engine selection and durable adapters are still pending the user's answer. Do not wire this file into a fake production in-memory store or represent prepared drafts as approved published knowledge. A future authenticated seed importer must idempotently create/reconcile exact entries, publish only reviewed content, preserve unrelated tenant data and verify durable restart behavior. Remedy candidates remain unapproved. Real manufacturer-code imports require an authoritative, permitted OEM/model/software-specific catalog.

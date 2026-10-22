@@ -91,6 +91,22 @@ public sealed class IncidentTests
         }
     }
     [Fact]
+    public async Task Unmatched_queue_filters_before_count_and_paging_and_retains_owner_boundary()
+    {
+        var store = new TestIncidentStore(Context()); var service = new IncidentService(store, new IncidentClock(Now));
+        await service.Create(Caller, Input("known"), "known", default);
+        var unknown = await service.Create(Caller, Input("unknown", "SYN-EPS:UNKNOWN"), "unknown", default);
+        var page = await service.List(Caller, 1, 1, null, null, default, unmatchedOnly: true);
+        Assert.Equal(1, page.TotalCount); Assert.Equal(unknown.Id, Assert.Single(page.Items).Id);
+        Assert.Null(page.Items[0].Knowledge);
+        Assert.Empty((await service.List(Caller, 2, 1, null, null, default, true)).Items);
+        Assert.Equal(2, (await service.List(Caller, 1, 20, null, null, default)).TotalCount);
+        var otherOwner = Caller with { ActorId = Client, AllVehicles = false, OwnVehicles = true };
+        Assert.Equal(0, (await service.List(otherOwner, 1, 20, null, null, default, true)).TotalCount);
+        Assert.Equal(0, (await service.List(Caller with { TenantId = Client }, 1, 20, null, null, default, true)).TotalCount);
+    }
+
+    [Fact]
     public async Task Production_controllers_known_unknown_intake_replay_status_failure_retry_and_history()
     {
         using var keys = new Discovery(); var store = new TestIncidentStore(Context()); var clock = new IncidentClock(Now);
@@ -107,6 +123,9 @@ public sealed class IncidentTests
         Assert.Equal("1", known.GetProperty("content").GetProperty("references")[0].GetProperty("version").GetString());
         Assert.False(read.TryGetProperty("tenantId", out _)); Assert.False(read.GetProperty("fleet").TryGetProperty("ownerObjectId", out _));
         await Send(client, Request(HttpMethod.Post, "/api/v1/incidents", Body(Input("SYN-UNKNOWN", "SYN-EPS:UNKNOWN")), key: "unknown"), 201);
+        var unmatched = await Send(client, Request(HttpMethod.Get, "/api/v1/incidents?unmatchedOnly=true&pageSize=1"));
+        Assert.Equal(1, unmatched.GetProperty("totalCount").GetInt32());
+        Assert.Equal(JsonValueKind.Null, unmatched.GetProperty("items")[0].GetProperty("knowledge").ValueKind);
         var list = await Send(client, Request(HttpMethod.Get, "/api/v1/incidents?status=Received&pageSize=1")); Assert.Equal(2, list.GetProperty("totalCount").GetInt32()); Assert.Single(list.GetProperty("items").EnumerateArray());
         await Send(client, Request(HttpMethod.Put, path + "/status", new IncidentStatusRequest("Resolved"), "\"1\"", "illegal"), 409);
         var workId = read.GetProperty("work")[0].GetProperty("id").GetGuid();

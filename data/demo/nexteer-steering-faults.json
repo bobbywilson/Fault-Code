@@ -1,0 +1,365 @@
+{
+  "schemaVersion": 1,
+  "id": "synthetic-nexteer-steering-demo-v1",
+  "synthetic": true,
+  "status": "prepared-not-loaded",
+  "scope": "EPS, steer-by-wire and steering ADAS only; no real manufacturer DTC mapping",
+  "sources": [
+    {
+      "id": "SYN-NEXTEER-PRODUCT-SCOPE",
+      "version": "2026-10-21",
+      "url": "https://www.nexteer.com/electric-power-steering/",
+      "supports": "Public product families only. Does not substantiate diagnostic codes, symptoms or remedies."
+    }
+  ],
+  "ontology": {
+    "concepts": [
+      {
+        "id": "SYN-CLASS-EPS-ASSIST-SIGNAL",
+        "kind": "classification",
+        "system": "EPS",
+        "label": "Synthetic assist signal inconsistency",
+        "allowedRemedyKinds": [
+          "guidance"
+        ]
+      },
+      {
+        "id": "SYN-CLASS-EPS-POWER-INPUT",
+        "kind": "classification",
+        "system": "EPS",
+        "label": "Synthetic assist power input",
+        "allowedRemedyKinds": [
+          "guidance"
+        ]
+      },
+      {
+        "id": "SYN-CLASS-EPS-POSITION-FEEDBACK",
+        "kind": "classification",
+        "system": "EPS",
+        "label": "Synthetic position feedback",
+        "allowedRemedyKinds": [
+          "guidance"
+        ]
+      },
+      {
+        "id": "SYN-CLASS-SBW-HANDWHEEL-SIGNAL",
+        "kind": "classification",
+        "system": "steer-by-wire",
+        "label": "Synthetic handwheel signal",
+        "allowedRemedyKinds": [
+          "guidance"
+        ]
+      },
+      {
+        "id": "SYN-CLASS-SBW-ROADWHEEL-FEEDBACK",
+        "kind": "classification",
+        "system": "steer-by-wire",
+        "label": "Synthetic roadwheel feedback",
+        "allowedRemedyKinds": [
+          "guidance"
+        ]
+      },
+      {
+        "id": "SYN-CLASS-SBW-LINK-TIMING",
+        "kind": "classification",
+        "system": "steer-by-wire",
+        "label": "Synthetic steering link timing",
+        "allowedRemedyKinds": [
+          "guidance"
+        ]
+      },
+      {
+        "id": "SYN-CLASS-ADAS-STEER-COMMAND",
+        "kind": "classification",
+        "system": "steering-ADAS",
+        "label": "Synthetic steering command availability",
+        "allowedRemedyKinds": [
+          "guidance"
+        ]
+      },
+      {
+        "id": "SYN-CLASS-ADAS-TORQUE-REQUEST",
+        "kind": "classification",
+        "system": "steering-ADAS",
+        "label": "Synthetic steering torque request",
+        "allowedRemedyKinds": [
+          "guidance"
+        ]
+      },
+      {
+        "id": "SYN-CLASS-ADAS-CONTROL-HANDOFF",
+        "kind": "classification",
+        "system": "steering-ADAS",
+        "label": "Synthetic control handoff",
+        "allowedRemedyKinds": [
+          "guidance"
+        ]
+      }
+    ],
+    "relationships": [],
+    "rules": []
+  },
+  "faults": [
+    {
+      "code": "SYN-EPS:ASSIST-SIGNAL",
+      "system": "EPS",
+      "content": {
+        "description": "Synthetic disagreement between steering input and assist feedback. Demo scenario only; not a verified Nexteer or OEM diagnostic trouble code.",
+        "classificationId": "SYN-CLASS-EPS-ASSIST-SIGNAL",
+        "classificationVersion": 1,
+        "symptoms": [
+          "Synthetic disagreement between steering input and assist feedback."
+        ],
+        "references": [
+          {
+            "id": "SYN-NEXTEER-PRODUCT-SCOPE",
+            "version": "2026-10-21"
+          }
+        ],
+        "remedies": [
+          {
+            "id": "SYN-SERVICE-REVIEW",
+            "kind": "guidance",
+            "description": "Synthetic demonstration guidance: request assessment by a qualified service technician. No repair procedure or vehicle software change is authorized.",
+            "approved": false,
+            "model": "SYN-NEXTEER-DEMO",
+            "softwareVersion": "demo-1",
+            "patch": null
+          }
+        ]
+      }
+    },
+    {
+      "code": "SYN-EPS:POWER-INPUT",
+      "system": "EPS",
+      "content": {
+        "description": "Synthetic interruption in steering-assist power availability. Demo scenario only; not a verified Nexteer or OEM diagnostic trouble code.",
+        "classificationId": "SYN-CLASS-EPS-POWER-INPUT",
+        "classificationVersion": 1,
+        "symptoms": [
+          "Synthetic interruption in steering-assist power availability."
+        ],
+        "references": [
+          {
+            "id": "SYN-NEXTEER-PRODUCT-SCOPE",
+            "version": "2026-10-21"
+          }
+        ],
+        "remedies": [
+          {
+            "id": "SYN-SERVICE-REVIEW",
+            "kind": "guidance",
+            "description": "Synthetic demonstration guidance: request assessment by a qualified service technician. No repair procedure or vehicle software change is authorized.",
+            "approved": false,
+            "model": "SYN-NEXTEER-DEMO",
+            "softwareVersion": "demo-1",
+            "patch": null
+          }
+        ]
+      }
+    },
+    {
+      "code": "SYN-EPS:POSITION-FEEDBACK",
+      "system": "EPS",
+      "content": {
+        "description": "Synthetic steering-position feedback inconsistency. Demo scenario only; not a verified Nexteer or OEM diagnostic trouble code.",
+        "classificationId": "SYN-CLASS-EPS-POSITION-FEEDBACK",
+        "classificationVersion": 1,
+        "symptoms": [
+          "Synthetic steering-position feedback inconsistency."
+        ],
+        "references": [
+          {
+            "id": "SYN-NEXTEER-PRODUCT-SCOPE",
+            "version": "2026-10-21"
+          }
+        ],
+        "remedies": [
+          {
+            "id": "SYN-SERVICE-REVIEW",
+            "kind": "guidance",
+            "description": "Synthetic demonstration guidance: request assessment by a qualified service technician. No repair procedure or vehicle software change is authorized.",
+            "approved": false,
+            "model": "SYN-NEXTEER-DEMO",
+            "softwareVersion": "demo-1",
+            "patch": null
+          }
+        ]
+      }
+    },
+    {
+      "code": "SYN-SBW:HANDWHEEL-SIGNAL",
+      "system": "steer-by-wire",
+      "content": {
+        "description": "Synthetic handwheel-angle signal disagreement. Demo scenario only; not a verified Nexteer or OEM diagnostic trouble code.",
+        "classificationId": "SYN-CLASS-SBW-HANDWHEEL-SIGNAL",
+        "classificationVersion": 1,
+        "symptoms": [
+          "Synthetic handwheel-angle signal disagreement."
+        ],
+        "references": [
+          {
+            "id": "SYN-NEXTEER-PRODUCT-SCOPE",
+            "version": "2026-10-21"
+          }
+        ],
+        "remedies": [
+          {
+            "id": "SYN-SERVICE-REVIEW",
+            "kind": "guidance",
+            "description": "Synthetic demonstration guidance: request assessment by a qualified service technician. No repair procedure or vehicle software change is authorized.",
+            "approved": false,
+            "model": "SYN-NEXTEER-DEMO",
+            "softwareVersion": "demo-1",
+            "patch": null
+          }
+        ]
+      }
+    },
+    {
+      "code": "SYN-SBW:ROADWHEEL-FEEDBACK",
+      "system": "steer-by-wire",
+      "content": {
+        "description": "Synthetic disagreement between requested and reported roadwheel position. Demo scenario only; not a verified Nexteer or OEM diagnostic trouble code.",
+        "classificationId": "SYN-CLASS-SBW-ROADWHEEL-FEEDBACK",
+        "classificationVersion": 1,
+        "symptoms": [
+          "Synthetic disagreement between requested and reported roadwheel position."
+        ],
+        "references": [
+          {
+            "id": "SYN-NEXTEER-PRODUCT-SCOPE",
+            "version": "2026-10-21"
+          }
+        ],
+        "remedies": [
+          {
+            "id": "SYN-SERVICE-REVIEW",
+            "kind": "guidance",
+            "description": "Synthetic demonstration guidance: request assessment by a qualified service technician. No repair procedure or vehicle software change is authorized.",
+            "approved": false,
+            "model": "SYN-NEXTEER-DEMO",
+            "softwareVersion": "demo-1",
+            "patch": null
+          }
+        ]
+      }
+    },
+    {
+      "code": "SYN-SBW:LINK-TIMING",
+      "system": "steer-by-wire",
+      "content": {
+        "description": "Synthetic delayed command delivery between steering controllers. Demo scenario only; not a verified Nexteer or OEM diagnostic trouble code.",
+        "classificationId": "SYN-CLASS-SBW-LINK-TIMING",
+        "classificationVersion": 1,
+        "symptoms": [
+          "Synthetic delayed command delivery between steering controllers."
+        ],
+        "references": [
+          {
+            "id": "SYN-NEXTEER-PRODUCT-SCOPE",
+            "version": "2026-10-21"
+          }
+        ],
+        "remedies": [
+          {
+            "id": "SYN-SERVICE-REVIEW",
+            "kind": "guidance",
+            "description": "Synthetic demonstration guidance: request assessment by a qualified service technician. No repair procedure or vehicle software change is authorized.",
+            "approved": false,
+            "model": "SYN-NEXTEER-DEMO",
+            "softwareVersion": "demo-1",
+            "patch": null
+          }
+        ]
+      }
+    },
+    {
+      "code": "SYN-ADAS:STEER-COMMAND",
+      "system": "steering-ADAS",
+      "content": {
+        "description": "Synthetic unavailability of an automated steering-assistance command. Demo scenario only; not a verified Nexteer or OEM diagnostic trouble code.",
+        "classificationId": "SYN-CLASS-ADAS-STEER-COMMAND",
+        "classificationVersion": 1,
+        "symptoms": [
+          "Synthetic unavailability of an automated steering-assistance command."
+        ],
+        "references": [
+          {
+            "id": "SYN-NEXTEER-PRODUCT-SCOPE",
+            "version": "2026-10-21"
+          }
+        ],
+        "remedies": [
+          {
+            "id": "SYN-SERVICE-REVIEW",
+            "kind": "guidance",
+            "description": "Synthetic demonstration guidance: request assessment by a qualified service technician. No repair procedure or vehicle software change is authorized.",
+            "approved": false,
+            "model": "SYN-NEXTEER-DEMO",
+            "softwareVersion": "demo-1",
+            "patch": null
+          }
+        ]
+      }
+    },
+    {
+      "code": "SYN-ADAS:TORQUE-REQUEST",
+      "system": "steering-ADAS",
+      "content": {
+        "description": "Synthetic inconsistency in requested steering-assistance torque. Demo scenario only; not a verified Nexteer or OEM diagnostic trouble code.",
+        "classificationId": "SYN-CLASS-ADAS-TORQUE-REQUEST",
+        "classificationVersion": 1,
+        "symptoms": [
+          "Synthetic inconsistency in requested steering-assistance torque."
+        ],
+        "references": [
+          {
+            "id": "SYN-NEXTEER-PRODUCT-SCOPE",
+            "version": "2026-10-21"
+          }
+        ],
+        "remedies": [
+          {
+            "id": "SYN-SERVICE-REVIEW",
+            "kind": "guidance",
+            "description": "Synthetic demonstration guidance: request assessment by a qualified service technician. No repair procedure or vehicle software change is authorized.",
+            "approved": false,
+            "model": "SYN-NEXTEER-DEMO",
+            "softwareVersion": "demo-1",
+            "patch": null
+          }
+        ]
+      }
+    },
+    {
+      "code": "SYN-ADAS:CONTROL-HANDOFF",
+      "system": "steering-ADAS",
+      "content": {
+        "description": "Synthetic disagreement during an automated/manual steering-control handoff. Demo scenario only; not a verified Nexteer or OEM diagnostic trouble code.",
+        "classificationId": "SYN-CLASS-ADAS-CONTROL-HANDOFF",
+        "classificationVersion": 1,
+        "symptoms": [
+          "Synthetic disagreement during an automated/manual steering-control handoff."
+        ],
+        "references": [
+          {
+            "id": "SYN-NEXTEER-PRODUCT-SCOPE",
+            "version": "2026-10-21"
+          }
+        ],
+        "remedies": [
+          {
+            "id": "SYN-SERVICE-REVIEW",
+            "kind": "guidance",
+            "description": "Synthetic demonstration guidance: request assessment by a qualified service technician. No repair procedure or vehicle software change is authorized.",
+            "approved": false,
+            "model": "SYN-NEXTEER-DEMO",
+            "softwareVersion": "demo-1",
+            "patch": null
+          }
+        ]
+      }
+    }
+  ]
+}

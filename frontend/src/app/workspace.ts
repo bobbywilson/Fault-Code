@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { Component, Input, inject, signal, computed, effect } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -63,6 +64,7 @@ export const areas = [
 @Component({
   selector: 'app-workspace',
   imports: [
+    DatePipe,
     RouterLink,
     RouterLinkActive,
     FormsModule,
@@ -224,7 +226,126 @@ export const areas = [
                 when not recorded.
               </p>
             }
-            @if (group() === 'Ontology') {
+            @if (group() === 'Incidents' && !incidentReview()) {
+              <section hlmCard class="gap-4 p-6" aria-label="Unmatched vehicle incidents">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <div class="space-y-2">
+                    <h2 hlmCardTitle>Unmatched vehicle reports</h2>
+                    <p hlmCardDescription>
+                      Vehicle-reported faults with no approved catalog match at intake.
+                    </p>
+                  </div>
+                  <button
+                    hlmBtn
+                    variant="outline"
+                    (click)="reloadIncidents()"
+                    [disabled]="busy() || permissionsLoading() || !incidentAllowed()"
+                  >
+                    Refresh
+                  </button>
+                </div>
+                @if (permissionsLoading() || busy()) {
+                  <p role="status">Loading incidents…</p>
+                } @else if (!incidentAllowed()) {
+                  <p hlmAlert variant="destructive">
+                    Access denied. You need permission to read incidents and the associated
+                    vehicles.
+                  </p>
+                }
+                @if (message() && error()) {
+                  <div hlmAlert variant="destructive">
+                    {{ message() }}
+                    @if (correlation()) {
+                      <small>Reference: {{ correlation() }}</small>
+                    }
+                  </div>
+                }
+                @if (hasPage()) {
+                  <div hlmTableContainer>
+                    <table hlmTable>
+                      <caption hlmCaption>
+                        {{
+                          data().totalCount
+                        }}
+                        unmatched vehicle reports · page
+                        {{
+                          data().page
+                        }}
+                      </caption>
+                      <thead hlmTHead>
+                        <tr hlmTr>
+                          <th hlmTh scope="col">Fault code</th>
+                          <th hlmTh scope="col">Vehicle</th>
+                          <th hlmTh scope="col">Driver</th>
+                          <th hlmTh scope="col">System</th>
+                          <th hlmTh scope="col">Reported (UTC)</th>
+                          <th hlmTh scope="col">Status</th>
+                          <th hlmTh scope="col"><span class="sr-only">Review incident</span></th>
+                        </tr>
+                      </thead>
+                      <tbody hlmTBody>
+                        @for (incident of data().items; track incident.id) {
+                          <tr hlmTr>
+                            <th hlmTh scope="row" class="text-foreground">{{ incident.code }}</th>
+                            <td hlmTd>{{ incident.fleet?.vehicleIdentifier ?? 'Unavailable' }}</td>
+                            <td hlmTd>{{ incident.fleet?.driverIdentifier ?? 'Unavailable' }}</td>
+                            <td hlmTd>{{ incident.system }}</td>
+                            <td hlmTd>{{ incident.occurredAt | date: 'medium' : 'UTC' }}</td>
+                            <td hlmTd>
+                              <span hlmBadge variant="secondary">{{ incident.status }}</span>
+                            </td>
+                            <td hlmTd>
+                              <button
+                                hlmBtn
+                                variant="ghost"
+                                size="sm"
+                                (click)="reviewIncident(incident)"
+                                [attr.aria-label]="'Review incident ' + incident.code"
+                              >
+                                Review <ng-icon name="lucideArrowUpRight" />
+                              </button>
+                            </td>
+                          </tr>
+                        } @empty {
+                          <tr hlmTr>
+                            <td hlmTd colspan="7">
+                              <div hlmEmpty>
+                                <div hlmEmptyHeader>
+                                  <div hlmEmptyMedia variant="icon">
+                                    <ng-icon name="lucideTriangleAlert" />
+                                  </div>
+                                  <p hlmEmptyTitle>No unmatched incidents</p>
+                                  <p hlmEmptyDescription>
+                                    Vehicle reports without a known fault match will appear here.
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="flex items-center justify-between gap-3">
+                    <button
+                      hlmBtn
+                      variant="outline"
+                      (click)="reloadIncidents(data().page - 1)"
+                      [disabled]="busy() || data().page <= 1"
+                    >
+                      Previous</button
+                    ><button
+                      hlmBtn
+                      variant="outline"
+                      (click)="reloadIncidents(data().page + 1)"
+                      [disabled]="busy() || data().page * data().pageSize >= data().totalCount"
+                    >
+                      Next
+                    </button>
+                  </div>
+                }
+              </section>
+            } @else if (group() === 'Ontology') {
               <section hlmCard class="gap-4 p-6" aria-label="Fault code ontology">
                 <div class="space-y-2">
                   <h2 hlmCardTitle>Model relationships</h2>
@@ -301,8 +422,15 @@ export const areas = [
                 </div>
               </section>
             } @else {
+              @if (group() === 'Incidents') {
+                <button hlmBtn variant="outline" class="w-fit" (click)="reloadIncidents()">
+                  Back to incidents
+                </button>
+              }
               <section hlmCard class="p-6">
-                <h2 hlmCardTitle>Workspace actions</h2>
+                <h2 hlmCardTitle>
+                  {{ group() === 'Incidents' ? 'Review incident' : 'Workspace actions' }}
+                </h2>
                 <div hlmField>
                   <label hlmFieldLabel for="action">Action</label
                   ><hlm-native-select
@@ -452,6 +580,7 @@ export class Workspace {
   auth = inject(Auth);
   private api = inject(Api);
   areas = areas;
+  incidentReview = signal(false);
   ontologyQuery = signal('');
   filteredRelationships = computed(() => {
     const query = this.ontologyQuery().trim().toLowerCase();
@@ -479,7 +608,9 @@ export class Workspace {
     this.routeArea.set(value ?? 'incidents');
   }
   group = computed(() => areas.find((a) => a[1] === this.routeArea())?.[0] ?? 'Incidents');
-  actions = computed(() => ops.filter((o) => o.group === this.group()));
+  actions = computed(() =>
+    ops.filter((o) => o.group === this.group() && o.id !== 'CreateIncident'),
+  );
   op = signal<Operation | undefined>(undefined);
   permissions = signal<string[]>([]);
   permissionsLoading = signal(true);
@@ -501,11 +632,20 @@ export class Workspace {
       this.group();
       this.reset();
       this.ontologyQuery.set('');
+      this.incidentReview.set(false);
       const a = this.group() === 'Ontology' ? [] : this.actions();
       this.choose(
         a.find((o) => o.method === 'GET' && !o.parameters.some((p) => p.where === 'path')) ?? a[0],
       );
-      queueMicrotask(() => document.getElementById('main')?.focus());
+      queueMicrotask(() => {
+        document.getElementById('main')?.focus();
+        if (
+          this.group() === 'Incidents' &&
+          this.auth.state() === 'signed-in' &&
+          !this.permissionsLoading()
+        )
+          void this.reloadIncidents();
+      });
     });
     effect(() => {
       if (this.auth.state() === 'signed-in') void this.loadPermissions();
@@ -519,7 +659,8 @@ export class Workspace {
   description() {
     return (
       {
-        Incidents: 'Review fault intake, investigation history and workflow status.',
+        Incidents:
+          'Investigate vehicle-reported fault codes that were not found in the approved fault catalog.',
         Vehicles: 'Manage the steering fleet and driver associations.',
         Drivers: 'Manage driver records and local notification preferences.',
         Engineering: 'Track escalations, evidence and approved resolutions.',
@@ -542,7 +683,28 @@ export class Workspace {
       this.fail(e);
     } finally {
       this.permissionsLoading.set(false);
+      if (this.group() === 'Incidents' && this.auth.state() === 'signed-in')
+        void this.reloadIncidents();
     }
+  }
+  incidentAllowed() {
+    const operation = ops.find((o) => o.id === 'ListIncidents');
+    return !!operation && this.allowed(operation);
+  }
+  async reloadIncidents(page = 1) {
+    if (this.auth.state() !== 'signed-in' || this.permissionsLoading()) return;
+    this.incidentReview.set(false);
+    this.reset();
+    this.choose(ops.find((o) => o.id === 'ListIncidents'));
+    this.parameters = { page, pageSize: 20, unmatchedOnly: true };
+    if (this.incidentAllowed()) await this.execute();
+  }
+  async reviewIncident(record: any) {
+    this.incidentReview.set(true);
+    this.reset();
+    this.choose(ops.find((o) => o.id === 'GetIncident'));
+    this.parameters = { id: record.id };
+    await this.execute();
   }
   allowed(o: Operation) {
     return o.policies.every((a) => a.some((p) => this.permissions().includes(p)));

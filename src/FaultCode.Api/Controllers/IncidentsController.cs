@@ -36,7 +36,7 @@ public sealed class IncidentsController(IncidentService service, IAuthorizationS
     [ProducesResponseType<PageResponse<IncidentResponse>>(200)]
     public async Task<ActionResult<PageResponse<IncidentResponse>>> List([FromQuery] IncidentQuery query, CancellationToken ct)
     {
-        var page = await service.List(Caller, query.Page, query.PageSize, query.Status, query.VehicleId, ct);
+        var page = await service.List(Caller, query.Page, query.PageSize, query.Status, query.VehicleId, ct, query.UnmatchedOnly);
         return Ok(new PageResponse<IncidentResponse>(page.Items.Select(MapIncident).ToArray(), page.Page, page.PageSize, page.TotalCount));
     }
     [HttpGet("{id:guid}", Name = "GetIncident"), Authorize(Policy = "faults.read"), Authorize(Policy = "vehicles.access.read"), Authorize(Policy = "knowledge.read")]

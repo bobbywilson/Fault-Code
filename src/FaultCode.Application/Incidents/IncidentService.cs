@@ -25,12 +25,12 @@ public sealed class IncidentService(IIncidentStore store, TimeProvider clock, IT
         Caller(c); var i = Find(await store.ReadAsync(c.TenantId, ct), c, id);
         return Visible(i, c) ? i : throw new IncidentException(404);
     }
-    public async Task<FleetPage<Incident>> List(FleetCaller c, int page, int size, string? status, Guid? vehicleId, CancellationToken ct)
+    public async Task<FleetPage<Incident>> List(FleetCaller c, int page, int size, string? status, Guid? vehicleId, CancellationToken ct, bool unmatchedOnly = false)
     {
         Caller(c);
         if (page < 1 || size is < 1 or > 100 || status is not null && !IncidentRules.Status(status)) throw new IncidentException(400);
         var all = (await store.ReadAsync(c.TenantId, ct)).Incidents.Where(i => Visible(i, c)
-            && (status is null || i.Status == status) && (vehicleId is null || i.Fleet.VehicleId == vehicleId)).OrderBy(i => i.Id).ToArray();
+            && (!unmatchedOnly || i.Knowledge is null) && (status is null || i.Status == status) && (vehicleId is null || i.Fleet.VehicleId == vehicleId)).OrderBy(i => i.Id).ToArray();
         var offset = ((long)page - 1) * size;
         return new(offset >= all.Length ? [] : all.Skip((int)offset).Take(size).ToArray(), page, size, all.Length);
     }

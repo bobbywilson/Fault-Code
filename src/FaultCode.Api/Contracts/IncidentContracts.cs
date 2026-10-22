@@ -16,6 +16,7 @@ public sealed class IncidentQuery
     [Range(1, 100)] public int PageSize { get; set; } = 20;
     public string? Status { get; set; }
     public Guid? VehicleId { get; set; }
+    public bool UnmatchedOnly { get; set; }
 }
 public sealed record IncidentFleetResponse(Guid VehicleId, string VehicleIdentifier, long VehicleVersion, Guid DriverId,
     string DriverIdentifier, long DriverVersion, Guid AssociationId, DateTimeOffset AssociationFrom, DateTimeOffset? AssociationUntil);
