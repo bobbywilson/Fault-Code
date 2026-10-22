@@ -64,7 +64,16 @@ docker restart "$task" >/dev/null
 probe "$candidate" "$source_sha" 'Demo candidate configuration' restart
 docker rm -f "$task" >/dev/null
 start "$previous" "$base_sha" 'Demo prior configuration' rollback
-cmp artifacts/release/prior-contract.json artifacts/release/rollback-contract.json
+python3 - <<'PY'
+import json
+from pathlib import Path
+prior=json.loads(Path('artifacts/release/prior-contract.json').read_text())
+rollback=json.loads(Path('artifacts/release/rollback-contract.json').read_text())
+# Older releases advertise the request origin. Disposable containers receive a
+# new loopback port on recreation; all endpoint/schema/auth content must match.
+prior.pop('servers',None); rollback.pop('servers',None)
+assert prior==rollback, 'Rollback changed the prior endpoint contract'
+PY
 # Invalid configuration must stop startup rather than silently start with defaults.
 docker run -d --name "$task-invalid" --network "$task" -e 'FaultCode__ApplicationName= ' "$candidate" >/dev/null
 invalid_stopped=false
