@@ -100,8 +100,51 @@ test('mobile fleet navigation remains accessible without management forms', asyn
     .getByRole('navigation', { name: 'Administration' })
     .getByRole('link', { name: 'Drivers', exact: true })
     .click();
-  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).not.toBeVisible();
   await expect(page.getByRole('heading', { name: 'Drivers', exact: true })).toBeVisible();
+});
+
+test('fault code meanings open in a bounded Spartan dialog on desktop and mobile', async ({
+  page,
+}) => {
+  await setup(page);
+  const description = 'A steering-control handoff needs investigation. '.repeat(12);
+  await page.route('**/api/v1/fault-codes?**', (route) =>
+    route.fulfill({
+      json: {
+        items: [{ code: 'EPS:HANDOFF', system: 'EPS', draft: { description } }],
+        totalCount: 1,
+      },
+    }),
+  );
+  for (const viewport of [
+    { width: 1440, height: 900 },
+    { width: 390, height: 844 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto('/admin/fault-codes');
+    const table = page.getByRole('table');
+    await expect(table).toContainText('EPS:HANDOFF');
+    await expect(table).not.toContainText(description);
+    const trigger = table.getByRole('button', { name: 'View meaning', exact: true });
+    await trigger.click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText(description.trim());
+    await expect(dialog.getByRole('heading', { name: 'EPS:HANDOFF' })).toBeVisible();
+    const box = (await dialog.boundingBox())!;
+    expect(box.width).toBeLessThanOrEqual(viewport.width);
+    if (process.env['FAULTCODE_QA_DIR'])
+      await page.screenshot({
+        path: process.env['FAULTCODE_QA_DIR'] + '/fault-meaning-' + viewport.width + '.png',
+      });
+    await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+    await expect(dialog).not.toBeVisible();
+    await expect(trigger).toBeFocused();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  }
 });
 
 test('fleet pagination escapes names and suppresses late route results', async ({ page }) => {

@@ -16,7 +16,7 @@ import { ActivatedRoute, RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { HlmButton } from '@spartan-ng/helm/button';
-import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
+import { HlmSidebarImports, provideHlmSidebarConfig } from '@spartan-ng/helm/sidebar';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmAlertImports } from '@spartan-ng/helm/alert';
 import { HlmEmptyImports } from '@spartan-ng/helm/empty';
@@ -117,6 +117,7 @@ export const areas = [
     Tickets,
   ],
   providers: [
+    provideHlmSidebarConfig({ closeMobileSidebarOnMenuButtonClick: true }),
     provideIcons({
       lucideLayoutDashboard,
       lucideArrowRight,
@@ -1159,7 +1160,24 @@ export const areas = [
                           <td hlmTd>{{ row.code }}</td>
                           <td hlmTd>{{ row.system }}</td>
                           <td hlmTd>{{ row.vehicles.join(', ') }}</td>
-                          <td hlmTd class="whitespace-normal">{{ row.description }}</td>
+                          <td hlmTd>
+                            <hlm-dialog>
+                              <button hlmBtn variant="outline" size="sm" hlmDialogTrigger>
+                                View meaning
+                              </button>
+                              <hlm-dialog-content *hlmDialogPortal class="max-w-2xl">
+                                <hlm-dialog-header>
+                                  <h3 hlmDialogTitle>{{ row.code }}</h3>
+                                  <p hlmDialogDescription>Fault code meaning · {{ row.system }}</p>
+                                </hlm-dialog-header>
+                                <p
+                                  class="max-h-[60vh] overflow-y-auto whitespace-pre-wrap break-words text-sm"
+                                >
+                                  {{ row.description }}
+                                </p>
+                              </hlm-dialog-content>
+                            </hlm-dialog>
+                          </td>
                         </tr>
                       } @empty {
                         <tr hlmTr>

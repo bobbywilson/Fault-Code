@@ -52,3 +52,11 @@ The API SHALL admit at most 200 authorized resource requests per identity per UT
 #### Scenario: Public quota documentation
 - **WHEN** a reviewer opens Mintlify authentication guidance or an endpoint in Swagger
 - **THEN** the 200-request limit, identity scope, midnight UTC reset and 429 behavior are documented without requiring sign-in
+
+### Requirement: Compact responsive workspace navigation and fault meanings
+Workspace navigation SHALL close the mobile sidebar when a link is selected without changing desktop collapse state. Fault-code meanings SHALL open from a compact Spartan button in an accessible Spartan dialog on mobile and desktop rather than stretching table rows.
+
+#### Scenario: Mobile page selection and fault meaning
+- **WHEN** a mobile reviewer selects a sidebar page
+- **THEN** the selected page becomes visible without dismissing the sidebar separately
+- **AND** View meaning opens the complete fault description in a bounded, scrollable dialog whose close control restores focus to its trigger
