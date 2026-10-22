@@ -1746,6 +1746,7 @@ export class Workspace {
       this.fail(e);
     } finally {
       this.permissionsLoading.set(false);
+      if (this.group() === 'Token' && this.auth.state() === 'signed-in') void this.loadToken();
       if (this.group() === 'Incidents' && this.auth.state() === 'signed-in')
         void this.reloadIncidents();
       if (this.group() === 'Users' && this.auth.state() === 'signed-in') void this.reloadUsers();
