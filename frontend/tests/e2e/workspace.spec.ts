@@ -107,6 +107,7 @@ test('mobile fleet navigation remains accessible without management forms', asyn
 test('fault code meanings open in a bounded Spartan dialog on desktop and mobile', async ({
   page,
 }) => {
+  test.setTimeout(process.env['CI'] ? 90000 : 30000);
   await setup(page);
   const description = 'A steering-control handoff needs investigation. '.repeat(12);
   await page.route('**/api/v1/fault-codes?**', (route) =>
