@@ -24,7 +24,7 @@ public sealed class SqlServerApiRequestQuotaStore(DbContextOptions<FleetDbContex
                 SET XACT_ABORT ON;
                 BEGIN TRANSACTION;
                 DECLARE @result int, @used int;
-                EXEC @result = sys.sp_getapplock @Resource=@resource, @LockMode='Exclusive', @LockOwner='Transaction', @LockTimeout=3000;
+                EXEC @result = sys.sp_getapplock @Resource=@resource, @LockMode='Exclusive', @LockOwner='Transaction', @LockTimeout=15000;
                 IF @result < 0 THROW 51000, 'Quota reservation unavailable.', 1;
                 SELECT @used = Used FROM dbo.ApiRequestQuotas WHERE TenantId=@tenant AND IdentityHash=@identity AND Day=@day;
                 IF @used IS NULL
