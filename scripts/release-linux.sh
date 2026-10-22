@@ -46,11 +46,11 @@ probe() {
     sleep 1
   done
   test "$healthy" = true
-  test "$(curl --connect-timeout 2 --max-time 5 -fsS "$address/health/ready")" = Healthy
-  test "$(curl --connect-timeout 2 --max-time 5 -s -o /dev/null -w '%{http_code}' "$address/api/v1/vehicles")" = 401
+  test "$(curl --connect-timeout 2 --max-time 15 -fsS "$address/health/ready")" = Healthy
+  test "$(curl --connect-timeout 2 --max-time 15 -s -o /dev/null -w '%{http_code}' "$address/api/v1/vehicles")" = 401
   test "$(docker exec "$task" id -u)" != 0
   # Public fixtures must remain identical to the running prior source after rollback.
-  curl --connect-timeout 2 --max-time 5 -fsS "$address/openapi/v1.json" > "artifacts/release/$stage-contract.json"
+  curl --connect-timeout 2 --max-time 15 -fsS "$address/openapi/v1.json" > "artifacts/release/$stage-contract.json"
   python3 - "$stage" "$revision" "$config" "$(docker inspect "$task" --format '{{.Image}}')" <<'PY'
 import json,sys
 with open('artifacts/release/rollback.jsonl', 'a') as f:

@@ -18,9 +18,14 @@ public sealed class ApiTestingUiTests
         Assert.Equal(available ? System.Net.HttpStatusCode.OK : System.Net.HttpStatusCode.NotFound, response.StatusCode);
         if (available)
         {
-            var init = await client.GetStringAsync("/swagger/index.js");
+            var html = await response.Content.ReadAsStringAsync();
+            Assert.Contains("./bootstrap.js", html);
+            var init = await client.GetStringAsync("/swagger/bootstrap.js");
             Assert.Contains("/openapi/v1.json", init);
-            Assert.Contains("\"persistAuthorization\":false", init);
+            Assert.Contains("persistAuthorization: false", init);
+            Assert.Contains("layout: \"BaseLayout\"", init);
+            Assert.DoesNotContain("DarkModeToggle", init);
+            Assert.DoesNotContain("eval(", init);
         }
         using var protectedResponse = await client.GetAsync("/api/v1/vehicles");
         Assert.Equal(System.Net.HttpStatusCode.Unauthorized, protectedResponse.StatusCode);

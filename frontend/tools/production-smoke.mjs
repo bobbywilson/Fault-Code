@@ -26,6 +26,29 @@ try {
     path: 'frontend/test-results/production-linux-setup.png',
     fullPage: true,
   });
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.goto(base + '/swagger/index.html');
+  await page.getByRole('heading', { name: /^Fault Code API/ }).waitFor();
+  assert.equal(await page.locator('.opblock').count(), 30);
+  assert.equal(
+    await page.locator('html').evaluate((e) => e.classList.contains('dark-mode')),
+    false,
+  );
+  assert.equal(
+    await page.locator('body').evaluate((e) => getComputedStyle(e).backgroundColor),
+    'rgb(255, 255, 255)',
+  );
+  await page
+    .getByRole('button', { name: /Authorize/ })
+    .first()
+    .waitFor();
+  await page.locator('.opblock-get').first().locator('.opblock-summary').click();
+  await page.getByRole('button', { name: 'Try it out', exact: true }).click();
+  await page.getByRole('button', { name: 'Execute', exact: true }).waitFor();
+  await page.screenshot({
+    path: 'frontend/test-results/production-linux-swagger.png',
+    fullPage: true,
+  });
   assert.deepEqual(errors, []);
   console.log(
     'Production browser route, unauthenticated sign-in state, no JavaScript errors and real API401 passed.',
