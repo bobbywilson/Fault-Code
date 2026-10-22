@@ -349,17 +349,15 @@ app.UseAuthorization();
 // MCP tools are invoked by the bound server-side agent workflow; no public MCP route.
 app.MapOpenApi().AllowAnonymous();
 if (app.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("ApiTesting:Enabled"))
+{
     app.UseSwaggerUI(options =>
     {
         options.RoutePrefix = "swagger";
-        options.SwaggerEndpoint("/openapi/v1.json", "Fault Code API v1");
-        options.DocumentTitle = "Fault Code API Testing";
-        options.ConfigObject.PersistAuthorization = false;
-        options.HeadContent = "<meta name=\"color-scheme\" content=\"light\"><style>:root{color-scheme:only light}body{background:#fff;color:#3b4151}</style>";
-        options.ConfigObject.ValidatorUrl = null;
-        // The bundled standalone preset otherwise follows the OS dark preference on every mount.
-        options.ConfigObject.Plugins = ["() => ({ components: { DarkModeToggle: () => null } })"];
+        options.IndexStream = ApiTestingUi.OpenIndex;
     });
+    app.MapGet("/swagger/bootstrap.js", () => Results.Text(ApiTestingUi.Bootstrap, "text/javascript"))
+        .ExcludeFromDescription().AllowAnonymous();
+}
 app.MapDemoSession();
 app.MapTicketReview();
 app.MapControllers();
