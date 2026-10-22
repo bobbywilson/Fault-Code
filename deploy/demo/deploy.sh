@@ -79,7 +79,12 @@ config_container=$(docker create "ghcr.io/bobbywilson/fault-code-api@$api")
 configuration_dir=$(mktemp -d "$root/releases/configuration.XXXXXX")
 docker cp "$config_container:/deployment/." "$configuration_dir/"
 docker rm "$config_container" >/dev/null
-for file in compose.yaml nginx.conf browser-config.json; do install -m 644 "$configuration_dir/$file" "$root/$file"; done
+# Preserve existing bind-mount inodes so nginx reload and browser config reads
+# see this release's contents. install replaces the inode behind a running mount.
+for file in compose.yaml nginx.conf browser-config.json; do
+  cat "$configuration_dir/$file" > "$root/$file"
+  chmod 644 "$root/$file"
+done
 compose "$candidate" config --quiet
 compose "$candidate" pull --quiet
 compose "$candidate" up -d --wait --wait-timeout 240 sql qdrant mailpit documentation
