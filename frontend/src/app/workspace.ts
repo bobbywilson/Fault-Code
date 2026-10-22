@@ -172,6 +172,16 @@ export const areas = [
                       </a>
                     </li>
                   }
+                  <li hlmSidebarMenuItem>
+                    <a
+                      hlmSidebarMenuButton
+                      tooltip="Mailpit"
+                      href="/mailpit/"
+                      target="_blank"
+                      rel="noopener"
+                      ><ng-icon name="lucideMail" /><span>Mailpit</span></a
+                    >
+                  </li>
                 </ul>
               </nav>
             </div>
