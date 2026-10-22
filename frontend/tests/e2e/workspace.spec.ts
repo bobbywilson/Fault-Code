@@ -324,3 +324,32 @@ test('engineering proposal supports nested evidence and nullable approved patch 
   await expect(page.getByRole('checkbox', { name: 'Include Patch' })).not.toBeChecked();
   await expect(page.locator('#body-content-remedies-0-patch-reference')).toHaveCount(0);
 });
+
+test('ontology opens a read-only fault-code relationship table with search and protected record navigation', async ({
+  page,
+}) => {
+  await setup(page, ['authorization.read', 'knowledge.read']);
+  const ontologyRequests: string[] = [];
+  page.on('request', (request) => {
+    if (request.url().includes('/api/v1/ontology')) ontologyRequests.push(request.method());
+  });
+  await page.goto('/admin/ontology');
+  const table = page.getByRole('table', { name: /Fault-code domain model/ });
+  await expect(table).toBeVisible();
+  for (const concept of ['Fault code', 'Incident', 'Vehicle', 'Driver', 'Notification'])
+    await expect(table.getByText(concept, { exact: true }).first()).toBeVisible();
+  await expect(page.getByLabel('Action', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /Create|Publish|Update/ })).toHaveCount(0);
+  await page.getByLabel('Find a relationship').fill('is addressed to');
+  await expect(table.getByRole('row')).toHaveCount(2);
+  await expect(table.getByText('Driver', { exact: true })).toBeVisible();
+  await page.getByLabel('Find a relationship').fill('no-such-concept');
+  await expect(table).toContainText('No matching relationships.');
+  await page.getByLabel('Find a relationship').fill('');
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  expect(ontologyRequests).toEqual([]);
+  await page
+    .getByRole('link', { name: 'Browse vehicle records for incident', exact: true })
+    .click();
+  await expect(page.getByRole('heading', { name: 'Vehicles', exact: true })).toBeVisible();
+});

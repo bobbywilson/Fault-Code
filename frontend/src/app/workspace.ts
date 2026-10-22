@@ -1,6 +1,8 @@
 import { Component, Input, inject, signal, computed, effect } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { HlmTableImports } from '@spartan-ng/helm/table';
+import { ontologyRelationships } from './ontology-model';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -65,6 +67,7 @@ export const areas = [
     RouterLinkActive,
     FormsModule,
     HlmButton,
+    HlmTableImports,
     HlmSidebarImports,
     HlmCardImports,
     HlmAlertImports,
@@ -100,7 +103,12 @@ export const areas = [
     >
     <div hlmSidebarWrapper>
       @if (auth.state() === 'signed-in') {
-        <hlm-sidebar variant="inset" collapsible="icon">
+        <hlm-sidebar
+          variant="inset"
+          collapsible="icon"
+          role="complementary"
+          aria-label="Workspace navigation"
+        >
           <div hlmSidebarContent>
             <div hlmSidebarGroup>
               <div hlmSidebarGroupLabel>Workspace</div>
@@ -170,7 +178,9 @@ export const areas = [
           <div class="space-y-2">
             <div class="flex items-center gap-3">
               <h1 class="text-2xl font-semibold tracking-tight">{{ group() }}</h1>
-              <span hlmBadge variant="secondary">Administration</span>
+              <span hlmBadge variant="secondary">{{
+                group() === 'Ontology' ? 'Model reference' : 'Administration'
+              }}</span>
             </div>
             <p class="max-w-2xl text-sm text-muted-foreground">{{ description() }}</p>
           </div>
@@ -214,140 +224,218 @@ export const areas = [
                 when not recorded.
               </p>
             }
-            <section hlmCard class="p-6">
-              <h2 hlmCardTitle>Workspace actions</h2>
-              <div hlmField>
-                <label hlmFieldLabel for="action">Action</label
-                ><hlm-native-select
-                  selectId="action"
-                  [ngModel]="op()?.id ?? ''"
-                  (ngModelChange)="select($event)"
-                >
-                  @for (action of actions(); track action.id) {
-                    <option [value]="action.id">{{ action.label }}</option>
-                  }
-                </hlm-native-select>
-              </div>
-              @if (permissionsLoading()) {
-                <p role="status">Checking permissions…</p>
-              } @else if (!op() || !allowed(op()!)) {
-                <div role="alert" hlmAlert variant="destructive">
-                  Access denied. This action requires additional permissions.
+            @if (group() === 'Ontology') {
+              <section hlmCard class="gap-4 p-6" aria-label="Fault code ontology">
+                <div class="space-y-2">
+                  <h2 hlmCardTitle>Model relationships</h2>
+                  <p hlmCardDescription>
+                    Explore how fault codes connect to incidents, vehicles, drivers and
+                    notifications.
+                  </p>
                 </div>
-              } @else if (op(); as action) {
-                <form (ngSubmit)="execute()" class="grid max-w-3xl gap-5">
-                  <app-fields [schema]="parameterSchema()" [model]="parameters" prefix="params" />
-                  @if (action.body) {
-                    <app-fields [schema]="action.body" [model]="body" prefix="body" />
-                  }
-                  @if (action.headers.includes('If-Match')) {
-                    <div hlmField>
-                      <label hlmFieldLabel for="version">Current record version *</label
-                      ><input
-                        hlmInput
-                        id="version"
-                        name="version"
-                        type="number"
-                        min="1"
-                        required
-                        [(ngModel)]="version"
-                      /><small class="text-sm text-muted-foreground"
-                        >Read the current record before changing it. Conflicts require a fresh
-                        read.</small
-                      >
-                    </div>
-                  }
-                  @if (mutation(action)) {
-                    <div hlmField orientation="horizontal">
-                      <hlm-checkbox
-                        inputId="confirm-action"
-                        name="confirm"
-                        [(ngModel)]="confirmed"
-                        aria-label="Confirm action"
-                      /><label hlmFieldLabel for="confirm-action">
-                        Confirm {{ action.label.toLowerCase() }} for the selected record.</label
-                      >
-                    </div>
-                  }
-                  <div class="flex flex-wrap items-center gap-3">
-                    <button hlmBtn type="submit" [disabled]="busy() || blocked()">
+                <div hlmField class="max-w-sm">
+                  <label hlmFieldLabel for="ontology-search">Find a relationship</label>
+                  <input
+                    hlmInput
+                    id="ontology-search"
+                    type="search"
+                    placeholder="Search concepts or relationships…"
+                    [ngModel]="ontologyQuery()"
+                    (ngModelChange)="ontologyQuery.set($event)"
+                  />
+                </div>
+                <div hlmTableContainer>
+                  <table hlmTable>
+                    <caption hlmCaption>
+                      Fault-code domain model ·
                       {{
-                        busy()
-                          ? 'Working…'
-                          : action.method === 'GET'
-                            ? 'Load records'
-                            : action.label
+                        filteredRelationships().length
                       }}
-                    </button>
-                    @if (blocked()) {
-                      <span class="text-sm text-muted-foreground"
-                        >Reload the current record before retrying.</span
-                      >
-                    }
-                  </div>
-                </form>
-              }
-            </section>
-            @if (message()) {
-              <div
-                [variant]="error() ? 'destructive' : 'default'"
-                hlmAlert
-                [attr.role]="error() ? 'alert' : 'status'"
-              >
-                {{ message() }}
-                @if (correlation()) {
-                  <small>Reference: {{ correlation() }}</small>
-                }
-              </div>
-            }
-            @if (busy()) {
-              <p role="status" aria-live="polite">Loading…</p>
-            }
-            @if (data() !== undefined) {
-              <section hlmCard class="p-6" aria-label="Recorded results">
-                <h2 hlmCardTitle>Recorded results</h2>
-                <div class="space-y-4 overflow-x-auto">
-                  @if (hasPage()) {
-                    @for (record of data().items; track $index) {
-                      <div class="space-y-4 border-b pb-4">
-                        <app-records [value]="record" />
-                        @if (record.id && canOpenRecord()) {
-                          <button hlmBtn variant="outline" size="sm" (click)="openRecord(record)">
-                            Open record
-                          </button>
-                        }
-                      </div>
-                    }
-                    @if (data().items.length === 0) {
-                      <div hlmEmpty>
-                        <div hlmEmptyHeader>
-                          <div hlmEmptyMedia variant="icon"><ng-icon name="lucideFiles" /></div>
-                          <p hlmEmptyTitle>No recorded items.</p>
-                          <p hlmEmptyDescription>
-                            Records will appear here when this workspace has available data.
-                          </p>
-                        </div>
-                      </div>
-                    }
-                  } @else {
-                    <app-records [value]="data()" />
-                  }
+                      relationships
+                    </caption>
+                    <thead hlmTHead>
+                      <tr hlmTr>
+                        <th hlmTh scope="col">Concept</th>
+                        <th hlmTh scope="col">Relationship</th>
+                        <th hlmTh scope="col">Related concept</th>
+                        <th hlmTh scope="col">Meaning</th>
+                        <th hlmTh scope="col">
+                          <span class="sr-only">Browse related records</span>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody hlmTBody>
+                      @for (row of filteredRelationships(); track row.source) {
+                        <tr hlmTr>
+                          <th hlmTh scope="row" class="text-foreground">{{ row.from }}</th>
+                          <td hlmTd class="text-muted-foreground">{{ row.relationship }}</td>
+                          <td hlmTd>
+                            <span hlmBadge variant="outline">{{ row.to }}</span>
+                          </td>
+                          <td hlmTd class="min-w-64 whitespace-normal">{{ row.detail }}</td>
+                          <td hlmTd>
+                            <a
+                              hlmBtn
+                              variant="ghost"
+                              size="sm"
+                              [routerLink]="'/admin/' + row.route"
+                              [attr.aria-label]="
+                                'Browse ' +
+                                row.to.toLowerCase() +
+                                ' records for ' +
+                                row.from.toLowerCase()
+                              "
+                              >Browse <ng-icon name="lucideArrowUpRight"
+                            /></a>
+                          </td>
+                        </tr>
+                      } @empty {
+                        <tr hlmTr>
+                          <td hlmTd colspan="5" class="py-8 text-center text-muted-foreground">
+                            No matching relationships. Try another search.
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
                 </div>
-                @if (hasPage()) {
-                  <div class="flex flex-wrap items-center gap-4 border-t pt-4 text-sm">
-                    <button hlmBtn (click)="page(-1)" [disabled]="busy() || data().page <= 1">
-                      Previous</button
-                    ><span>Page {{ data().page }} · {{ data().totalCount }} recorded items</span
-                    ><button
-                      hlmBtn
-                      (click)="page(1)"
-                      [disabled]="busy() || data().page * data().pageSize >= data().totalCount"
-                    >
-                      Next
-                    </button>
+              </section>
+            } @else {
+              <section hlmCard class="p-6">
+                <h2 hlmCardTitle>Workspace actions</h2>
+                <div hlmField>
+                  <label hlmFieldLabel for="action">Action</label
+                  ><hlm-native-select
+                    selectId="action"
+                    [ngModel]="op()?.id ?? ''"
+                    (ngModelChange)="select($event)"
+                  >
+                    @for (action of actions(); track action.id) {
+                      <option [value]="action.id">{{ action.label }}</option>
+                    }
+                  </hlm-native-select>
+                </div>
+                @if (permissionsLoading()) {
+                  <p role="status">Checking permissions…</p>
+                } @else if (!op() || !allowed(op()!)) {
+                  <div role="alert" hlmAlert variant="destructive">
+                    Access denied. This action requires additional permissions.
                   </div>
+                } @else if (op(); as action) {
+                  <form (ngSubmit)="execute()" class="grid max-w-3xl gap-5">
+                    <app-fields [schema]="parameterSchema()" [model]="parameters" prefix="params" />
+                    @if (action.body) {
+                      <app-fields [schema]="action.body" [model]="body" prefix="body" />
+                    }
+                    @if (action.headers.includes('If-Match')) {
+                      <div hlmField>
+                        <label hlmFieldLabel for="version">Current record version *</label
+                        ><input
+                          hlmInput
+                          id="version"
+                          name="version"
+                          type="number"
+                          min="1"
+                          required
+                          [(ngModel)]="version"
+                        /><small class="text-sm text-muted-foreground"
+                          >Read the current record before changing it. Conflicts require a fresh
+                          read.</small
+                        >
+                      </div>
+                    }
+                    @if (mutation(action)) {
+                      <div hlmField orientation="horizontal">
+                        <hlm-checkbox
+                          inputId="confirm-action"
+                          name="confirm"
+                          [(ngModel)]="confirmed"
+                          aria-label="Confirm action"
+                        /><label hlmFieldLabel for="confirm-action">
+                          Confirm {{ action.label.toLowerCase() }} for the selected record.</label
+                        >
+                      </div>
+                    }
+                    <div class="flex flex-wrap items-center gap-3">
+                      <button hlmBtn type="submit" [disabled]="busy() || blocked()">
+                        {{
+                          busy()
+                            ? 'Working…'
+                            : action.method === 'GET'
+                              ? 'Load records'
+                              : action.label
+                        }}
+                      </button>
+                      @if (blocked()) {
+                        <span class="text-sm text-muted-foreground"
+                          >Reload the current record before retrying.</span
+                        >
+                      }
+                    </div>
+                  </form>
                 }
               </section>
+              @if (message()) {
+                <div
+                  [variant]="error() ? 'destructive' : 'default'"
+                  hlmAlert
+                  [attr.role]="error() ? 'alert' : 'status'"
+                >
+                  {{ message() }}
+                  @if (correlation()) {
+                    <small>Reference: {{ correlation() }}</small>
+                  }
+                </div>
+              }
+              @if (busy()) {
+                <p role="status" aria-live="polite">Loading…</p>
+              }
+              @if (data() !== undefined) {
+                <section hlmCard class="p-6" aria-label="Recorded results">
+                  <h2 hlmCardTitle>Recorded results</h2>
+                  <div class="space-y-4 overflow-x-auto">
+                    @if (hasPage()) {
+                      @for (record of data().items; track $index) {
+                        <div class="space-y-4 border-b pb-4">
+                          <app-records [value]="record" />
+                          @if (record.id && canOpenRecord()) {
+                            <button hlmBtn variant="outline" size="sm" (click)="openRecord(record)">
+                              Open record
+                            </button>
+                          }
+                        </div>
+                      }
+                      @if (data().items.length === 0) {
+                        <div hlmEmpty>
+                          <div hlmEmptyHeader>
+                            <div hlmEmptyMedia variant="icon"><ng-icon name="lucideFiles" /></div>
+                            <p hlmEmptyTitle>No recorded items.</p>
+                            <p hlmEmptyDescription>
+                              Records will appear here when this workspace has available data.
+                            </p>
+                          </div>
+                        </div>
+                      }
+                    } @else {
+                      <app-records [value]="data()" />
+                    }
+                  </div>
+                  @if (hasPage()) {
+                    <div class="flex flex-wrap items-center gap-4 border-t pt-4 text-sm">
+                      <button hlmBtn (click)="page(-1)" [disabled]="busy() || data().page <= 1">
+                        Previous</button
+                      ><span>Page {{ data().page }} · {{ data().totalCount }} recorded items</span
+                      ><button
+                        hlmBtn
+                        (click)="page(1)"
+                        [disabled]="busy() || data().page * data().pageSize >= data().totalCount"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  }
+                </section>
+              }
             }
           }
         </div>
@@ -364,6 +452,15 @@ export class Workspace {
   auth = inject(Auth);
   private api = inject(Api);
   areas = areas;
+  ontologyQuery = signal('');
+  filteredRelationships = computed(() => {
+    const query = this.ontologyQuery().trim().toLowerCase();
+    return ontologyRelationships.filter((row) =>
+      [row.from, row.relationship, row.to, row.detail].some((value) =>
+        value.toLowerCase().includes(query),
+      ),
+    );
+  });
   icons = [
     'lucideTriangleAlert',
     'lucideCar',
@@ -403,7 +500,8 @@ export class Workspace {
     effect(() => {
       this.group();
       this.reset();
-      const a = this.actions();
+      this.ontologyQuery.set('');
+      const a = this.group() === 'Ontology' ? [] : this.actions();
       this.choose(
         a.find((o) => o.method === 'GET' && !o.parameters.some((p) => p.where === 'path')) ?? a[0],
       );
@@ -427,7 +525,7 @@ export class Workspace {
         Engineering: 'Track escalations, evidence and approved resolutions.',
         Notifications: 'Review recorded notification history and delivery status.',
         Documents: 'Manage approved technical documents and search grounded evidence.',
-        Ontology: 'Manage versioned concepts, relationships and deterministic rules.',
+        Ontology: 'Browse the fault-code model and its connections to operational records.',
         'Fault definitions': 'Maintain fault knowledge and engineering publication.',
         'Agent activity': 'Inspect recorded advisory and investigation activity.',
         'Users & roles': 'Review local users and least-privilege role assignments.',

@@ -58,3 +58,7 @@ Feature -> development PR/CI -> main PR/CI -> main-only automatic deployment is 
 ## FAU-22 supplied component requirement (2026-10-21)
 
 The user clarified ADR-002: use the official spartan.ng styled Helm components throughout administration and Lucide icons, rather than only Brain button behavior plus custom controls. Nova/neutral is the supplied visual style. Shared page/form/result adapters compose these primitives; no custom visual component library is maintained. All existing routes and API/identity policies remain. Deployment is explicitly paused during this UI work.
+
+## FAU-22 fault-code ontology presentation (2026-10-21)
+
+The user clarified that Ontology should display the fault-code domain and its incident, vehicle, driver and notification relationships in a table, rather than offer catalog creation on entry. This changes administration presentation to a read-only model reference. It does not replace or relax the approved versioned taxonomy, classification/rule validation, engineering publication APIs or durable-storage decisions.

@@ -1,0 +1,3 @@
+# Design
+
+Compose the existing authenticated workspace using the supplied Helm table, card, badge and input. Display curated domain relationships traced to FaultDefinition/FaultContent, Incident/Fleet, Association, DriverNotification and EngineeringCase contracts. Label the view Model relationships, provide client-side search and links to existing related record routes. Do not issue draft/create/publish calls on entry or expose mutation forms on this route. Keep the existing ontology API and exact permissions unchanged for engineering clients. Protected operational records remain accessible exclusively through their existing API-backed views. Deployment remains paused.
