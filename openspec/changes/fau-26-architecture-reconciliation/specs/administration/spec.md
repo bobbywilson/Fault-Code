@@ -127,6 +127,7 @@ The Vehicles table SHALL end with an Incidents column containing a Spartan butto
 - **WHEN** a vehicle has incidents visible to the caller and the user selects View incidents
 - **THEN** the Incidents page requests only that vehicle's incidents using vehicleId
 - **AND** pagination retains the vehicle filter and ordinary Incidents navigation returns to the unfiltered list
+- **AND** the filtered list shows a vehicle filter indicator and Clear filter button that removes vehicleId and loads all visible incidents from page one
 
 ### Requirement: Compact incident review controls
 Incident review SHALL display the Action selector and parameter fields at half the card's content width on desktop and full width on small screens.

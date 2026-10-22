@@ -30,3 +30,5 @@ Correction: the fault-code catalog now reads tenant-scoped SQL knowledge records
 Vehicles dispatch inline: choose a matching system code in the column after Status, then Dispatch. No secondary dispatch view or confirmation checkbox. A successful two-ID acceptance receipt preserves the selector and shows a Spartan Sonner “Dispatched” toast; a failed/uncertain retry retains the same idempotency key. Acceptance records an incident and notification, not proof of email delivery.
 
 The Vehicles table ends with View incidents and a count badge. Counts use the existing authorized incident list API's `totalCount`, filtered by vehicleId (pageSize=1), rather than counting one page or inventing data. Zero disables the button; unavailable counts remain disabled without a false zero. Dispatch refreshes the affected count. The link opens `/admin/incidents?vehicleId=...`, and paging retains that API filter. Ordinary Incidents navigation removes it.
+
+Filtered Incidents lists display “Filtered by vehicle” and a Clear filter button. Clearing removes the vehicleId query parameter and reloads all authorized incidents from page one.

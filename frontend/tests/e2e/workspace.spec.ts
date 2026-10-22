@@ -607,10 +607,10 @@ test('vehicle incident badges use filtered totals, disable zero or unavailable c
   await page.getByRole('button', { name: 'Next', exact: true }).click();
   await expect.poll(() => requests.at(-1)?.searchParams.get('page')).toBe('2');
   expect(requests.at(-1)?.searchParams.get('vehicleId')).toBe(id);
-  await page
-    .getByRole('navigation', { name: 'Administration' })
-    .getByRole('link', { name: 'Incidents', exact: true })
-    .click();
+  await expect(page.getByText('Filtered by vehicle', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Clear filter', exact: true }).click();
   await expect(page).toHaveURL(/\/admin\/incidents$/);
   await expect.poll(() => requests.at(-1)?.searchParams.has('vehicleId')).toBe(false);
+  await expect(page.getByRole('button', { name: 'Clear filter', exact: true })).toHaveCount(0);
+  expect(requests.at(-1)?.searchParams.get('page')).toBe('1');
 });

@@ -454,6 +454,14 @@ export const areas = [
                   <div class="space-y-2">
                     <h2 hlmCardTitle>Incidents</h2>
                     <p hlmCardDescription>Incidents created from vehicle fault reports.</p>
+                    @if (incidentVehicleFilter()) {
+                      <div class="flex flex-wrap items-center gap-2">
+                        <span hlmBadge variant="secondary">Filtered by vehicle</span>
+                        <button hlmBtn variant="outline" size="sm" routerLink="/admin/incidents">
+                          Clear filter
+                        </button>
+                      </div>
+                    }
                   </div>
                   <button
                     hlmBtn
@@ -583,7 +591,11 @@ export const areas = [
                   </button>
                 </div>
                 @if (notificationDriver() || incidentFilter()) {
-                  <a hlmBtn variant="outline" routerLink="/admin/notifications"
+                  <a
+                    hlmBtn
+                    variant="outline"
+                    class="w-fit self-start"
+                    routerLink="/admin/notifications"
                     >Show all notifications</a
                   >
                 }
@@ -1016,6 +1028,7 @@ export class Workspace {
     'lucideWrench',
   ];
   incidentFilter = signal('');
+  incidentVehicleFilter = signal('');
   fleetFilter = signal('');
   userRows = signal<any[]>([]);
   userPage = signal(1);
@@ -1068,6 +1081,7 @@ export class Workspace {
   constructor() {
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
       this.notificationDriver.set(params.get('driverId') ?? '');
+      this.incidentVehicleFilter.set(params.get('vehicleId') ?? '');
       this.incidentFilter.set(params.get('incidentId') ?? '');
       this.fleetFilter.set(params.get('vehicleId') ?? params.get('driverId') ?? '');
     });
@@ -1075,6 +1089,7 @@ export class Workspace {
       this.group();
       this.notificationDriver();
       this.incidentFilter();
+      this.incidentVehicleFilter();
       this.fleetFilter();
       this.reset();
       this.ontologyQuery.set('');
@@ -1435,7 +1450,7 @@ export class Workspace {
     this.reset();
     this.choose(ops.find((o) => o.id === 'ListIncidents'));
     this.parameters = { page, pageSize: 20 };
-    const vehicleId = this.route.snapshot.queryParamMap.get('vehicleId');
+    const vehicleId = this.incidentVehicleFilter();
     if (vehicleId) this.parameters.vehicleId = vehicleId;
     if (this.incidentAllowed()) await this.execute();
   }
