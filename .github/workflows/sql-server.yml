@@ -47,7 +47,7 @@ jobs:
         run: |
           docker run -d --name faultcode-mail-ci --memory 128m --cpus 0.25 -p 127.0.0.1:8025:8025 -e MP_SMTP_RELAY_ALL=false axllent/mailpit:v1.31.6@sha256:23fe39e81bde596a918000b3135c0f85dc8bb4c9ea6be274b051143f3e300387
           echo "FAULTCODE_MAILPIT_TEST_URL=http://127.0.0.1:8025/" >> "$GITHUB_ENV"
-          curl --retry 20 --retry-connrefused --retry-delay 1 --max-time 2 -fsS http://127.0.0.1:8025/api/v1/info -o /dev/null
+          curl --retry 20 --retry-all-errors --retry-delay 1 --max-time 2 -fsS http://127.0.0.1:8025/api/v1/info -o /dev/null
       - run: dotnet restore FaultCode.slnx --locked-mode
       - name: Test real SQL migration, seed, replay, reconnect, isolation and rollback
         run: dotnet test tests/FaultCode.IntegrationTests --configuration Release --no-restore --filter "FullyQualifiedName~SqlServerFleetTests|FullyQualifiedName~MailpitDeliveryTests" --logger trx --results-directory artifacts/sql-tests

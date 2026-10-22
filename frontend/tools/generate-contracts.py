@@ -26,6 +26,6 @@ for path,methods in doc['paths'].items():
 output=json.dumps(ops,indent=2)+'\n'
 p=root/'frontend/src/app/operations.json'
 if '--check' in sys.argv:
- if p.read_text()!=output: raise SystemExit('Administration manifest is stale')
+ if json.loads(p.read_text())!=ops: raise SystemExit('Administration manifest is stale')
 else:p.write_text(output)
 print(f'{len(ops)} protected administration operations mapped')
