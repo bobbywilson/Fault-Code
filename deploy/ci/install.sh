@@ -14,6 +14,7 @@ chown -R faultcode-ci:faultcode-ci "$base/.config"
 curl -fsSL --retry 3 https://download.docker.com/linux/static/stable/x86_64/docker-rootless-extras-29.1.3.tgz -o "$base/rootless.tgz"
 tar xzf "$base/rootless.tgz" --strip-components=1 -C "$base/bin"
 chown -R faultcode-ci:faultcode-ci "$base/bin"
+ln -sf /usr/bin/docker "$base/bin/docker"
 # Allow only this official RootlessKit binary to create its namespace; no global AppArmor/sysctl changes.
 cat > /etc/apparmor.d/faultcode-rootlesskit <<PROFILE
 abi <abi/4.0>,
@@ -26,15 +27,39 @@ systemctl start "user@$uid.service"
 # Bound the entire CI user, including Docker build/test descendants.
 systemctl set-property "user-$uid.slice" MemoryHigh=4G MemoryMax=4500M CPUQuota=200% TasksMax=4096
 ci() { runuser -u faultcode-ci -- env HOME="$base" XDG_RUNTIME_DIR="/run/user/$uid" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$uid/bus" PATH="$base/bin:/usr/local/bin:/usr/bin:/bin" "$@"; }
-ci "$base/bin/dockerd-rootless-setuptool.sh" install --force
-cat > "$base/.config/systemd/user/docker.service.d/isolation.conf" <<'UNIT'
+# PID1 applies the filesystem sandbox before dropping privileges. Applying these
+# namespace options from a user manager would nest RootlessKit in another user namespace.
+ci systemctl --user disable --now docker.service 2>/dev/null || true
+cat > /etc/systemd/system/faultcode-ci-docker.service <<UNIT
+[Unit]
+Description=Fault Code isolated rootless CI Docker
+After=network-online.target user@$uid.service
+Requires=user@$uid.service
 [Service]
+User=faultcode-ci
+Group=faultcode-ci
+Environment=HOME=$base
+Environment=XDG_RUNTIME_DIR=/run/user/$uid
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$uid/bus
+Environment=PATH=$base/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=$base/bin/dockerd-rootless.sh
+Restart=on-failure
+RestartSec=5
+Delegate=yes
+Slice=user-$uid.slice
+LimitNOFILE=1048576
+TasksMax=4096
 ProtectHome=true
-InaccessiblePaths=-/opt -/srv -/var/www -/var/lib/docker -/run/docker.sock -/var/run/docker.sock
+InaccessiblePaths=-/opt -/srv -/var/www -/var/lib/docker -/run/docker.sock
+[Install]
+WantedBy=multi-user.target
 UNIT
-chown -R faultcode-ci:faultcode-ci "$base/.config"
-ci systemctl --user daemon-reload
-ci systemctl --user restart docker
+systemctl daemon-reload
+systemctl enable --now faultcode-ci-docker.service
+for attempt in {1..30}; do
+  if ci docker --host "unix:///run/user/$uid/docker.sock" info >/dev/null 2>&1; then break; fi
+  sleep 1
+done
 ci docker --host "unix:///run/user/$uid/docker.sock" info --format '{{json .SecurityOptions}}'
 cp "$(dirname "$0")/Dockerfile" "$(dirname "$0")/entrypoint.sh" "$base/build/"
 chown -R faultcode-ci:faultcode-ci "$base/build"
