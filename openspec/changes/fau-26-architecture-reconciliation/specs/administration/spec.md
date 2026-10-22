@@ -119,3 +119,11 @@ The Vehicles table SHALL provide a fault-code select immediately after Status an
 - **THEN** all nine demonstration definitions persist with audit records and no approved remedies
 - **AND** repeating the command preserves existing definitions without duplicates
 - **AND** the catalog API reads those persisted tenant records rather than a static fallback
+
+### Requirement: Vehicle incident counts and navigation
+The Vehicles table SHALL end with an Incidents column containing a Spartan button and number badge based on the authenticated incident API's filtered totalCount. Vehicles with zero incidents SHALL have a disabled button with a zero badge. Unavailable or unauthorized counts SHALL remain disabled without inventing zero. A successful dispatch SHALL refresh the affected count.
+
+#### Scenario: View a vehicle's incidents
+- **WHEN** a vehicle has incidents visible to the caller and the user selects View incidents
+- **THEN** the Incidents page requests only that vehicle's incidents using vehicleId
+- **AND** pagination retains the vehicle filter and ordinary Incidents navigation returns to the unfiltered list

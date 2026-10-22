@@ -393,6 +393,10 @@ test('vehicle and driver lists show associations and email and dispatch the sele
       },
     }),
   );
+  let incidentCount = 0;
+  await page.route('**/api/v1/incidents?**', (r) =>
+    r.fulfill({ json: { items: [], page: 1, pageSize: 1, totalCount: incidentCount } }),
+  );
   await page.goto('/admin/vehicles');
   const table = page.getByRole('table', { name: 'Vehicles records' });
   await expect(table).toContainText('Chevrolet Silverado');
@@ -437,6 +441,7 @@ test('vehicle and driver lists show associations and email and dispatch the sele
   expect(replayKeys[0]).toBe(replayKeys[1]);
   let request: any;
   await page.route('**/api/v1/vehicle-fault-dispatches', (r) => {
+    incidentCount = 1;
     request = { body: r.request().postDataJSON(), headers: r.request().headers() };
     return r.fulfill({
       status: 202,
@@ -449,6 +454,7 @@ test('vehicle and driver lists show associations and email and dispatch the sele
   expect(request.headers['idempotency-key']).toBe(replayKeys[0]);
   await expect(select).toHaveValue('SYN-EPS:ASSIST-SIGNAL');
   await expect(dispatch).toBeEnabled();
+  await expect(table.getByRole('link', { name: /View 1 incidents/ })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Back to vehicles' })).toHaveCount(0);
   await expect(page.getByText('Workspace actions', { exact: true })).toHaveCount(0);
   await page.goto('/admin/drivers');
@@ -538,4 +544,73 @@ test('account avatar opens Spartan sign-out menu without an authentication badge
   await expect(
     page.getByRole('heading', { name: 'Sign in to continue', exact: true }),
   ).toBeVisible();
+});
+
+test('vehicle incident badges use filtered totals, disable zero or unavailable counts and preserve the filter when paging', async ({
+  page,
+}) => {
+  await setup(page);
+  const zeroId = '66666666-6666-4666-8666-666666666666';
+  const unavailableId = '77777777-7777-4777-8777-777777777777';
+  await page.route('**/api/v1/vehicles?**', (r) =>
+    r.fulfill({
+      json: {
+        items: [
+          { id, identifier: 'SYN-SILVERADO-1', system: 'EPS', active: true },
+          { id: zeroId, identifier: 'SYN-SIERRA-1', system: 'EPS', active: true },
+          { id: unavailableId, identifier: 'SYN-SIERRA-2', system: 'EPS', active: true },
+        ],
+        page: 1,
+        pageSize: 20,
+        totalCount: 3,
+      },
+    }),
+  );
+  const requests: URL[] = [];
+  await page.route('**/api/v1/incidents?**', (r) => {
+    const url = new URL(r.request().url());
+    requests.push(url);
+    if (url.searchParams.get('vehicleId') === unavailableId)
+      return r.fulfill({ status: 503, json: { status: 503 } });
+    const count = url.searchParams.get('vehicleId') === id ? 21 : 0;
+    return r.fulfill({
+      json: {
+        items: [],
+        page: Number(url.searchParams.get('page')),
+        pageSize: Number(url.searchParams.get('pageSize')),
+        totalCount: count,
+      },
+    });
+  });
+  await page.goto('/admin/vehicles');
+  const table = page.getByRole('table', { name: 'Vehicles records' });
+  const rows = table.getByRole('row');
+  await expect(rows).toHaveCount(4);
+  await expect(rows.nth(1).getByRole('link', { name: /View 21 incidents/ })).toContainText('21');
+  await expect(rows.nth(2).getByRole('button', { name: /View incidents/ })).toBeDisabled();
+  await expect(rows.nth(2).locator('[data-slot="badge"]')).toHaveText('0');
+  await expect(rows.nth(3).getByRole('button', { name: /View incidents/ })).toBeDisabled();
+  await expect(rows.nth(3).locator('[data-slot="badge"]')).toHaveCount(0);
+  expect(
+    requests
+      .filter((u) => u.searchParams.get('pageSize') === '1')
+      .map((u) => u.searchParams.get('vehicleId'))
+      .sort(),
+  ).toEqual([id, zeroId, unavailableId].sort());
+  await rows
+    .nth(1)
+    .getByRole('link', { name: /View 21 incidents/ })
+    .click();
+  await expect(page).toHaveURL(new RegExp('/admin/incidents\\?vehicleId=' + id));
+  await expect(page.getByRole('button', { name: 'Next', exact: true })).toBeEnabled();
+  expect(requests.at(-1)?.searchParams.get('vehicleId')).toBe(id);
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect.poll(() => requests.at(-1)?.searchParams.get('page')).toBe('2');
+  expect(requests.at(-1)?.searchParams.get('vehicleId')).toBe(id);
+  await page
+    .getByRole('navigation', { name: 'Administration' })
+    .getByRole('link', { name: 'Incidents', exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/admin\/incidents$/);
+  await expect.poll(() => requests.at(-1)?.searchParams.has('vehicleId')).toBe(false);
 });

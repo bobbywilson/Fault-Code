@@ -289,6 +289,7 @@ export const areas = [
                             <th hlmTh>Status</th>
                             <th hlmTh>Fault code</th>
                             <th hlmTh>Actions</th>
+                            <th hlmTh>Incidents</th>
                           }
                         </tr>
                       </thead>
@@ -376,6 +377,50 @@ export const areas = [
                                 >
                                   {{ dispatching()[row.id] ? 'Dispatching…' : 'Dispatch' }}
                                 </button>
+                              </td>
+                              <td hlmTd>
+                                @if (
+                                  incidentAllowed() && (vehicleIncidentCounts()[row.id] ?? 0) > 0
+                                ) {
+                                  <a
+                                    hlmBtn
+                                    variant="outline"
+                                    size="sm"
+                                    routerLink="/admin/incidents"
+                                    [queryParams]="{ vehicleId: row.id }"
+                                    [attr.aria-label]="
+                                      'View ' +
+                                      vehicleIncidentCounts()[row.id] +
+                                      ' incidents for ' +
+                                      vehicleName(row) +
+                                      ' — ' +
+                                      driverName(row.drivers[0] || {})
+                                    "
+                                  >
+                                    View incidents
+                                    <span hlmBadge variant="secondary">{{
+                                      vehicleIncidentCounts()[row.id]
+                                    }}</span>
+                                  </a>
+                                } @else {
+                                  <button
+                                    hlmBtn
+                                    variant="outline"
+                                    size="sm"
+                                    disabled
+                                    [attr.aria-label]="
+                                      'View incidents for ' +
+                                      vehicleName(row) +
+                                      ' — ' +
+                                      driverName(row.drivers[0] || {})
+                                    "
+                                  >
+                                    View incidents
+                                    @if (vehicleIncidentCounts()[row.id] === 0) {
+                                      <span hlmBadge variant="secondary">0</span>
+                                    }
+                                  </button>
+                                }
                               </td>
                             }
                           </tr>
@@ -978,6 +1023,7 @@ export class Workspace {
   selectedFaults = signal<Record<string, string>>({});
   dispatching = signal<Record<string, boolean>>({});
   private dispatchKeys = new Map<string, { code: string; key: string }>();
+  vehicleIncidentCounts = signal<Record<string, number | undefined>>({});
   fleetRows = signal<any[]>([]);
   fleetPage = signal(1);
   fleetTotal = signal(0);
@@ -1192,6 +1238,7 @@ export class Workspace {
       if (!result.data.incidentId || !result.data.notificationId)
         throw new Error('Missing dispatch receipt');
       toast.success('Dispatched');
+      void this.refreshVehicleIncidentCount(vehicle.id);
       this.dispatchKeys.delete(vehicle.id);
     } catch (error) {
       const message =
@@ -1203,11 +1250,31 @@ export class Workspace {
       this.dispatching.update((values) => ({ ...values, [vehicle.id]: false }));
     }
   }
+  async refreshVehicleIncidentCount(vehicleId: string, epoch = this.epoch) {
+    if (!this.incidentAllowed()) return;
+    try {
+      const result = await this.api.request(
+        '/api/v1/incidents?vehicleId=' + encodeURIComponent(vehicleId) + '&page=1&pageSize=1',
+      );
+      const count = result.data.totalCount;
+      if (
+        epoch === this.epoch &&
+        this.auth.state() === 'signed-in' &&
+        Number.isSafeInteger(count) &&
+        count >= 0
+      )
+        this.vehicleIncidentCounts.update((values) => ({ ...values, [vehicleId]: count }));
+    } catch {
+      if (epoch === this.epoch)
+        this.vehicleIncidentCounts.update((values) => ({ ...values, [vehicleId]: undefined }));
+    }
+  }
   async reloadFleet(page = 1) {
     if (this.auth.state() !== 'signed-in' || this.permissionsLoading()) return;
     this.reset();
 
     this.fleetRows.set([]);
+    this.vehicleIncidentCounts.set({});
     const vehicles = this.fleetIsVehicles();
     const operation = ops.find((o) => o.id === (vehicles ? 'ListVehicles' : 'ListDrivers'))!;
     if (!this.allowed(operation)) {
@@ -1234,6 +1301,7 @@ export class Workspace {
       const enriched = vehicles
         ? await Promise.all(
             rows.map(async (row: any) => {
+              await this.refreshVehicleIncidentCount(row.id, epoch);
               try {
                 const associations: any[] = [];
                 let associationPage = 1;
@@ -1363,6 +1431,8 @@ export class Workspace {
     this.reset();
     this.choose(ops.find((o) => o.id === 'ListIncidents'));
     this.parameters = { page, pageSize: 20 };
+    const vehicleId = this.route.snapshot.queryParamMap.get('vehicleId');
+    if (vehicleId) this.parameters.vehicleId = vehicleId;
     if (this.incidentAllowed()) await this.execute();
   }
   async reviewIncident(record: any) {
