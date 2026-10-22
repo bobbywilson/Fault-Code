@@ -9,7 +9,7 @@ All application consumers, including Angular and MCP/integrations, use `/api/v1`
 | Operation | Behavior |
 |---|---|
 | GET /api/v1/health | Process-only JSON `{ "status": "Healthy" }`; no provider check |
-| GET /api/v1/examples | Stable synthetic steering fixtures; no real vehicle/driver records |
+| GET /api/v1/examples | Stable demo steering fixtures; no real vehicle/driver records |
 | GET /api/v1/examples/{id} | Fixture by exact ID, otherwise 404 |
 | GET /openapi/v1.json | Generated public OpenAPI, no Swagger UI |
 
@@ -35,7 +35,7 @@ All application errors return RFC 9457 `application/problem+json`, with `type`, 
 | 429 | Throttled; future limiter must include Retry-After |
 | 500 | Unexpected failure, safe generic detail |
 
-FAU-7 tests load controllers from the test assembly to exercise 401/403/409/429/500 response formatting. FAU-8 separately exercises real JWT middleware and synthetic signed tokens/discovery, including 401 and a test-only role policy's 403. [Identity configuration and registration](entra-authentication.md) documents the distinction from pending live tenant/browser and FAU-9 business permission checks. No fake identity scheme or test route ships.
+FAU-7 tests load controllers from the test assembly to exercise 401/403/409/429/500 response formatting. FAU-8 separately exercises real JWT middleware and demo signed tokens/discovery, including 401 and a test-only role policy's 403. [Identity configuration and registration](entra-authentication.md) documents the distinction from pending live tenant/browser and FAU-9 business permission checks. No fake identity scheme or test route ships.
 
 ## Protected operations and future mutations
 
@@ -89,7 +89,7 @@ The additive POST /api/v1/incidents/{id}/escalations operation requires escalati
 
 ## FAU-19 notification contracts
 
-[Driver notifications](driver-notifications.md) add8 operations across6 new paths, for67 protected operations/51 paths. Explicit synthetic local preference, conditional enqueue/dispatch/cancellation and bounded history preserve existing complete REST/MCP schemas. Production storage/delivery503; local sink acknowledgement is test acceptance only. No external provider, contact/consent policy or vehicle operations are selected.
+[Driver notifications](driver-notifications.md) add8 operations across6 new paths, for67 protected operations/51 paths. Explicit demo local preference, conditional enqueue/dispatch/cancellation and bounded history preserve existing complete REST/MCP schemas. Production storage/delivery503; local sink acknowledgement is test acceptance only. No external provider, contact/consent policy or vehicle operations are selected.
 
 ## FAU-22 administration contracts
 Seven additive user/role/integration metadata operations bring the inventory to74 protected REST operations across57 total paths. Exact existing users.manage/integrations.manage policies, conditional replay, explicit DTOs and production503 preserve all existing contracts and the five MCP schemas. The committed baseline now includes the complete generated API rather than the original foundation subset; compatibility is also checked against actual merged FAU-21 artifacts. See administration.md for the exclusive client and local metadata boundaries.

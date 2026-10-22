@@ -82,7 +82,7 @@ public sealed class KnowledgeService(IKnowledgeStore store, IFaultTaxonomy taxon
     {
         string normalized;
         try { normalized = FaultRules.Code(code, system); } catch (ArgumentException) { throw new KnowledgeException(400); }
-        if (!FaultRules.SyntheticModel(model) || !FaultRules.Software(software)) throw new KnowledgeException(400);
+        if (!FaultRules.DemoModel(model) || !FaultRules.Software(software)) throw new KnowledgeException(400);
         var f = (await Read(c, ct)).Faults.SingleOrDefault(f => f.TenantId == c.TenantId && f.Code == normalized && !f.Retired);
         var published = f?.Publications.LastOrDefault() ?? throw new KnowledgeException(404);
         var content = published.Content with { Remedies = [.. published.Content.Remedies.Where(r => r.Approved && r.Model == model && r.SoftwareVersion == software)] };

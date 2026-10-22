@@ -35,12 +35,21 @@ describe('exclusive protected API client', () => {
   it('preserves preconditions, rejects redirect following and expires a401 session', async () => {
     const expire = vi.fn();
     TestBed.configureTestingModule({
-      providers: [{ provide: Auth, useValue: { token: async () => 'synthetic', expire } }],
+      providers: [
+        {
+          provide: Auth,
+          useValue: {
+            apiHeaders: async () => ({ Authorization: 'Bearer demo' }),
+            kind: () => 'entra',
+            expire,
+          },
+        },
+      ],
     });
     const fetcher = vi
       .fn()
       .mockResolvedValue(
-        new Response('{}', { status: 401, headers: { 'X-Correlation-ID': 'synthetic-reference' } }),
+        new Response('{}', { status: 401, headers: { 'X-Correlation-ID': 'demo-reference' } }),
       );
     vi.stubGlobal('fetch', fetcher);
     await expect(
@@ -50,7 +59,7 @@ describe('exclusive protected API client', () => {
     expect(fetcher.mock.calls[0][1]).toMatchObject({
       redirect: 'error',
       cache: 'no-store',
-      headers: { Authorization: 'Bearer synthetic', 'Idempotency-Key': 'one' },
+      headers: { Authorization: 'Bearer demo', 'Idempotency-Key': 'one' },
     });
   });
 });

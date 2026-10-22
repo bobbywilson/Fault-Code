@@ -1,4 +1,18 @@
 {
-  "/api/**": { "target": "http://127.0.0.1:5080", "secure": true },
-  "/openapi/**": { "target": "http://127.0.0.1:5080", "secure": true }
+  "/api/**": {
+    "target": "http://127.0.0.1:5080",
+    "secure": true
+  },
+  "/openapi/**": {
+    "target": "http://127.0.0.1:5080",
+    "secure": true
+  },
+  "/session": {
+    "target": "http://127.0.0.1:5080",
+    "secure": true
+  },
+  "/workspace/**": {
+    "target": "http://127.0.0.1:5080",
+    "secure": true
+  }
 }

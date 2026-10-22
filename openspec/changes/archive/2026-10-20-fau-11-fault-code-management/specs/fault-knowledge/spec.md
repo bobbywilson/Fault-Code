@@ -1,6 +1,6 @@
 ## ADDED Requirements
 ### Requirement: Tenant fault lifecycle
-The API SHALL manage tenant-local normalized synthetic steering codes, bounded drafts and retirement with immutable code/system, reserved uniqueness and retained revision history. Exact faults.write authorizes mutation; faults.read authorizes management reads.
+The API SHALL manage tenant-local normalized demo steering codes, bounded drafts and retirement with immutable code/system, reserved uniqueness and retained revision history. Exact faults.write authorizes mutation; faults.read authorizes management reads.
 #### Scenario: CRUD and invalid definitions
 - **GIVEN** an authorized tenant caller
 - **WHEN** drafts are created, edited, searched or retired
@@ -12,7 +12,7 @@ Publication SHALL require exact knowledge.publish, preserve immutable definition
 - **WHEN** an Engineer publishes then an Operator edits it
 - **THEN** lookup retains the approved snapshot and provenance until another approved publication; Operator publication is denied
 ### Requirement: Applicable approved guidance
-Knowledge lookup SHALL require exact knowledge.read and return only current published approved remedies matching the supplied system, synthetic model and software version. Patch metadata SHALL be advisory dealership referral only. Retired, unknown or unpublished codes SHALL return404; service unavailability SHALL return503.
+Knowledge lookup SHALL require exact knowledge.read and return only current published approved remedies matching the supplied system, demo model and software version. Patch metadata SHALL be advisory dealership referral only. Retired, unknown or unpublished codes SHALL return404; service unavailability SHALL return503.
 #### Scenario: Patch filtering
 - **GIVEN** a publication containing approved and unapproved remedies with distinct applicability
 - **WHEN** a consumer looks up an applicable code

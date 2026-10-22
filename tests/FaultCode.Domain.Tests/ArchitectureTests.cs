@@ -20,8 +20,8 @@ public sealed class ArchitectureTests
         Assert.Equal(allowed.Order(), references);
         var packages = project.Descendants("PackageReference").Select(x => x.Attribute("Include")!.Value).Order();
         Assert.Equal(component == "Api"
-            ? new[] { "Microsoft.AspNetCore.Authentication.JwtBearer", "Microsoft.AspNetCore.OpenApi", "Microsoft.Extensions.ApiDescription.Server", "ModelContextProtocol.AspNetCore" }
-            : component == "Infrastructure" ? new[] { "Microsoft.Agents.AI.OpenAI", "OpenAI", "OpenTelemetry.Exporter.OpenTelemetryProtocol", "System.ClientModel" } : [], packages);
+            ? new[] { "Microsoft.AspNetCore.Authentication.JwtBearer", "Microsoft.AspNetCore.OpenApi", "Microsoft.Extensions.ApiDescription.Server", "Microsoft.Identity.Client", "ModelContextProtocol.AspNetCore", "Swashbuckle.AspNetCore.SwaggerUI" }
+            : component == "Infrastructure" ? new[] { "Microsoft.Agents.AI.OpenAI", "Microsoft.EntityFrameworkCore.Design", "Microsoft.EntityFrameworkCore.SqlServer", "OpenAI", "OpenTelemetry.Exporter.OpenTelemetryProtocol", "System.ClientModel", "System.Security.Cryptography.Pkcs" } : [], packages);
         if (component is "Domain" or "Application")
         {
             Assert.Empty(project.Descendants("FrameworkReference"));

@@ -2,6 +2,7 @@
 """Scan source inputs permitted by the build allowlist without printing values."""
 from pathlib import Path
 import re
+import fnmatch
 root = Path(__file__).resolve().parents[1]
 patterns = [rb"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----", rb"sk-proj-[A-Za-z0-9_-]{20,}", rb"gh[pousr]_[A-Za-z0-9]{30,}"]
 inputs = [root / "global.json", root / "Directory.Build.props"]
@@ -12,7 +13,7 @@ inputs.extend((root / "docker" / "HealthProbe").glob("*.cs"))
 inputs.extend((root / "docker" / "HealthProbe").glob("*.csproj"))
 allowed = {line[1:] for line in (root / ".dockerignore").read_text().splitlines() if line.startswith("!")}
 for path in inputs:
-    if str(path.relative_to(root)) not in allowed:
+    if not any(fnmatch.fnmatchcase(str(path.relative_to(root)), pattern) for pattern in allowed):
         raise SystemExit(f"Source missing from explicit Docker allowlist: {path.relative_to(root)}")
     data = path.read_bytes()
     if any(re.search(pattern, data) for pattern in patterns):

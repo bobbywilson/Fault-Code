@@ -1,6 +1,6 @@
 # Automotive ontology management
 
-Part of FAU-13. Typed, provider-independent synthetic steering ontology, deterministic rules and eight authorized API operations are implemented. The production `UnavailableOntologyStore` always returns503 pending DEC-001. The test-only adapter is one-process copy-on-write memory and is not durable production persistence.
+Part of FAU-13. Typed, provider-independent demo steering ontology, deterministic rules and eight authorized API operations are implemented. The production `UnavailableOntologyStore` always returns503 pending DEC-001. The test-only adapter is one-process copy-on-write memory and is not durable production persistence.
 
 | Route | Method / exact policy |
 |---|---|
@@ -34,7 +34,7 @@ The combined is-a/part-of graph is acyclic, including mixed-edge cycles. Other t
 
 ## Rules and approval
 
-A rule has `id`, `system`,1–20 unique symptom concept IDs, a classification ID, severity ID, permitted remedy kinds, priority0–1000, and optional model/software pair. All references must have the exact expected kind and system. Remedy kinds must be a subset of the target classification's allowed kinds. Both applicability fields are null (all synthetic models/software) or both exact validated synthetic model/software tokens using the FAU-11 syntax. There are no arbitrary expressions, regex predicates, executable scripts or ranges.
+A rule has `id`, `system`,1–20 unique symptom concept IDs, a classification ID, severity ID, permitted remedy kinds, priority0–1000, and optional model/software pair. All references must have the exact expected kind and system. Remedy kinds must be a subset of the target classification's allowed kinds. Both applicability fields are null (all demo models/software) or both exact validated demo model/software tokens using the FAU-11 syntax. There are no arbitrary expressions, regex predicates, executable scripts or ranges.
 
 Rules match when every required symptom is present and exact optional applicability matches. Precedence is priority descending, then specificity descending (symptom count plus1 for exact applicability), then ordinal rule ID. Potentially overlapping rules at equal priority/specificity must have identical classification, severity and remedy-kind outputs; otherwise draft validation rejects400. Different positive symptom sets can overlap when input contains both, and are checked accordingly. Different exact model/software pairs do not overlap. Higher-priority conflicting rules are allowed with explicit deterministic precedence. No matching rule returns explicit null outcome IDs, empty kinds/matches and an explanation; it does not establish an unknown fault diagnosis.
 
@@ -44,7 +44,7 @@ POST publications requires current If-Match and snapshots the whole validated dr
 
 ## Stored deterministic evaluation
 
-POST evaluations accepts this synthetic context, with an Idempotency-Key:
+POST evaluations accepts this demo context, with an Idempotency-Key:
 
 ```json
 {"publicationVersion":2,"system":"EPS","symptoms":["SYN-EPS-SYMPTOM"],"model":"SYN-MODEL-1","softwareVersion":"1.0"}

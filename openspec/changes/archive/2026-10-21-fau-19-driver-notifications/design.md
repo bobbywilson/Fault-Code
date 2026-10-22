@@ -4,7 +4,7 @@
 FAU-17 investigation results and FAU-18 engineering events are immutable historical intent, not dispatch authority. DEC-001/002/003 remain unresolved.
 
 ## Goals / Non-Goals
-Implement provider-free application behavior, REST contracts and synthetic A/B/C acceptance. No external delivery, provisioning, model tools or vehicle operations.
+Implement provider-free application behavior, REST contracts and demo A/B/C acceptance. No external delivery, provisioning, model tools or vehicle operations.
 
 ## Decisions
 Reuse existing policies: notification reads AND faults.read/vehicles.access.read/drivers.access.read/knowledge.read; writes add faults.write. Preferences reuse drivers.write and drivers.access.read. No grant provisioning.

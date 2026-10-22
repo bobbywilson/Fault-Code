@@ -35,7 +35,7 @@ Self-review covered privilege escalation, explicit scope/role separation, truste
 
 ## Practical limits
 
-Only the caller permission summary is a new production endpoint. Future business routes must consume these named policies and trusted resource checks. Synthetic ownership test routes are in the test assembly only; no production vehicle/driver records, CRUD, mutation, persistent audit, MCP server, tenant or registration was fabricated. Durable business audit, engineering approval state, write ownership, list query filtering, idempotency and concurrency belong to future domain implementations after persistence decisions.
+Only the caller permission summary is a new production endpoint. Future business routes must consume these named policies and trusted resource checks. Demo ownership test routes are in the test assembly only; no production vehicle/driver records, CRUD, mutation, persistent audit, MCP server, tenant or registration was fabricated. Durable business audit, engineering approval state, write ownership, list query filtering, idempotency and concurrency belong to future domain implementations after persistence decisions.
 
 Dedicated tenant registration/consent and real browser/machine tokens are unprovisioned. Live key rollover and browser flows remain pending; these API tests do not prove browser behavior or instant JWT revocation. Local Docker Desktop backend remains unavailable; require exact-source Linux container smoke CI before merge. No deployment is claimed.
 

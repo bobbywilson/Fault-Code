@@ -25,7 +25,7 @@ public static class FaultRules
         return normalized;
     }
     public static bool Text(string? value, int max) => !string.IsNullOrWhiteSpace(value) && value.Length <= max && !value.Any(char.IsControl);
-    public static bool SyntheticModel(string? value) => value is not null && value.Length <= 40 && Regex.IsMatch(value, "^SYN-[A-Z0-9-]+$", RegexOptions.CultureInvariant);
+    public static bool DemoModel(string? value) => value is not null && value.Length <= 40 && Regex.IsMatch(value, "^SYN-[A-Z0-9-]+$", RegexOptions.CultureInvariant);
     public static bool Software(string? value) => value is not null && value.Length <= 40 && Regex.IsMatch(value, "^[A-Za-z0-9][A-Za-z0-9._-]*$", RegexOptions.CultureInvariant);
     public static void Validate(FaultContent c)
     {
@@ -36,7 +36,7 @@ public static class FaultRules
             || c.Remedies.Select(x => x.Id).Distinct(StringComparer.Ordinal).Count() != c.Remedies.Length) throw new ArgumentException("Invalid definition");
         foreach (var remedy in c.Remedies)
             if (!Text(remedy.Id, 80) || remedy.Kind is not ("guidance" or "dealership") || !Text(remedy.Description, 1000)
-                || !SyntheticModel(remedy.Model) || !Software(remedy.SoftwareVersion)
+                || !DemoModel(remedy.Model) || !Software(remedy.SoftwareVersion)
                 || remedy.Patch is { } patch && (remedy.Kind != "dealership" || !Text(patch.Reference, 100)
                     || !Software(patch.SoftwareVersion) || patch.SoftwareVersion != remedy.SoftwareVersion)) throw new ArgumentException("Invalid remedy");
     }

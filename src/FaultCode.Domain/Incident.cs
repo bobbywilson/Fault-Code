@@ -8,10 +8,14 @@ public sealed record IncidentKnowledge(Guid DefinitionId, long PublicationVersio
 public sealed record IncidentHistory(long Version, string Status, string Action, string ActorId, string ClientId, string CorrelationId,
     DateTimeOffset At, string? FailureCode);
 public sealed record IncidentWork(Guid Id, string Kind, string State, int Attempts, string? FailureCode);
+public sealed record IncidentResolution(string Text, string ActorId, string ClientId, DateTimeOffset At, long Version);
+public sealed record IncidentTracking(string State, string? Id, long? Number, string? Url, long Version,
+    Guid? Lease, DateTimeOffset? LeaseUntil, string? FailureCode);
 public sealed record Incident(Guid Id, string TenantId, string SourceClientId, string SourceEventId, string Code, string System,
     string Model, string SoftwareVersion, DateTimeOffset OccurredAt, DateTimeOffset ReceivedAt, string IntakeCorrelationId,
     IncidentFleet Fleet, IncidentKnowledge? Knowledge, string Status, long Version,
-    ImmutableArray<IncidentHistory> History, ImmutableArray<IncidentWork> Work) : IAggregateRoot;
+    ImmutableArray<IncidentHistory> History, ImmutableArray<IncidentWork> Work) : IAggregateRoot
+{ public bool Deleted { get; init; } public IncidentResolution? Resolution { get; init; } public IncidentTracking? Tracking { get; init; } }
 
 public static class IncidentRules
 {

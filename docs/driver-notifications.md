@@ -1,4 +1,20 @@
-# Driver notifications and dealership referrals
+# Driver notifications
+
+## Current demo behavior
+
+The Notifications page is a paginated Spartan data table, with driver, example.com email, message, delivery status, creation time and attempt count. The Drivers list links to the same table filtered to one driver. An incident links to all of its notifications; pending and resolved follow-ups are separate messages rather than one overwritten notification.
+
+`GET /api/v1/notifications?page=1&pageSize=20` lists visible tenant-local messages newest first. Optional `driverId` and `incidentId` filters may be combined. Invalid GUID syntax/zero GUID or pagination returns400, inaccessible driver/incident returns404, absent authentication401 and missing exact policies403. Existing fault, vehicle, driver and knowledge read policies apply. Filtering and resource visibility are applied before counts/pagination. Driver details and delivery summaries are returned in the same response, avoiding per-row API calls.
+
+The response includes `id`, `incidentId`, `driverId`, `driverName`, `email`, `message`, `state`, `createdAt`, `nextAttemptAt`, `attemptCount` and `lastFailureCode`. Single-message details, attempt/history and mutation endpoints remain separate; listing does not dispatch messages or change state.
+
+Mailpit is the selected capture transport for local and the Linux demo. Local Mailpit has received real transport test messages; Linux configuration is prepared but deployment is paused. example.com recipients remain inside capture, with no external SMTP relay. See [Mailpit setup](mailpit.md). Microsoft365 is cancelled for this demo; Mailpit is required on local and Linux and no real customer delivery is implied.
+
+**Blocker:** canonical notification persistence and joined incident/knowledge stores are still unavailable in the application. The API correctly returns503 and the page displays the service failure. Captured Mailpit configuration messages are not fabricated into application notification records. This is not an end-to-end completed workflow. Stable Message-ID alone does not provide durable provider deduplication or uncertain-acceptance reconciliation.
+
+## Existing application contracts
+
+
 
 Part of FAU-19. Eight additive REST operations implement explicit approved A/B/C enqueue, history, local test preferences, conditional dispatch and cancellation. Production INotificationStore and INotificationDelivery return503. No database, real contact/consent policy, external channel/provider, background worker or outbound delivery is activated. LocalNotificationSink is an explicit test adapter, never registered in production. Its acknowledgement means local sink acceptance only.
 
@@ -21,9 +37,9 @@ Every write requires strong If-Match and Idempotency-Key. Enqueue matches incide
 
 ## Explicit local preference
 
-PUT body `{"enabled":true,"contact":"SYN-CONTACT-1"}` opts into the local synthetic sink only. Missing preference defaults disabled. Contact is a bounded SYN label, never an email/address/URL. Enabled requires contact; false permits null. Existing Driver.Email/EmailNotifications are independent and never grant local or real consent. Preference changes increment the shared driver version. Any unrelated driver update invalidates the captured preference until explicitly renewed; GET returns current driver ETag and effective disabled state when stale. Production channel/contact/consent rules remain DEC-002.
+PUT body `{"enabled":true,"contact":"SYN-CONTACT-1"}` opts into the local demo sink only. Missing preference defaults disabled. Contact is a bounded SYN label, never an email/address/URL. Enabled requires contact; false permits null. Existing Driver.Email/EmailNotifications are independent and never grant local or real consent. Preference changes increment the shared driver version. Any unrelated driver update invalidates the captured preference until explicitly renewed; GET returns current driver ETag and effective disabled state when stale. Production channel/contact/consent rules remain DEC-002.
 
-Before enqueue and each claim, require original driver identity/owner, active same-tenant driver/vehicle, original association still active, explicit current preference and valid synthetic contact. Changes after enqueue block dispatch409; never redirect a queued message. Cancel and re-investigate/reapprove to create a new source when needed. Preference changes cannot revoke a provider call that was already claimed; no real provider is enabled.
+Before enqueue and each claim, require original driver identity/owner, active same-tenant driver/vehicle, original association still active, explicit current preference and valid demo contact. Changes after enqueue block dispatch409; never redirect a queued message. Cancel and re-investigate/reapprove to create a new source when needed. Preference changes cannot revoke a provider call that was already claimed; no real provider is enabled.
 
 ## Approved content and A/B/C
 

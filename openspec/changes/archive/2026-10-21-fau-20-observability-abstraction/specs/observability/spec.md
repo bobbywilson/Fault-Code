@@ -33,5 +33,5 @@ Telemetry SHALL exclude tokens, secrets, identities, driver contacts, request/qu
 API, MCP, incident, retrieval, investigation and model operations SHALL share server correlation through nested tracing scopes. Local logs and completed traces SHALL carry matching trace/span context. Telemetry context SHALL remain outside model input and SHALL NOT grant execution authority.
 
 #### Scenario: Concurrent nested requests and downstream failure
-- **WHEN** concurrent API requests execute nested synthetic operations and one fails
+- **WHEN** concurrent API requests execute nested demo operations and one fails
 - **THEN** each operation retains its request correlation and parent span without cross-request contamination; the failure has a safe category and unchanged business error

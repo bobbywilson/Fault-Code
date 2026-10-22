@@ -1,9 +1,7 @@
 name: Fault Code demo deployment
 on:
-  workflow_run:
-    workflows: [Backend foundation, Linux administration, Linux documentation, Linux containers, Linux release candidate]
-    types: [completed]
-    branches: [main]
+  push:
+    branches: [development]
 permissions:
   contents: read
   actions: read
@@ -13,17 +11,18 @@ concurrency:
   cancel-in-progress: false
 jobs:
   gate:
-    if: vars.DEMO_DEPLOY_ENABLED == 'true' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.conclusion == 'success'
-    runs-on: ubuntu-latest
+    if: vars.DEMO_DEPLOY_ENABLED == 'true' && github.ref == 'refs/heads/development'
+    runs-on: [self-hosted, Linux, X64, faultcode-gate]
+    timeout-minutes: 120
     outputs:
       ready: ${{ steps.checks.outputs.ready }}
       source: ${{ steps.checks.outputs.source }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Require all successful checks on current main source
+      - name: Wait for all successful checks on current development source
         id: checks
         env:
           GH_TOKEN: ${{ github.token }}
@@ -32,7 +31,7 @@ jobs:
   publish:
     needs: gate
     if: needs.gate.outputs.ready == 'true'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, faultcode-ci]
     timeout-minutes: 30
     permissions:
       contents: read
@@ -41,6 +40,7 @@ jobs:
       api: ${{ steps.publish.outputs.api }}
       web: ${{ steps.publish.outputs.web }}
       qdrant: ${{ steps.publish.outputs.qdrant }}
+      docs: ${{ steps.publish.outputs.docs }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -57,11 +57,12 @@ jobs:
           grep -F '"Authorization.Read.Application"' src/FaultCode.Api/Authorization/Permissions.cs >/dev/null
           printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GH_ACTOR" --password-stdin
           trap 'docker logout ghcr.io >/dev/null' EXIT
-          for component in api administration qdrant; do
+          for component in api administration qdrant docs; do
             image="ghcr.io/bobbywilson/fault-code-$component:$SOURCE"
             case "$component" in
               api) docker build --target runtime --build-arg "SOURCE_REVISION=$SOURCE" -t "$image" . ;;
               administration) docker build --build-arg "SOURCE_REVISION=$SOURCE" -t "$image" frontend ;;
+              docs) docker build --build-arg "SOURCE_REVISION=$SOURCE" -f mintlify/Dockerfile -t "$image" mintlify ;;
               qdrant) docker build --label "org.opencontainers.image.revision=$SOURCE" --label 'org.opencontainers.image.source=https://github.com/bobbywilson/Fault-Code' -f docker/Qdrant.Dockerfile -t "$image" . ;;
             esac
             docker push "$image"
@@ -72,18 +73,24 @@ jobs:
           done
   deploy:
     needs: [gate, publish]
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, faultcode-ci]
     timeout-minutes: 15
     environment: demo-production
     permissions:
       contents: read
       packages: read
     steps:
-      - name: Confirm main has not moved before server access
+      - name: Confirm development has not moved before server access
         env:
           GH_TOKEN: ${{ github.token }}
           SOURCE: ${{ needs.gate.outputs.source }}
-        run: test "$(gh api repos/bobbywilson/Fault-Code/git/ref/heads/main --jq .object.sha)" = "$SOURCE"
+        run: |
+          set -euo pipefail
+          current=$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'Accept: application/vnd.github+json' \
+            https://api.github.com/repos/bobbywilson/Fault-Code/git/ref/heads/development | jq -er .object.sha)
+          test "$current" = "$SOURCE"
       - name: Deploy only through restricted receiver
         env:
           DEPLOY_KEY: ${{ secrets.DEMO_SSH_KEY }}
@@ -92,6 +99,7 @@ jobs:
           SOURCE: ${{ needs.gate.outputs.source }}
           API_DIGEST: ${{ needs.publish.outputs.api }}
           WEB_DIGEST: ${{ needs.publish.outputs.web }}
+          DOCS_DIGEST: ${{ needs.publish.outputs.docs }}
           QDRANT_DIGEST: ${{ needs.publish.outputs.qdrant }}
         run: |
           set -euo pipefail
@@ -101,6 +109,6 @@ jobs:
           trap 'rm -f "$key" "$hosts"' EXIT
           printf '%s\n' "$DEPLOY_KEY" > "$key"
           printf '%s\n' "$KNOWN_HOSTS" > "$hosts"
-          printf '%s' "$GH_TOKEN" | ssh -T -i "$key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$hosts" -o ConnectTimeout=15 faultcode-deploy@134.209.215.92 "deploy $SOURCE $API_DIGEST $WEB_DIGEST $QDRANT_DIGEST"
-          curl --fail --silent --show-error https://faultcodeai.com/api/v1/health >/dev/null
+          printf '%s' "$GH_TOKEN" | ssh -T -i "$key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$hosts" -o ConnectTimeout=15 faultcode-deploy@134.209.215.92 "deploy $SOURCE $API_DIGEST $WEB_DIGEST $QDRANT_DIGEST $DOCS_DIGEST"
+          curl --fail --silent --show-error https://faultcodeai.com/health/ready >/dev/null
           echo "Verified demo deployment source=$SOURCE" >> "$GITHUB_STEP_SUMMARY"

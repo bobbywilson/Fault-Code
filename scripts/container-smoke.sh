@@ -43,8 +43,8 @@ fi
 # Run Qdrant HTTP calls inside its network namespace, never publish its port.
 q() { dc exec -T qdrant bash -c 'exec 3<>/dev/tcp/127.0.0.1/6333; body="$2"; printf "%s %s HTTP/1.1\r\nHost: qdrant\r\napi-key: %s\r\nContent-Type: application/json\r\nContent-Length: %s\r\nConnection: close\r\n\r\n%s" "$1" "$3" "$QDRANT__SERVICE__API_KEY" "${#body}" "$body" >&3; cat <&3' -- "$1" "${3:-}" "$2"; }
 q PUT /collections/fau6_smoke '{"vectors":{"size":2,"distance":"Cosine"}}' | grep -q '"status":"ok"'
-q PUT '/collections/fau6_smoke/points?wait=true' '{"points":[{"id":1,"vector":[0.1,0.2],"payload":{"source":"synthetic EPS"}}]}' | grep -q '"status":"ok"'
-assert_point() { q GET /collections/fau6_smoke/points/1 | grep -q 'synthetic EPS'; }
+q PUT '/collections/fau6_smoke/points?wait=true' '{"points":[{"id":1,"vector":[0.1,0.2],"payload":{"source":"demo EPS"}}]}' | grep -q '"status":"ok"'
+assert_point() { q GET /collections/fau6_smoke/points/1 | grep -q 'demo EPS'; }
 dc restart qdrant api
 dc up -d --wait --wait-timeout 180
 # Docker may reassign an ephemeral published port when the API restarts.

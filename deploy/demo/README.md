@@ -1,110 +1,82 @@
-# Fault Code demo deployment candidate
+# Fault Code Linux deployment
 
-Part of FAU-23. Prepared code, not an installed or activated deployment. Never run
-the bootstrap steps on LALAI's local Homestead VM. Target is the verified existing
-`lalai-staging-runner`, `134.209.215.92`. Private main branch protection is not
-available under the provider's observed entitlement; no purchase/visibility change.
+The approved target is `134.209.215.92`, serving `https://faultcodeai.com`.
+Fault Code has its own containers, networks, volumes, credentials and deployment
+account. Deployment never reads, modifies or restarts another application.
 
-## Before activation
+## Delivery
 
-1. Review this directory and OpenSpec `fau-23-linux-demo-deployment`. Merge approved
-   identity PR21 and deployment changes through development and then main only
-   after CI. The publisher explicitly rejects missing approved machine-role code.
-2. Establish actual LALAI/Simone operational baselines. The observed active
-   `lalai-runner.service` and HTTP302 are narrower evidence than functional health.
-3. Obtain action-time approval for a new restricted deployment account/key,
-   Fault Code-only firewall/routing/public exposure and Entra redirect changes.
-   No shared service may be restarted. Check DigitalOcean firewall rules as well
-   as UFW and recheck capacity/ports before changing the host.
-4. Simulate package installation first; install only the official Compose plugin
-   without upgrading/restarting Docker or unrelated packages. Abort on conflicts.
-5. Install reviewed files into `/opt/faultcode-demo` owned by root, directory0700.
-   Keep `compose.yaml`, `nginx.conf` and `browser-config.json` root-owned and not
-   group/world writable. Generate `runtime.env` on the server, root-owned0600,
-   containing a fresh `FAULTCODE_QDRANT_API_KEY`. Never commit or print it.
-6. Install `deploy.sh` as root-owned0755 `/usr/local/sbin/faultcode-deploy` and
-   `ssh-receiver.sh` as root-owned0755 `/usr/local/sbin/faultcode-ssh-receiver`.
-   Create `faultcode-deploy` with locked password and no Docker group membership.
-   Its sole authorized SSH public key must use
-   `restrict,command="/usr/local/sbin/faultcode-ssh-receiver"`.
-   Sudoers grants only `/usr/local/sbin/faultcode-deploy` as root, with env_reset,
-   no SETENV and no other commands. Validate sudoers with visudo before installation.
-   The receiver accepts only `deploy SOURCE_SHA API_DIGEST WEB_DIGEST QDRANT_DIGEST`;
-   no shell fragments, paths or arbitrary images are accepted. Test actual allowed
-   and rejected SSH commands before registering the private key with Actions.
-7. Preserve exported DNS zone. Change only the parked apex A to134.209.215.92;
-   retain www CNAME and all NS/TXT/mail records. Obtain valid free ACME certificates
-   for apex/www into this project's restricted `tls` directory, with approval for
-   the CA agreement. Establish webroot renewal using `acme`; deploy certificate
-   replacement atomically, validate only Fault Code proxy configuration and reload
-   only that container. No unrelated certificate or shared proxy is touched.
-   Install `tls-install.sh` and `tls-renew.sh` root-owned0755 under
-   `/usr/local/sbin/faultcode-tls-install` and `faultcode-tls-renew`. The installer
-   checks names, expiry and matching key, changes an atomic generation symlink,
-   reloads only this project's proxy and checks the served fingerprint. Install
-   the dedicated service/timer and run a webroot staging renewal dry-run after
-   the initial deployment. Certbot state is isolated under this deployment's
-   `letsencrypt`, `certbot-work` and `certbot-logs` directories; its global timer
-   does not cover these paths. The dedicated timer checks twice daily; failures
-   and expiry within14days fail the service and appear in the journal. External
-   alert delivery is not configured. Retain previous TLS generations for recovery.
-8. Register exact HTTPS callback `https://faultcodeai.com/auth/callback` and logout
-   `https://faultcodeai.com/` on the existing Fault Code SPA, retaining local entries.
-   Same-origin `/api/v1` needs no broad cross-origin CORS. Verify real sign-in,
-   expiry/renewal, scope/role acceptance and negative401/403 after deployment.
-9. Configure environment `demo-production` secrets `DEMO_SSH_KEY` and
-   `DEMO_SSH_KNOWN_HOSTS` using verified host keys, never trust-on-first-use or
-   disabled host verification. Short-lived read-only job registry tokens arrive
-   via SSH stdin, are kept only in a private temporary Docker config and removed.
-10. Set repository variable `DEMO_DEPLOY_ENABLED=true` only after bootstrap,
-    local/CI verification, target review and approvals. Until then no workflow
-    build/publication/deployment job is eligible. A subsequent main push and all
-    six successful same-source checks are required; feature/development never deploy.
+Merges into `development` run seven required Linux checks: `verify`,
+`administration`, `documentation`, `retrieval`, `smoke`, `release` and `sql-server`.
+The deployment gate accepts only successful checks for the current development
+SHA. It publishes four source-labelled immutable images and deploys their digests
+through the restricted SSH receiver. Main is a promotion branch and does not
+trigger deployment. `DEMO_DEPLOY_ENABLED` controls delivery eligibility.
 
-## Operational boundaries
+The dedicated `faultcode-ci` account runs its own rootless Docker daemon and two
+build workers, plus a separate gate worker. Its aggregate limits are 4.5GB memory
+and two CPUs. It cannot access the host Docker socket or production credentials.
+The GitHub `demo-production` environment allows only the development branch.
+Hosted-runner billing is not required for these workflows.
 
-The fixed Compose project has bounded API/web/Qdrant/proxy resources, independent
-networks/volumes and no LALAI mounts. It reserves two of four CPU cores at configured
-limits and at most2304MiB container RAM, leaving observed runner/OS headroom.
-Docker log size is bounded. API container health checks actual Qdrant readiness;
-HTTP/API/authentication probes and image source labels are independently checked.
-Install `monitor.sh` root-owned0755 as `/usr/local/sbin/faultcode-monitor`, with
-the dedicated monitor service/timer after deployment. Every five minutes it records
-only this project's four service states and CPU/memory/PID statistics plus host
-headroom and LALAI runner state. It fails on unhealthy/missing services, available
-memory below1GiB or disk below10GiB; it never repairs or restarts services. Inspect
-`journalctl -u faultcode-monitor.service` and the unit's failure state. These are
-local operational signals, not a configured external notification channel.
-The receiver checks unchanged runner PID/restart counter but cannot prove every
-Simone behavior. Capture external application/agent baselines separately.
+## Runtime
 
-Do not mistake healthy containers for durable workflows: canonical stores still
-return503 and no relational provider is selected. No test stores/auth bypass are
-enabled. Public API origin is `https://faultcodeai.com/api/v1/` and protected
-operations remain protected. Keep demo limitations explicit until acceptance passes.
+The fixed `faultcode-demo` Compose project contains seven services:
 
-Source manifests contain only image digests. The last accepted current.env is
-retained while a candidate starts. Failure restores its containers and verifies
-health without touching LALAI; a failed first candidate has no prior release and
-is torn down without volumes. Root-only manifests record actual accepted source.
-Candidate/rollback deadlines are bounded. Live rollback remains unverified.
+- ASP.NET API, running as UID 1654 with a read-only filesystem.
+- Angular administration app with Spartan UI.
+- SQL Server Express for canonical application records.
+- Qdrant for derived, rebuildable vector retrieval.
+- Mailpit for captured email; outbound relay is disabled.
+- Static Mintlify API documentation.
+- Nginx HTTPS proxy, publishing only ports 80 and 443.
 
-Initial HTTPS issuance may use standalone port80 only after confirming it is free;
-ongoing renewal always uses the existing proxy's `/var/www/acme` webroot and never
-stops a service. Use Certbot's official `--config-dir`, `--work-dir`, `--logs-dir`
-and `--deploy-hook` options as described in
-https://eff-certbot.readthedocs.io/en/stable/using.html#renewing-certificates.
-Verify renewal with `certbot renew --dry-run --cert-name faultcode-demo` using the
-same isolated paths, `--webroot --webroot-path /opt/faultcode-demo/acme` and
-`--run-deploy-hooks --deploy-hook /usr/local/sbin/faultcode-tls-install`. The hook
-reads the active production lineage; a staging certificate must never replace it.
+Public routes are the app at `/`, documentation at `/docs/`, and interactive API
+exploration at `/swagger/`. `/api/v1/` remains authenticated. `/mailpit/` requires
+the credential-login browser session. Unauthenticated Mailpit requests return to
+sign-in. Model provider credentials, SQL passwords, Qdrant credentials, integration
+keys and the Entra client private key remain server-side.
 
-Machine-client credentials differ from TLS certificates. API JWT validation and
-Angular PKCE do not require a private machine-client certificate. If a production
-machine consumer is configured, generate its own Linux key separately from local
-development, and implement/verify the approved self-rotation service with overlap,
-failure alerts and cleanup of only its own key IDs. That service is not implemented
-here; never copy the local private key to production or claim rotation is active.
+Root-owned private configuration lives under `/opt/faultcode-demo` with directory
+mode 0700 and configuration files mode 0600. The API's certificate mount grants
+only its runtime UID read access. Database migrations use a temporary SA child
+process; the serving API uses a Fault Code-only database reader/writer principal.
+Idempotent fleet/catalog seeds and vector indexing run before acceptance.
 
-See `docs/deployment/teardown-plan.md` for scoped recovery/removal. Destructive
-persistent-data deletion requires separate approval; never prune Docker globally.
+The receiver accepts only `deploy SOURCE_SHA API_DIGEST WEB_DIGEST QDRANT_DIGEST
+DOCS_DIGEST`, or the fixed read-only `ci-status` command. Its account has no Docker
+group membership or general sudo shell. Registry credentials arrive on SSH stdin
+and use a temporary private Docker configuration. Host keys are pinned.
+
+The deployer checks source labels, disk/memory headroom, configuration ownership,
+TLS, container health, public HTTPS, protected API behavior and documentation.
+It records accepted source/digests and retains the previous release for rollback.
+A failed initial candidate is stopped without deleting persistent volumes. Never
+prune the shared host or remove persistent data as part of routine deployment.
+
+## Operations
+
+Install the supplied monitor and TLS renewal units only for Fault Code. The
+monitor checks the seven services and host headroom without restarting anything.
+The TLS timer uses the project's isolated Certbot state and webroot, validates
+replacement certificates and reloads only the Fault Code proxy. Verify the live
+renewal dry-run after first deployment. Local journal failures are operational
+signals; an external alert channel is not configured by these units.
+
+Use `ci-status` through the restricted deployment SSH key to inspect the isolated
+CI daemon and its worker state. Runtime records and image provenance are stored
+under the root-only release directory. Keep all private runtime files out of Git,
+images, CI artifacts and support screenshots.
+
+The John Henry account uses credential login and a dedicated Entra application
+identity for its API token. The client certificate requires explicit rotation
+before expiry; automatic certificate rotation is not implemented. Microsoft SPA
+login additionally requires the exact production callback in its Entra app.
+Verify that provider flow separately from credential login.
+
+Datadog incident creation produces direct incident links. The account currently
+requires an incident-management seat for status updates; do not report a Datadog
+status change unless the provider accepted it. Mailpit capture is separate from
+external email delivery.
+
+See `docs/deployment/teardown-plan.md` for scoped recovery and removal.

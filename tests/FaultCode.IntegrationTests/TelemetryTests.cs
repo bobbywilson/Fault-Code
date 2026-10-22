@@ -187,7 +187,7 @@ public sealed class TelemetryTests
         using var client = factory.CreateClient();
         Assert.IsType(type, factory.Services.GetRequiredService<ITelemetryAdapter>());
         Assert.Single(factory.Services.GetServices<ITelemetryAdapter>());
-        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/v1/health")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/health/live")).StatusCode);
     }
 
     [Fact]
@@ -209,7 +209,7 @@ public sealed class TelemetryTests
         await using var broken = new WebApplicationFactory<Program>().WithWebHostBuilder(b => b.ConfigureServices(s =>
             s.Replace(ServiceDescriptor.Singleton<ITelemetryAdapter>(new Broken()))));
         using var brokenClient = broken.CreateClient();
-        Assert.Equal(HttpStatusCode.OK, (await brokenClient.GetAsync("/api/v1/health")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await brokenClient.GetAsync("/health/live")).StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await brokenClient.GetAsync("/api/v1/vehicles")).StatusCode);
     }
 }

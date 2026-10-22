@@ -37,7 +37,7 @@ The deterministic discovery transport is test-only. Production uses HTTPS metada
 
 - No tenant, registrations, consent, real credentials or live token acquisition were created/tested. Actual tenant isolation must be checked against the authorized inventory before enabling; syntax validation cannot prove isolation.
 - Angular login/logout/callback state/nonce/PKCE/renewal and revoked-session tests are pending FAU-22's client, including deterministic browser mocks and live isolated-tenant smoke. API JWT tests do not prove those browser behaviors.
-- FAU-9 must enforce exact operation scope/application role and ownership. A test-only synthetic role policy is not a delivered business permission policy.
+- FAU-9 must enforce exact operation scope/application role and ownership. A test-only demo role policy is not a delivered business permission policy.
 - JWT lifetime validation does not guarantee immediate session revocation. Live discovery key rollover/cached-key outage behavior remains in the runbook.
 - Local Docker Desktop daemon is unavailable; no local container/live hostname acceptance is claimed. Linux CI container smoke is required on the exact PR commit before merge.
 

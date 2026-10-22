@@ -1,7 +1,7 @@
 # Tasks
 ## 1. Permissions
 - [x] 1.1 Implement exact human/machine catalog and handler; signed-token matrix tests verify scope/role/kind failures and elevated boundaries; document exact registration values.
-- [x] 1.2 Implement trusted tenant/owner checks; synthetic resource tests verify owner, other driver, staff, machine and malformed resource denial; document future adapter obligations.
+- [x] 1.2 Implement trusted tenant/owner checks; demo resource tests verify owner, other driver, staff, machine and malformed resource denial; document future adapter obligations.
 ## 2. API boundary
 - [x] 2.1 Add permission endpoint and catalog-derived OpenAPI; API tests verify 200/401/403, accurate permission list, no secret data, public compatibility.
 - [x] 2.2 Enforce fail-closed defaults and safe decision logs; inventory/negative route and log-context tests verify coverage and redaction.

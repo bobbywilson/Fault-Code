@@ -4,7 +4,7 @@
 Investigations SHALL classify KnownFault, KnownFaultWithApprovedPatch, UnknownFault or InsufficientEvidence using current approved definitions, pinned ontology rules and canonical applicable citations. Provider outage SHALL fail retryably without confirming unknown. Only deterministic approved content SHALL supply guidance; the model SHALL NOT author repairs or approve patches.
 
 #### Scenario: Supported A and B routes
-- **WHEN** an accessible synthetic incident has an approved definition, matching pinned rule/classification and approved applicable remedy with supporting cited source/version
+- **WHEN** an accessible demo incident has an approved definition, matching pinned rule/classification and approved applicable remedy with supporting cited source/version
 - **THEN** A records KnownFault with the approved guidance; B records KnownFaultWithApprovedPatch with the exact approved dealership patch metadata and referral proposal; neither deploys software
 
 #### Scenario: Unknown C route and outage

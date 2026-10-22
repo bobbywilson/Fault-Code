@@ -9,7 +9,7 @@ Define observable Fault Code authorization requirements and acceptance scenarios
 Protected operations SHALL validate Entra access tokens and enforce least-privilege roles, delegated scopes or application roles plus resource ownership; only explicitly public operations bypass authentication.
 
 #### Scenario: Deny by default acceptance
-- **GIVEN** synthetic authorized Fault Code test context with the stated preconditions
+- **GIVEN** demo authorized Fault Code test context with the stated preconditions
 - **WHEN** a caller lacks a valid token, scope, role or driver ownership
 - **THEN** 401 distinguishes invalid identity from 403 insufficient privilege; cross-driver access and unapproved external integrations are denied
 
@@ -17,7 +17,7 @@ Protected operations SHALL validate Entra access tokens and enforce least-privil
 Knowledge publication, approved remedies, integration management and user/role administration SHALL require explicit server-side policies and audited actor/context.
 
 #### Scenario: Engineering and administration boundaries acceptance
-- **GIVEN** synthetic authorized Fault Code test context with the stated preconditions
+- **GIVEN** demo authorized Fault Code test context with the stated preconditions
 - **WHEN** a reader or agent attempts an engineering publication or integration mutation
 - **THEN** the server denies it; hiding a UI control does not replace authorization and MCP does not elevate caller permissions
 
@@ -25,7 +25,7 @@ Knowledge publication, approved remedies, integration management and user/role a
 Protected operations SHALL require a named permission. Delegated callers SHALL present its exact space-delimited scope and an allowed Reader, Operator, Engineer or Administrator role; machines SHALL present its exact application role without delegated scopes. Comparisons SHALL be case-sensitive; roles SHALL NOT imply unrelated privileges. Caller-kind-specific policies SHALL reject the other kind.
 
 #### Scenario: Permission separation
-- **GIVEN** a validated synthetic identity
+- **GIVEN** a validated demo identity
 - **WHEN** scope, role, caller kind or permission differs from the operation matrix
 - **THEN** return 403; correct delegated scope plus role or correct application role succeeds
 
@@ -33,7 +33,7 @@ Protected operations SHALL require a named permission. Delegated callers SHALL p
 Driver-owned resource access SHALL use server-loaded tenant and owner identifiers and require either an exact own-read delegated permission with matching oid or an explicit all-resource permission. Machines SHALL NOT use own-read permission. Unowned, malformed and cross-tenant resources SHALL fail closed; client-supplied ownership SHALL NOT confer access.
 
 #### Scenario: Cross-driver denial
-- **GIVEN** a trusted synthetic resource owned by one driver
+- **GIVEN** a trusted demo resource owned by one driver
 - **WHEN** another driver with only own-read permission accesses it
 - **THEN** deny with 403; the matching owner succeeds and explicit all-resource permission is separately required for staff or machines
 

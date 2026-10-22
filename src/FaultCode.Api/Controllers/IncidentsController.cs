@@ -1,23 +1,16 @@
 using FaultCode.Api.Authorization;
 using FaultCode.Api.Contracts;
+using FaultCode.Api.Mcp;
 using FaultCode.Application.Incidents;
-using FaultCode.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
 namespace FaultCode.Api.Controllers;
 
 [Route("api/v1/incidents")]
-public sealed class IncidentsController(IncidentService service, IAuthorizationService authorization) : FleetControllerBase
+[Authorize(Policy = "faults.read"), Authorize(Policy = "vehicles.access.read"), Authorize(Policy = "drivers.access.read"), Authorize(Policy = "knowledge.read")]
+public sealed class IncidentsController(IncidentService service, VehicleFaultDispatchService dispatch, ResourceMutationService mutations, FaultEmailWorkflow workflow, IncidentTrackingService tracking) : FleetControllerBase
 {
-    private async Task<Incident> Read(Guid id, CancellationToken ct)
-    {
-        var incident = await service.Get(Caller, id, ct);
-        if (!(await authorization.AuthorizeAsync(User, new DriverResource(incident.TenantId, incident.Fleet.OwnerObjectId), "vehicles.resource.read")).Succeeded)
-            throw new IncidentException(404);
-        return incident;
-    }
-    internal static IncidentResponse MapIncident(Incident i) => new(i.Id, i.SourceClientId, i.SourceEventId, i.Code, i.System, i.Model,
+    internal static IncidentResponse MapIncident(FaultCode.Domain.Incident i) => new(i.Id, i.SourceClientId, i.SourceEventId, i.Code, i.System, i.Model,
         i.SoftwareVersion, i.OccurredAt, i.ReceivedAt, i.IntakeCorrelationId,
         new(i.Fleet.VehicleId, i.Fleet.VehicleIdentifier, i.Fleet.VehicleVersion, i.Fleet.DriverId, i.Fleet.DriverIdentifier,
             i.Fleet.DriverVersion, i.Fleet.Association.Id, i.Fleet.Association.From, i.Fleet.Association.Until),
@@ -25,51 +18,45 @@ public sealed class IncidentsController(IncidentService service, IAuthorizationS
             k.Content.ClassificationVersion, k.Content.Symptoms.ToArray(), k.Content.References.Select(r => new ReferenceRequest(r.Id, r.Version)).ToArray(),
             k.Content.Remedies.Select(r => new RemedyRequest(r.Id, r.Kind, r.Description, r.Approved, r.Model, r.SoftwareVersion,
                 r.Patch is null ? null : new PatchRequest(r.Patch.Reference, r.Patch.SoftwareVersion))).ToArray()), k.ApprovedBy, k.ApprovedAt),
-        i.Status, i.Version, i.Work.Select(w => new IncidentWorkResponse(w.Id, w.Kind, w.State, w.Attempts, w.FailureCode)).ToArray());
-    [HttpPost(Name = "CreateIncident"), Authorize(Policy = "faults.write"), Authorize(Policy = "knowledge.read")]
-    [ProducesResponseType<MutationResponse>(201)]
-    public async Task<ActionResult<MutationResponse>> Create(CreateIncidentRequest request,
-        [FromHeader(Name = "Idempotency-Key")] string key, CancellationToken ct) =>
-        Mutation(await service.Create(Caller, new(request.VehicleId, request.DriverId, request.SourceEventId, request.Code, request.System,
-            request.Model, request.SoftwareVersion, request.OccurredAt), Key(key), ct), true, "/api/v1/incidents/");
-    [HttpGet(Name = "ListIncidents"), Authorize(Policy = "faults.read"), Authorize(Policy = "vehicles.access.read"), Authorize(Policy = "knowledge.read")]
-    [ProducesResponseType<PageResponse<IncidentResponse>>(200)]
+        i.Status, i.Version, i.Work.Select(w => new IncidentWorkResponse(w.Id, w.Kind, w.State, w.Attempts, w.FailureCode)).ToArray())
+    {
+        Resolution = i.Resolution is { } r ? new(r.Text, r.ActorId, r.ClientId, r.At, r.Version) : null,
+        Datadog = i.Tracking is { } t ? new(t.State, t.Id, t.Number, t.Url, t.Version, t.FailureCode) : null
+    };
+    [HttpGet(Name = "ListIncidents"), ProducesResponseType<PageResponse<IncidentResponse>>(200)]
     public async Task<ActionResult<PageResponse<IncidentResponse>>> List([FromQuery] IncidentQuery query, CancellationToken ct)
     {
-        var page = await service.List(Caller, query.Page, query.PageSize, query.Status, query.VehicleId, ct);
-        return Ok(new PageResponse<IncidentResponse>(page.Items.Select(MapIncident).ToArray(), page.Page, page.PageSize, page.TotalCount));
+        var p = await service.List(Caller, query.Page, query.PageSize, query.Status, query.VehicleId, ct, query.UnmatchedOnly);
+        return Ok(new PageResponse<IncidentResponse>(p.Items.Select(MapIncident).ToArray(), p.Page, p.PageSize, p.TotalCount));
     }
-    [HttpGet("{id:guid}", Name = "GetIncident"), Authorize(Policy = "faults.read"), Authorize(Policy = "vehicles.access.read"), Authorize(Policy = "knowledge.read")]
-    [ProducesResponseType<IncidentResponse>(200)]
+    [HttpGet("{id:guid}", Name = "GetIncident"), ProducesResponseType<IncidentResponse>(200)]
     public async Task<ActionResult<IncidentResponse>> Get(Guid id, CancellationToken ct)
-    { var incident = await Read(id, ct); ETag(incident.Version); return Ok(MapIncident(incident)); }
-    [HttpGet("{id:guid}/history", Name = "IncidentHistory"), Authorize(Policy = "faults.read"), Authorize(Policy = "vehicles.access.read"), Authorize(Policy = "knowledge.read")]
-    [ProducesResponseType<PageResponse<IncidentHistoryResponse>>(200)]
-    public async Task<ActionResult<PageResponse<IncidentHistoryResponse>>> History(Guid id, [FromQuery] FleetPageQuery query, CancellationToken ct)
+    { var i = await service.Get(Caller, id, ct); ETag(i.Version); return Ok(MapIncident(i)); }
+    [HttpPost(Name = "CreateIncident"), Authorize(Policy = "faults.write"), ProducesResponseType<FaultDispatchReceipt>(201)]
+    public async Task<ActionResult<FaultDispatchReceipt>> Create(DispatchVehicleFaultRequest request,
+        [FromHeader(Name = "Idempotency-Key")] string key, CancellationToken ct)
     {
-        var incident = await Read(id, ct); var offset = ((long)query.Page - 1) * query.PageSize;
-        var items = offset >= incident.History.Length ? [] : incident.History.Skip((int)offset).Take(query.PageSize)
-            .Select(h => new IncidentHistoryResponse(h.Version, h.Status, h.Action, h.ActorId, h.ClientId, h.CorrelationId, h.At, h.FailureCode)).ToArray();
-        return Ok(new PageResponse<IncidentHistoryResponse>(items, query.Page, query.PageSize, incident.History.Length));
+        var receipt = await dispatch.Dispatch(Caller, request.VehicleId, request.Code, Key(key), ct);
+        await tracking.Sync(Caller.TenantId, receipt.IncidentId, ct);
+        await Process(receipt.NotificationId, ct);
+        return Created($"/api/v1/incidents/{receipt.IncidentId:D}", receipt);
     }
-    [HttpPut("{id:guid}/status", Name = "TransitionIncident"), Authorize(Policy = "faults.write")]
-    [ProducesResponseType<MutationResponse>(200)]
-    public async Task<ActionResult<MutationResponse>> Transition(Guid id, IncidentStatusRequest request,
-        [FromHeader(Name = "If-Match")] string version, [FromHeader(Name = "Idempotency-Key")] string key, CancellationToken ct) =>
-        Mutation(await service.Transition(Caller, id, request.Status, Version(version), Key(key), ct), false, "");
-    [HttpPost("{id:guid}/failures", Name = "FailIncidentWork"), Authorize(Policy = "faults.write")]
-    [ProducesResponseType<MutationResponse>(200)]
-    public async Task<ActionResult<MutationResponse>> Failure(Guid id, IncidentFailureRequest request,
-        [FromHeader(Name = "If-Match")] string version, [FromHeader(Name = "Idempotency-Key")] string key, CancellationToken ct) =>
-        Mutation(await service.Fail(Caller, id, request.Code, Version(version), Key(key), ct), false, "");
-    [HttpPost("{id:guid}/retries", Name = "RetryIncidentWork"), Authorize(Policy = "faults.write")]
-    [ProducesResponseType<MutationResponse>(200)]
-    public async Task<ActionResult<MutationResponse>> Retry(Guid id, [FromHeader(Name = "If-Match")] string version,
+    [HttpPut("{id:guid}", Name = "UpdateIncident"), Authorize(Policy = "faults.write"), ProducesResponseType<MutationResponse>(200)]
+    public async Task<ActionResult<MutationResponse>> Update(Guid id, IncidentStatusRequest request,
+        [FromHeader(Name = "If-Match")] string version, [FromHeader(Name = "Idempotency-Key")] string key, CancellationToken ct)
+    {
+        var result = await mutations.UpdateIncident(Caller, id, request.Status, Version(version), Key(key), ct, request.Resolution);
+        await tracking.Sync(Caller.TenantId, id, ct);
+        if (result.NotificationId is { } notification) await Process(notification, ct);
+        return Mutation(result.Mutation, false, "");
+    }
+    [HttpDelete("{id:guid}", Name = "DeleteIncident"), Authorize(Policy = "faults.write"), ProducesResponseType<MutationResponse>(200)]
+    public async Task<ActionResult<MutationResponse>> Delete(Guid id, [FromHeader(Name = "If-Match")] string version,
         [FromHeader(Name = "Idempotency-Key")] string key, CancellationToken ct) =>
-        Mutation(await service.Retry(Caller, id, Version(version), Key(key), ct), false, "");
-    [HttpPost("{id:guid}/escalations", Name = "EscalateIncident"), Authorize(Policy = "escalations.write")]
-    [ProducesResponseType<MutationResponse>(200)]
-    public async Task<ActionResult<MutationResponse>> Escalate(Guid id, [FromHeader(Name = "If-Match")] string version,
-        [FromHeader(Name = "Idempotency-Key")] string key, CancellationToken ct) =>
-        Mutation(await service.Escalate(Caller, id, Version(version), Key(key), ct), false, "");
+        Mutation(await mutations.DeleteIncident(Caller, id, Version(version), Key(key), ct), false, "");
+    private async Task Process(Guid notification, CancellationToken ct)
+    {
+        try { await workflow.Process(Caller, notification, ct); }
+        catch (Exception) when (!ct.IsCancellationRequested) { /* Durable state records failed/pending delivery; receipt does not claim sending. */ }
+    }
 }

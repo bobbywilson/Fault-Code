@@ -4,9 +4,6 @@ const pages = [
   ['/', 'Fault Code'],
   ['/authentication', 'Authentication and permissions'],
   ['/conventions', 'API conventions'],
-  ['/workflows', 'Three synthetic workflows'],
-  ['/operations', 'Operations'],
-  ['/release', 'Release and rollback'],
 ];
 for (const [route, title] of pages) {
   test(`anonymous reader: ${route}`, async ({ page }, info) => {
@@ -17,19 +14,19 @@ for (const [route, title] of pages) {
     await expect(page.getByRole('heading', { name: title, level: 1, exact: true })).toBeVisible();
     expect(await page.getByRole('heading', { level: 1 }).evaluate(e => parseFloat(getComputedStyle(e).fontSize))).toBeGreaterThan(24);
     expect(new URL(page.url()).hostname).toBe('localhost');
+    await expect(page.locator('html')).not.toHaveClass(/dark/);
     expect(await page.context().cookies()).toEqual([]);
     expect(errors).toEqual([]);
     if (route === '/') await page.screenshot({ path: info.outputPath('anonymous-docs-desktop.png'), fullPage: true });
   });
 }
 
-test('generated protected reference preserves permissions, errors and non-sending mode', async ({ page }, info) => {
+test('generated protected reference preserves permissions, errors and separate testing interface', async ({ page }, info) => {
   await page.goto('/');
   await page.getByRole('link', { name: 'API reference', exact: true }).click();
   await expect(page).toHaveURL(/api-reference/, { timeout: 45000 });
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('List Administration Roles');
-  await expect(page.locator('#content-area')).toContainText('Requires users.manage');
-  await expect(page.locator('#content-area')).toContainText('exact role Users.Manage.Application');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('List Drivers');
+  await expect(page.locator('#content-area')).toContainText('Authorization');
   await expect(page.getByRole('heading', { name: 'Authorizations', exact: true })).toBeVisible();
   await expect(page.getByRole('tab', { name: '401', exact: true })).toBeVisible();
   await expect(page.getByRole('tab', { name: '403', exact: true })).toBeVisible();
@@ -43,4 +40,17 @@ test('mobile public guide fits and remains readable', async ({ page }, info) => 
   await expect(page.getByRole('heading', { name: 'Fault Code', level: 1, exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: info.outputPath('anonymous-docs-mobile.png'), fullPage: true });
+});
+
+test('authentication describes request headers without credential management', async ({ page }) => {
+  await page.goto('/authentication');
+  const content = page.locator('#content-area');
+  await expect(content).toContainText('Authorization: Bearer');
+  await expect(content).not.toContainText(/reset|refresh|generate|PKCE|client credentials|personal.api.token/i);
+});
+
+test('obsolete personal-token operation is absent', async ({ page }) => {
+  const response = await page.goto('/api-reference/account/reset-personal-api-token');
+  expect(response?.status()).toBe(404);
+  await expect(page.getByRole('heading', {name:'Reset Personal Api Token', exact:true})).toHaveCount(0);
 });

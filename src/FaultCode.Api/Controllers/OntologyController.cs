@@ -4,7 +4,6 @@ using FaultCode.Application.Knowledge;
 using FaultCode.Application.Ontology;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
 namespace FaultCode.Api.Controllers;
 
 [Route("api/v1/ontology")]
@@ -12,47 +11,27 @@ public sealed class OntologyController(OntologyService service) : FleetControlle
 {
     private KnowledgeCaller Identity => new(PermissionHandler.Identifier(User, "tid") ?? "", PermissionHandler.Identifier(User, "oid") ?? "",
         PermissionHandler.Identifier(User, "azp") ?? "", HttpContext.TraceIdentifier);
-    [HttpGet("draft", Name = "GetOntologyDraft"), Authorize(Policy = "knowledge.publish")]
-    [ProducesResponseType<OntologyDraftResponse>(200)]
-    public async Task<ActionResult<OntologyDraftResponse>> Draft(CancellationToken ct)
-    { var catalog = await service.Draft(Identity, ct); ETag(catalog.Version); return Ok(new OntologyDraftResponse(catalog.Id, catalog.Version, OntologyResponses.Content(catalog.Draft))); }
-    [HttpPost("draft", Name = "CreateOntologyDraft"), Authorize(Policy = "knowledge.publish")]
-    [ProducesResponseType<MutationResponse>(201)]
-    public async Task<ActionResult<MutationResponse>> Create(OntologyContentRequest body, [FromHeader(Name = "Idempotency-Key")] string key, CancellationToken ct)
+    [HttpGet(Name = "ListOntology"), Authorize(Policy = "knowledge.read"), ProducesResponseType<PageResponse<OntologyDraftResponse>>(200)]
+    public async Task<ActionResult<PageResponse<OntologyDraftResponse>>> List([FromQuery] FleetPageQuery query, CancellationToken ct)
     {
-        var result = await service.Create(Identity, body.ToDomain(), Key(key), ct); ETag(result.Version);
-        return Created("/api/v1/ontology/draft", new MutationResponse(result.Id, result.Version));
+        OntologyDraftResponse[] rows;
+        try { var c = await service.Draft(Identity, ct); rows = [new(c.Id, c.Version, OntologyResponses.Content(c.Draft))]; }
+        catch (KnowledgeException e) when (e.Status == 404) { rows = []; }
+        return Ok(new PageResponse<OntologyDraftResponse>(query.Page == 1 ? rows : [], query.Page, query.PageSize, rows.Length));
     }
-    [HttpPut("draft", Name = "UpdateOntologyDraft"), Authorize(Policy = "knowledge.publish")]
-    [ProducesResponseType<MutationResponse>(200)]
-    public async Task<ActionResult<MutationResponse>> Update(OntologyContentRequest body, [FromHeader(Name = "If-Match")] string version, CancellationToken ct)
-    { var result = await service.Update(Identity, body.ToDomain(), Version(version), ct); ETag(result.Version); return Ok(new MutationResponse(result.Id, result.Version)); }
-    [HttpGet("history", Name = "OntologyHistory"), Authorize(Policy = "knowledge.publish")]
-    [ProducesResponseType<PageResponse<OntologyRevisionResponse>>(200)]
-    public async Task<ActionResult<PageResponse<OntologyRevisionResponse>>> History([FromQuery] FleetPageQuery query, CancellationToken ct)
+    [HttpGet("{id:guid}", Name = "GetOntology"), Authorize(Policy = "knowledge.read"), ProducesResponseType<OntologyDraftResponse>(200)]
+    public async Task<ActionResult<OntologyDraftResponse>> Get(Guid id, CancellationToken ct)
+    { var c = await service.Draft(Identity, ct); if (c.Id != id) return NotFound(); ETag(c.Version); return Ok(new OntologyDraftResponse(c.Id, c.Version, OntologyResponses.Content(c.Draft))); }
+    [HttpPost(Name = "CreateOntology"), Authorize(Policy = "knowledge.publish"), ProducesResponseType<MutationResponse>(201)]
+    public async Task<ActionResult<MutationResponse>> Create(OntologyContentRequest request, [FromHeader(Name = "Idempotency-Key")] string key, CancellationToken ct)
+    { var r = await service.Create(Identity, request.ToDomain(), Key(key), ct); return Mutation(new(r.Id, r.Version), true, "/api/v1/ontology/"); }
+    [HttpPut("{id:guid}", Name = "UpdateOntology"), Authorize(Policy = "knowledge.publish"), ProducesResponseType<MutationResponse>(200)]
+    public async Task<ActionResult<MutationResponse>> Update(Guid id, OntologyContentRequest request, [FromHeader(Name = "If-Match")] string version, CancellationToken ct)
     {
-        var catalog = await service.Draft(Identity, ct); var offset = ((long)query.Page - 1) * query.PageSize;
-        var items = offset >= catalog.History.Length ? [] : catalog.History.Skip((int)offset).Take(query.PageSize).Select(OntologyResponses.Revision).ToArray();
-        return Ok(new PageResponse<OntologyRevisionResponse>(items, query.Page, query.PageSize, catalog.History.Length));
+        var c = await service.Draft(Identity, ct); if (c.Id != id) return NotFound();
+        var r = await service.Update(Identity, request.ToDomain(), Version(version), ct); return Mutation(new(r.Id, r.Version), false, "");
     }
-    [HttpPost("publications", Name = "PublishOntology"), Authorize(Policy = "knowledge.publish")]
-    [ProducesResponseType<MutationResponse>(200)]
-    public async Task<ActionResult<MutationResponse>> Publish([FromHeader(Name = "If-Match")] string version,
-        [FromHeader(Name = "Idempotency-Key")] string key, CancellationToken ct)
-    { var result = await service.Publish(Identity, Version(version), Key(key), ct); ETag(result.Version); return Ok(new MutationResponse(result.Id, result.Version)); }
-    [HttpGet("publications/{version:long}", Name = "GetApprovedOntology"), Authorize(Policy = "knowledge.read")]
-    [ProducesResponseType<OntologyPublicationResponse>(200)]
-    public async Task<ActionResult<OntologyPublicationResponse>> Published(long version, CancellationToken ct)
-    { var result = await service.Published(Identity, version, ct); ETag(result.Version); return Ok(OntologyResponses.Publication(result)); }
-    [HttpPost("evaluations", Name = "EvaluateOntology"), Authorize(Policy = "knowledge.read")]
-    [ProducesResponseType<OntologyEvaluationResponse>(201)]
-    public async Task<ActionResult<OntologyEvaluationResponse>> Evaluate(EvaluateOntologyRequest body, [FromHeader(Name = "Idempotency-Key")] string key, CancellationToken ct)
-    {
-        var result = await service.Evaluate(Identity, body.ToDomain(), Key(key), ct);
-        ETag(result.PublicationVersion); return Created("/api/v1/ontology/evaluations/" + result.Id, OntologyResponses.Evaluation(result));
-    }
-    [HttpGet("evaluations/{id:guid}", Name = "GetOntologyEvaluation"), Authorize(Policy = "knowledge.read")]
-    [ProducesResponseType<OntologyEvaluationResponse>(200)]
-    public async Task<ActionResult<OntologyEvaluationResponse>> Evaluation(Guid id, CancellationToken ct)
-    { var result = await service.Evaluation(Identity, id, ct); ETag(result.PublicationVersion); return Ok(OntologyResponses.Evaluation(result)); }
+    [HttpDelete("{id:guid}", Name = "DeleteOntology"), Authorize(Policy = "knowledge.publish"), ProducesResponseType<MutationResponse>(200)]
+    public async Task<ActionResult<MutationResponse>> Delete(Guid id, [FromHeader(Name = "If-Match")] string version, [FromHeader(Name = "Idempotency-Key")] string key, CancellationToken ct)
+    { var r = await service.Delete(Identity, id, Version(version), Key(key), ct); return Mutation(new(r.Id, r.Version), false, ""); }
 }

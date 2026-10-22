@@ -1,3 +1,5 @@
+using FaultCode.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using FaultCode.Application.Telemetry;
 using FaultCode.Infrastructure.Telemetry;
 using FaultCode.Api.Mcp;
@@ -9,6 +11,7 @@ using FaultCode.Infrastructure;
 using Microsoft.Extensions.Options;
 using FaultCode.Api.Identity;
 using FaultCode.Api.Authorization;
+using FaultCode.Api.Review;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOptions<TelemetryOptions>().Configure<IConfiguration>((o, configuration) =>
@@ -33,6 +36,7 @@ builder.Services.AddSingleton<ITelemetryAdapter>(s =>
 });
 builder.Services.AddSingleton<ITelemetry, SafeTelemetry>();
 builder.Services.AddEntraAuthentication(builder.Configuration);
+builder.Services.AddDemoSession(builder.Configuration, builder.Environment);
 builder.Services.AddFaultCodeAuthorization();
 builder.Services.AddFaultCodeMcp(builder.Configuration);
 builder.Services.AddOptions<AgentOptions>().Bind(builder.Configuration.GetSection("Agents"))
@@ -54,11 +58,43 @@ builder.Services.AddScoped<FaultCode.Application.Investigations.InvestigationSer
 builder.Services.AddSingleton<FaultCode.Application.Escalations.IEscalationStore, UnavailableEscalationStore>();
 builder.Services.AddScoped<FaultCode.Application.Escalations.EscalationService>();
 builder.Services.AddSingleton<FaultCode.Application.Notifications.INotificationStore, UnavailableNotificationStore>();
-builder.Services.AddSingleton<FaultCode.Application.Notifications.INotificationDelivery, UnavailableNotificationDelivery>();
+builder.Services.AddOptions<NotificationOptions>().Bind(builder.Configuration.GetSection("Notifications"))
+    .Validate(o => o.Valid, "Notifications must use private Mailpit capture.").ValidateOnStart();
+builder.Services.AddHttpClient("mailpit").RemoveAllLoggers()
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+builder.Services.AddTransient<FaultCode.Application.Notifications.INotificationDelivery>(s =>
+{
+    var options = s.GetRequiredService<IOptions<NotificationOptions>>().Value;
+    var http = s.GetRequiredService<IHttpClientFactory>().CreateClient("mailpit");
+    http.BaseAddress = new Uri(options.Endpoint); http.Timeout = TimeSpan.FromSeconds(15);
+    return new MailpitNotificationDelivery(http);
+});
 builder.Services.AddScoped<FaultCode.Application.Notifications.NotificationService>();
-builder.Services.AddSingleton<FaultCode.Application.Administration.IAdministrationStore, UnavailableAdministrationStore>();
+builder.Services.AddScoped<FaultCode.Application.Notifications.FaultEmailService>();
+builder.Services.AddScoped<FaultCode.Api.Mcp.FaultEmailWorkflow>();
+builder.Services.AddTransient<FaultCode.Application.Notifications.IFaultEmailAgent>(s =>
+{
+    var o = s.GetRequiredService<IOptions<AgentOptions>>().Value;
+    var http = s.GetRequiredService<IHttpClientFactory>().CreateClient("agent-runtime"); http.Timeout = Timeout.InfiniteTimeSpan;
+    return new FaultEmailAgent(http, o.Enabled, o.Model, o.ApiKey);
+});
+builder.Services.AddTransient<QdrantFaultCodeIndex>(s =>
+{
+    var o = s.GetRequiredService<IOptions<QdrantOptions>>().Value;
+    return new QdrantFaultCodeIndex(s.GetRequiredService<IHttpClientFactory>().CreateClient("document-index"), o.Endpoint, o.ApiKey, o.Enabled, s.GetRequiredService<FaultCode.Application.Retrieval.IEmbeddingProvider>());
+});
+builder.Services.AddTransient<FaultCode.Application.Notifications.IFaultCodeIndex>(s => s.GetRequiredService<QdrantFaultCodeIndex>());
+builder.Services.AddTransient<FaultCode.Application.Notifications.IIncidentResolutionIndex>(s => s.GetRequiredService<QdrantFaultCodeIndex>());
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
-builder.Services.AddSingleton<FaultCode.Application.Fleet.IFleetStore, UnavailableFleetStore>();
+var fleetConnection = builder.Configuration.GetConnectionString("FaultCode");
+if (string.IsNullOrWhiteSpace(fleetConnection))
+    builder.Services.AddSingleton<FaultCode.Application.Fleet.IFleetStore, UnavailableFleetStore>();
+else
+{
+    var fleetOptions = new DbContextOptionsBuilder<FleetDbContext>().UseSqlServer(fleetConnection).Options;
+    builder.Services.AddSingleton(fleetOptions);
+    builder.Services.AddSingleton<FaultCode.Application.Fleet.IFleetStore, SqlServerFleetStore>();
+}
 builder.Services.AddScoped<FaultCode.Application.Fleet.FleetService>();
 builder.Services.AddSingleton<FaultCode.Application.Knowledge.IKnowledgeStore, UnavailableKnowledgeStore>();
 builder.Services.AddSingleton<FaultCode.Application.Ontology.IOntologyStore, UnavailableOntologyStore>();
@@ -67,6 +103,26 @@ builder.Services.AddScoped<FaultCode.Application.Ontology.OntologyService>();
 builder.Services.AddScoped<FaultCode.Application.Knowledge.KnowledgeService>();
 builder.Services.AddSingleton<FaultCode.Application.Incidents.IIncidentStore, UnavailableIncidentStore>();
 builder.Services.AddScoped<FaultCode.Application.Incidents.IncidentService>();
+builder.Services.AddScoped<FaultCode.Application.Incidents.ResourceMutationService>();
+builder.Services.AddScoped<FaultCode.Application.Incidents.VehicleFaultDispatchService>();
+builder.Services.AddOptions<DatadogIncidentOptions>().Bind(builder.Configuration.GetSection("DatadogIncidents"))
+    .Validate(o => o.Valid, "Invalid Datadog incident configuration.").ValidateOnStart();
+builder.Services.AddHttpClient("datadog-incidents").RemoveAllLoggers()
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false, UseProxy = false });
+builder.Services.AddTransient<FaultCode.Application.Incidents.IIncidentTracker>(s =>
+{
+    var o = s.GetRequiredService<IOptions<DatadogIncidentOptions>>().Value;
+    return new DatadogIncidentTracker(s.GetRequiredService<IHttpClientFactory>().CreateClient("datadog-incidents"), o.AccessToken);
+});
+builder.Services.AddScoped<FaultCode.Application.Incidents.IncidentTrackingService>();
+builder.Services.AddHttpClient("linear-review").RemoveAllLoggers()
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false, UseProxy = false });
+builder.Services.AddSingleton<FaultCode.Application.Review.ITicketReviewSource>(s =>
+{
+    var http = s.GetRequiredService<IHttpClientFactory>().CreateClient("linear-review");
+    http.MaxResponseContentBufferSize = 4 * 1024 * 1024;
+    return new LinearTicketReview(http, builder.Configuration["LinearReview:ApiKey"] ?? "", s.GetRequiredService<TimeProvider>());
+});
 
 builder.Services.AddSingleton<FaultCode.Application.Retrieval.IDocumentStore, UnavailableDocumentStore>();
 builder.Services.AddScoped<FaultCode.Application.Retrieval.RetrievalService>();
@@ -139,7 +195,119 @@ builder.Services.AddHttpClient<QdrantReadinessCheck>()
     .RemoveAllLoggers();
 builder.Services.AddHealthChecks().AddCheck<QdrantReadinessCheck>("qdrant", tags: ["ready"]);
 
+// All canonical workflow adapters share the fleet transaction and SQL tenant lock.
+if (!string.IsNullOrWhiteSpace(fleetConnection))
+{
+    builder.Services.AddSingleton<SqlServerWorkflowStore>();
+    builder.Services.AddSingleton<FaultCode.Application.Fleet.IFleetStore>(s => s.GetRequiredService<SqlServerWorkflowStore>());
+    builder.Services.AddSingleton<FaultCode.Application.Incidents.IIncidentStore>(s => s.GetRequiredService<SqlServerWorkflowStore>());
+    builder.Services.AddSingleton<FaultCode.Application.Knowledge.IKnowledgeStore>(s => s.GetRequiredService<SqlServerWorkflowStore>());
+    builder.Services.AddSingleton<FaultCode.Application.Ontology.IOntologyStore>(s => s.GetRequiredService<SqlServerWorkflowStore>());
+    builder.Services.AddSingleton<FaultCode.Application.Retrieval.IDocumentStore>(s => s.GetRequiredService<SqlServerWorkflowStore>());
+    builder.Services.AddSingleton<FaultCode.Application.Investigations.IInvestigationStore>(s => s.GetRequiredService<SqlServerWorkflowStore>());
+    builder.Services.AddSingleton<FaultCode.Application.Escalations.IEscalationStore>(s => s.GetRequiredService<SqlServerWorkflowStore>());
+    builder.Services.AddSingleton<FaultCode.Application.Notifications.INotificationStore>(s => s.GetRequiredService<SqlServerWorkflowStore>());
+}
+
 var app = builder.Build();
+if (builder.Configuration.GetValue<bool>("ReverseProxy:Enabled"))
+{
+    // The API has no published port. Its isolated ingress proxy overwrites the
+    // protocol header; no forwarded address or identity is accepted here.
+    var forwarded = new Microsoft.AspNetCore.Builder.ForwardedHeadersOptions
+    {
+        ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto,
+        ForwardLimit = 1
+    };
+    forwarded.KnownIPNetworks.Clear();
+    forwarded.KnownProxies.Clear();
+    app.UseForwardedHeaders(forwarded);
+}
+// Explicit local/operator command only. Never migrates or seeds automatically during serving startup.
+var databaseCommand = builder.Configuration["Database:Command"];
+if (!string.IsNullOrWhiteSpace(databaseCommand))
+{
+    try
+    {
+        if (string.IsNullOrWhiteSpace(fleetConnection)) throw new InvalidOperationException();
+        if (databaseCommand == "migrate")
+        {
+            var migrationConnection = builder.Configuration.GetConnectionString("FaultCodeMigration") ?? fleetConnection;
+            await using var db = new FleetDbContext(new DbContextOptionsBuilder<FleetDbContext>().UseSqlServer(migrationConnection).Options);
+            await db.Database.MigrateAsync();
+        }
+        else if (databaseCommand == "seed-demo-fleet")
+        {
+            using var scope = app.Services.CreateScope();
+            var caller = new FaultCode.Application.Fleet.FleetCaller(builder.Configuration["Entra:TenantId"] ?? "",
+                builder.Configuration["Database:SeedActorId"] ?? "", builder.Configuration["Database:SeedClientId"] ?? "",
+                Guid.NewGuid().ToString("D"), true, false, true, false);
+            await new FaultCode.Application.Demo.DemoFleetSeeder(scope.ServiceProvider.GetRequiredService<FaultCode.Application.Fleet.FleetService>())
+                .SeedAsync(caller, default);
+        }
+        else if (databaseCommand == "sync-datadog-incidents")
+        {
+            using var scope = app.Services.CreateScope();
+            var tenant = builder.Configuration["Entra:TenantId"] ?? "";
+            var store = scope.ServiceProvider.GetRequiredService<FaultCode.Application.Notifications.INotificationStore>();
+            var ids = await store.Execute(tenant, tx => tx.Context.Incidents.Incidents.Where(i => !i.Deleted).Select(i => i.Id).ToArray(), default);
+            var tracking = scope.ServiceProvider.GetRequiredService<FaultCode.Application.Incidents.IncidentTrackingService>();
+            foreach (var id in ids) await tracking.Sync(tenant, id, default);
+            Console.WriteLine("Datadog incident synchronization attempted; inspect persisted provider state for acceptance.");
+        }
+        else if (databaseCommand == "index-demo-faults")
+        {
+            using var scope = app.Services.CreateScope();
+            var tenant = builder.Configuration["Entra:TenantId"] ?? "";
+            var actor = builder.Configuration["Database:SeedActorId"] ?? "";
+            var client = builder.Configuration["Database:SeedClientId"] ?? "";
+            using var manifest = typeof(FaultCode.Api.Controllers.IncidentsController).Assembly.GetManifestResourceStream("FaultCode.DemoFaultCatalog.json")!;
+            using var document = System.Text.Json.JsonDocument.Parse(manifest);
+            var inputs = System.Text.Json.JsonSerializer.Deserialize<FaultCode.Application.Knowledge.FaultCreate[]>(document.RootElement.GetProperty("faults").GetRawText(), new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
+            var store = scope.ServiceProvider.GetRequiredService<FaultCode.Application.Knowledge.IKnowledgeStore>();
+            var approved = await store.TransactAsync(tenant, state =>
+            {
+                var published = new List<FaultCode.Application.Knowledge.ApprovedFault>();
+                foreach (var input in inputs)
+                {
+                    var old = state.Faults.Single(f => f.Code == input.Code);
+                    if (System.Text.Json.JsonSerializer.Serialize(old.Draft) != System.Text.Json.JsonSerializer.Serialize(input.Content) || old.Draft.Remedies.Any(r => r.Approved || r.Patch is not null)) throw new InvalidOperationException();
+                    var current = old;
+                    if (old.Publications.Length == 0)
+                    {
+                        var now = DateTimeOffset.UtcNow; var version = checked(old.Version + 1);
+                        current = old with { Version = version, History = old.History.Add(new(version, old.Draft, "demo-published", actor, now)), Publications = old.Publications.Add(new(version, old.Draft, actor, now)) };
+                        state.Faults[state.Faults.IndexOf(old)] = current;
+                        state.Audit.Add(new(tenant, actor, client, Guid.NewGuid().ToString("N"), "demo.faults.publish", old.Id, version, now));
+                    }
+                    var p = current.Publications[^1]; published.Add(new(current.Id, current.Code, current.System, p.Version, p.Content, p.ApprovedBy, p.ApprovedAt));
+                }
+                return published;
+            }, default);
+            var index = scope.ServiceProvider.GetRequiredService<FaultCode.Application.Notifications.IFaultCodeIndex>();
+            foreach (var fault in approved) await index.Upsert(tenant, fault, default);
+            Console.WriteLine($"Indexed {approved.Count} demonstration definitions; all remedies remain unapproved.");
+        }
+        else if (databaseCommand == "seed-demo-faults")
+        {
+            using var scope = app.Services.CreateScope();
+            var caller = new FaultCode.Application.Knowledge.KnowledgeCaller(builder.Configuration["Entra:TenantId"] ?? "",
+                builder.Configuration["Database:SeedActorId"] ?? "", builder.Configuration["Database:SeedClientId"] ?? "", Guid.NewGuid().ToString("D"));
+            using var manifest = typeof(FaultCode.Api.Controllers.IncidentsController).Assembly.GetManifestResourceStream("FaultCode.DemoFaultCatalog.json")!;
+            var count = await new FaultCode.Application.Demo.DemoFaultSeeder(scope.ServiceProvider.GetRequiredService<FaultCode.Application.Knowledge.IKnowledgeStore>(), TimeProvider.System).SeedAsync(caller, manifest, default);
+            Console.WriteLine($"Seeded {count} fault-code definitions; existing records preserved. Remedies remain unapproved.");
+        }
+        else throw new InvalidOperationException();
+        Console.WriteLine("Explicit database command completed. No web server was started.");
+    }
+    catch (Exception) // Do not print raw connection/provider exceptions or secret-bearing configuration.
+    {
+        Console.Error.WriteLine("Database command failed. Verify command, identity, permissions, connectivity and migrations; no production fallback was used.");
+        Environment.ExitCode = 1;
+    }
+    await app.DisposeAsync();
+    return;
+}
 app.Use(async (context, next) =>
 {
     context.TraceIdentifier = Guid.NewGuid().ToString("N");
@@ -173,11 +341,27 @@ app.Use(async (context, next) =>
     catch (FaultCode.Application.Fleet.FleetException error) when (!context.Response.HasStarted)
     { await WriteProblem(context, error.Status); }
 });
+app.UseDemoBrowserBoundary();
+app.UseRouting();
 app.UseAuthentication();
+app.UseDemoAntiforgery();
 app.UseAuthorization();
-app.Use(McpTransport.ValidateBody);
-app.MapMcp("/api/v1/mcp").RequireAuthorization("mcp.access").ExcludeFromDescription();
+// MCP tools are invoked by the bound server-side agent workflow; no public MCP route.
 app.MapOpenApi().AllowAnonymous();
+if (app.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("ApiTesting:Enabled"))
+    app.UseSwaggerUI(options =>
+    {
+        options.RoutePrefix = "swagger";
+        options.SwaggerEndpoint("/openapi/v1.json", "Fault Code API v1");
+        options.DocumentTitle = "Fault Code API Testing";
+        options.ConfigObject.PersistAuthorization = false;
+        options.HeadContent = "<meta name=\"color-scheme\" content=\"light\"><style>:root{color-scheme:only light}body{background:#fff;color:#3b4151}</style>";
+        options.ConfigObject.ValidatorUrl = null;
+        // The bundled standalone preset otherwise follows the OS dark preference on every mount.
+        options.ConfigObject.Plugins = ["() => ({ components: { DarkModeToggle: () => null } })"];
+    });
+app.MapDemoSession();
+app.MapTicketReview();
 app.MapControllers();
 app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false }).AllowAnonymous();
 app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") }).AllowAnonymous();

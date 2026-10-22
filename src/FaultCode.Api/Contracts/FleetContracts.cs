@@ -13,7 +13,10 @@ public sealed record VehicleRequest([Required] string Identifier, [Required] str
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record AssociationRequest(Guid DriverId);
 public sealed record DriverResponse(Guid Id, string Identifier, string DisplayName, string? Email, bool EmailNotifications, bool Active, long Version);
-public sealed record VehicleResponse(Guid Id, string Identifier, string System, bool Active, long Version);
+public sealed record VehicleResponse(Guid Id, string Identifier, string System, bool Active, long Version)
+{
+    public IReadOnlyList<DriverResponse> Drivers { get; init; } = [];
+}
 public sealed record AssociationResponse(Guid Id, Guid VehicleId, Guid DriverId, DateTimeOffset From, DateTimeOffset? Until);
 public sealed record MutationResponse(Guid Id, long Version);
 public class FleetPageQuery

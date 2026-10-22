@@ -18,5 +18,8 @@
     "api://ce48cbc2-5349-4228-b5ea-365c9df1e2af/escalations.write",
     "api://ce48cbc2-5349-4228-b5ea-365c9df1e2af/integrations.manage",
     "api://ce48cbc2-5349-4228-b5ea-365c9df1e2af/users.manage"
-  ]
+  ],
+  "profileImages": {
+    "43ba6c03-a9a1-492f-aaf1-271146c336f7": "/profiles/bobby-wilson.png"
+  }
 }

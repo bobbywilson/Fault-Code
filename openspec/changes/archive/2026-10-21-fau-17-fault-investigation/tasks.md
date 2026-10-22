@@ -1,7 +1,7 @@
 # Tasks
 
 ## 1. Grounded orchestration and history
-- [x] 1.1 Implement deterministic A/B/C/insufficient rules and atomic replay/history storage contract; verify synthetic routing, provenance, unknown/outage, concurrent replay, rollback and history fixtures; document production503 and pending intents.
+- [x] 1.1 Implement deterministic A/B/C/insufficient rules and atomic replay/history storage contract; verify demo routing, provenance, unknown/outage, concurrent replay, rollback and history fixtures; document production503 and pending intents.
 - [x] 1.2 Implement isolated bounded model assessment with fixed schema; verify actual SDK requests, prompt injection, malformed output, tools, budget, cancellation and transient retries without live calls.
 
 ## 2. Authorized API contracts

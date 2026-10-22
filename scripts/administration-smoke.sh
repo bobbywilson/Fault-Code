@@ -36,6 +36,6 @@ assert all(scope.startswith('api://' + config['apiClientId'] + '/') for scope in
 assert 'clientSecret' not in config
 PY
 node frontend/tools/production-smoke.mjs "http://127.0.0.1:$port"
-# Test identity and synthetic token cannot be packaged.
-if docker exec "$name-web" sh -c 'grep -R -E "synthetic-test-token|__test/session" /usr/share/nginx/html'; then exit 1; fi
+# Test identity and demo token cannot be packaged.
+if docker exec "$name-web" sh -c 'grep -R -E "demo-test-token|__test/session" /usr/share/nginx/html'; then exit 1; fi
 printf 'Non-root Linux SPA, public registration configuration, fixture exclusion and protected API401 passed.\n'
