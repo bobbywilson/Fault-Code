@@ -35,5 +35,22 @@ class ReleaseGate(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             with self.assertRaisesRegex(ValueError,'No actual'): module.extract(Path(directory))
 
+    def test_database_quota_skip_is_recorded_for_the_separate_required_sql_job(self):
+        method='Daily_API_quota_is_atomic_durable_and_partitioned_by_identity_and_UTC_day'
+        for outcome in ['NotExecuted','Failed']:
+            with self.subTest(outcome=outcome), tempfile.TemporaryDirectory() as directory:
+                self.fixture(directory)
+                file=Path(directory)/'result.trx'; tree=ET.parse(file); root=tree.getroot()
+                unit=ET.SubElement(root.find(N+'TestDefinitions'),N+'UnitTest',id='sql-quota')
+                ET.SubElement(unit,N+'TestMethod',name=method)
+                ET.SubElement(root.find(N+'Results'),N+'UnitTestResult',testId='sql-quota',testName=method,outcome=outcome)
+                tree.write(file)
+                if outcome=='Failed':
+                    with self.assertRaisesRegex(ValueError,'Non-passing'): module.extract(Path(directory))
+                else:
+                    result=module.extract(Path(directory))
+                    self.assertEqual([method],result['separateSqlMailpitJobRequiredFor'])
+                    self.assertEqual(sum(module.REQUIRED.values()),result['passedTestResults'])
+
 
 if __name__=='__main__': unittest.main()

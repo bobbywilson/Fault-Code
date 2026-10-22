@@ -46,7 +46,7 @@ def extract(directory):
         for result in results:
             method = definitions[result.attrib['testId']]
             name = result.attrib['testName']; outcome = result.attrib['outcome']
-            if outcome == 'NotExecuted' and method in {'Real_mailpit_accepts_and_retains_recipient_body_and_notification_reference','Real_sql_dispatch_commits_both_records_and_replays_after_reconnect','Real_sql_server_seed_replay_reconnect_tenant_isolation_and_rollback','Real_sql_fault_seed_is_idempotent_and_catalog_survives_reconnect'}:
+            if outcome == 'NotExecuted' and method in {'Daily_API_quota_is_atomic_durable_and_partitioned_by_identity_and_UTC_day','Real_mailpit_accepts_and_retains_recipient_body_and_notification_reference','Real_sql_dispatch_commits_both_records_and_replays_after_reconnect','Real_sql_server_seed_replay_reconnect_tenant_isolation_and_rollback','Real_sql_fault_seed_is_idempotent_and_catalog_survives_reconnect'}:
                 skipped.append(name); continue
             if outcome != 'Passed': raise ValueError(f'Non-passing release case: {name}: {outcome}')
             total += 1
