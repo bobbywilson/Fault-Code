@@ -35,6 +35,16 @@ public sealed class SqlServerFleetStore(DbContextOptions<FleetDbContext> options
             var result = operation(state); ct.ThrowIfCancellationRequested();
             if (state.Drivers.Any(d => d.TenantId != tenantId) || state.Vehicles.Any(v => v.TenantId != tenantId)
                 || state.Audit.Any(a => a.TenantId != tenantId)) throw new FleetException(403);
+            await Save(db, state, tenantId, audits, replayKeys, ct);
+            await db.SaveChangesAsync(ct); ct.ThrowIfCancellationRequested(); await tx.CommitAsync(ct); return result;
+        }
+        catch (DbUpdateConcurrencyException) { throw new FleetException(409); }
+        catch (DbUpdateException e) when (e.InnerException is SqlException { Number: 2601 or 2627 or 547 }) { throw new FleetException(409); }
+        catch (DbUpdateException) { throw new FleetException(503); }
+        catch (SqlException) { throw new FleetException(503); }
+    }
+    internal static async Task Save(FleetDbContext db, FleetState state, string tenantId, int audits, HashSet<string> replayKeys, CancellationToken ct)
+    {
             // Keep rows normalized and tenant-bound; never replace or delete unrelated records.
             foreach (var driver in state.Drivers) await Upsert(db, driver, tenantId, driver.Id, ct);
             foreach (var vehicle in state.Vehicles) await Upsert(db, vehicle, tenantId, vehicle.Id, ct);
@@ -46,24 +56,18 @@ public sealed class SqlServerFleetStore(DbContextOptions<FleetDbContext> options
             foreach (var (key, value) in state.Replays.Where(x => !replayKeys.Contains(x.Key)))
                 db.Replays.Add(new() { TenantId = tenantId, KeyHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(key))),
                     Key = key, PayloadHash = value.PayloadHash, ResourceId = value.Result.Id, Version = value.Result.Version });
-            await db.SaveChangesAsync(ct); ct.ThrowIfCancellationRequested(); await tx.CommitAsync(ct); return result;
-        }
-        catch (DbUpdateConcurrencyException) { throw new FleetException(409); }
-        catch (DbUpdateException e) when (e.InnerException is SqlException { Number: 2601 or 2627 or 547 }) { throw new FleetException(409); }
-        catch (DbUpdateException) { throw new FleetException(503); }
-        catch (SqlException) { throw new FleetException(503); }
     }
     private static async Task Upsert<TEntity>(FleetDbContext db, TEntity row, string tenantId, Guid id, CancellationToken ct) where TEntity : class
     {
         var existing = await db.Set<TEntity>().FindAsync([tenantId, id], ct);
         if (existing is null) db.Add(row); else db.Entry(existing).CurrentValues.SetValues(row);
     }
-    private static Task Lock(FleetDbContext db, string tenantId, string mode, CancellationToken ct)
+    internal static Task Lock(FleetDbContext db, string tenantId, string mode, CancellationToken ct)
     {
         var resource = "faultcode-fleet-" + tenantId;
         return db.Database.ExecuteSqlInterpolatedAsync($"DECLARE @result int; EXEC @result = sys.sp_getapplock @Resource={resource}, @LockMode={mode}, @LockOwner='Transaction', @LockTimeout=15000; IF @result < 0 THROW 51000, 'Fleet transaction lock unavailable.', 1;", ct);
     }
-    private static async Task<FleetState> Load(FleetDbContext db, string tenantId, CancellationToken ct)
+    internal static async Task<FleetState> Load(FleetDbContext db, string tenantId, CancellationToken ct)
     {
         var state = new FleetState();
         state.Drivers.AddRange(await db.Drivers.AsNoTracking().Where(x => x.TenantId == tenantId).ToArrayAsync(ct));

@@ -1453,6 +1453,21 @@
     ]
   },
   {
+    "id": "ListDemoFaultCodes",
+    "label": "List Demo Fault Codes",
+    "group": "Fault codes",
+    "method": "GET",
+    "path": "/api/v1/fault-code-catalog",
+    "parameters": [],
+    "headers": [],
+    "body": null,
+    "policies": [
+      [
+        "knowledge.read"
+      ]
+    ]
+  },
+  {
     "id": "ListFaults",
     "label": "List Faults",
     "group": "Fault definitions",
@@ -3432,6 +3447,47 @@
     "policies": [
       [
         "integrations.manage"
+      ]
+    ]
+  },
+  {
+    "id": "DispatchVehicleFault",
+    "label": "Dispatch Vehicle Fault",
+    "group": "Vehicles",
+    "method": "POST",
+    "path": "/api/v1/vehicle-fault-dispatches",
+    "parameters": [],
+    "headers": [
+      "Idempotency-Key"
+    ],
+    "body": {
+      "required": [
+        "vehicleId",
+        "code"
+      ],
+      "type": "object",
+      "properties": {
+        "vehicleId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "code": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "policies": [
+      [
+        "faults.write"
+      ],
+      [
+        "vehicles.read",
+        "vehicles.read.own"
+      ],
+      [
+        "drivers.read",
+        "drivers.read.own"
       ]
     ]
   },

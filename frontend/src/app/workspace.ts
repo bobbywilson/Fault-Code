@@ -1,3 +1,5 @@
+import { HlmToasterImports } from '@spartan-ng/helm/sonner';
+import { toast } from '@spartan-ng/brain/sonner';
 import { HlmAvatar, HlmAvatarImage, HlmAvatarFallback } from '@spartan-ng/helm/avatar';
 import {
   HlmDropdownMenu,
@@ -62,11 +64,13 @@ export const areas = [
   ['Notifications', 'notifications'],
   ['Users & roles', 'users'],
   ['Ontology', 'ontology'],
+  ['Fault codes', 'fault-codes'],
 ];
 @Component({
   selector: 'app-workspace',
   imports: [
     DatePipe,
+    HlmToasterImports,
     RouterLink,
     RouterLinkActive,
     FormsModule,
@@ -109,7 +113,8 @@ export const areas = [
       lucideArrowUpRight,
     }),
   ],
-  template: ` <a hlmBtn class="sr-only focus:not-sr-only focus:fixed focus:z-50" href="#main"
+  template: ` <hlm-toaster />
+    <a hlmBtn class="sr-only focus:not-sr-only focus:fixed focus:z-50" href="#main"
       >Skip to workspace</a
     >
     <div hlmSidebarWrapper>
@@ -201,7 +206,11 @@ export const areas = [
             </ng-template>
           }
         </header>
-        <div class="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 p-4 md:p-8">
+        <div
+          class="mx-auto flex w-full flex-1 flex-col gap-6 p-4 md:p-8"
+          [class.max-w-6xl]="group() !== 'Incidents'"
+          [class.max-w-7xl]="group() === 'Incidents'"
+        >
           <div class="space-y-2">
             <div class="flex items-center gap-3">
               <h1 class="text-2xl font-semibold tracking-tight">{{ group() }}</h1>
@@ -239,7 +248,7 @@ export const areas = [
               <button hlmBtn class="w-fit" (click)="login()">Sign in with Microsoft</button>
             </section>
           } @else {
-            @if ((group() === 'Vehicles' || group() === 'Drivers') && !fleetEditing()) {
+            @if (group() === 'Vehicles' || group() === 'Drivers') {
               <section hlmCard class="gap-4 p-6" [attr.aria-label]="group() + ' list'">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                   <h2 hlmCardTitle>
@@ -278,6 +287,7 @@ export const areas = [
                           }
                           @if (fleetIsVehicles()) {
                             <th hlmTh>Status</th>
+                            <th hlmTh>Fault code</th>
                             <th hlmTh>Actions</th>
                           }
                         </tr>
@@ -331,10 +341,32 @@ export const areas = [
                             @if (fleetIsVehicles()) {
                               <td hlmTd>{{ row.active ? 'Active' : 'Inactive' }}</td>
                               <td hlmTd>
+                                <label class="sr-only" [for]="'fault-code-' + row.id"
+                                  >Fault code for {{ vehicleName(row) }} —
+                                  {{ driverName(row.drivers[0] || {}) }}</label
+                                >
+                                <hlm-native-select
+                                  [selectId]="'fault-code-' + row.id"
+                                  selectClass="min-w-52"
+                                  [ngModel]="selectedFaults()[row.id] || ''"
+                                  (ngModelChange)="selectVehicleFault(row.id, $event)"
+                                  [disabled]="
+                                    dispatching()[row.id] || !row.active || !canDispatch()
+                                  "
+                                >
+                                  <option value="">Select fault code</option>
+                                  @for (fault of vehicleFaultCodes(row); track fault.code) {
+                                    <option [value]="fault.code">{{ fault.code }}</option>
+                                  }
+                                </hlm-native-select>
+                              </td>
+                              <td hlmTd>
                                 <button
                                   hlmBtn
                                   variant="outline"
                                   [disabled]="
+                                    !selectedFaults()[row.id] ||
+                                    dispatching()[row.id] ||
                                     !row.active ||
                                     !canDispatch() ||
                                     row.associationError ||
@@ -342,7 +374,7 @@ export const areas = [
                                   "
                                   (click)="dispatchFault(row)"
                                 >
-                                  Dispatch fault code
+                                  {{ dispatching()[row.id] ? 'Dispatching…' : 'Dispatch' }}
                                 </button>
                               </td>
                             }
@@ -457,7 +489,8 @@ export const areas = [
                               </button>
                               <a
                                 hlmBtn
-                                variant="ghost"
+                                variant="outline"
+                                size="sm"
                                 routerLink="/admin/notifications"
                                 [queryParams]="{ incidentId: incident.id }"
                                 >Notifications</a
@@ -628,6 +661,37 @@ export const areas = [
                   </button>
                 </div>
               </section>
+            } @else if (group() === 'Fault codes') {
+              <section hlmCard class="gap-4 p-6" aria-label="Fault codes">
+                <h2 hlmCardTitle>Fault codes</h2>
+                <p hlmCardDescription>{{ faultCodeScope() }}</p>
+                <div hlmTableContainer>
+                  <table hlmTable>
+                    <thead hlmTHead>
+                      <tr hlmTr>
+                        <th hlmTh>Code</th>
+                        <th hlmTh>System</th>
+                        <th hlmTh>Vehicles</th>
+                        <th hlmTh>Meaning</th>
+                      </tr>
+                    </thead>
+                    <tbody hlmTBody>
+                      @for (row of faultCodeRows(); track row.code) {
+                        <tr hlmTr>
+                          <td hlmTd>{{ row.code }}</td>
+                          <td hlmTd>{{ row.system }}</td>
+                          <td hlmTd>{{ row.vehicles.join(', ') }}</td>
+                          <td hlmTd class="whitespace-normal">{{ row.description }}</td>
+                        </tr>
+                      } @empty {
+                        <tr hlmTr>
+                          <td hlmTd colspan="4">No fault codes.</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </section>
             } @else if (group() === 'Ontology') {
               <section hlmCard class="gap-4 p-6" aria-label="Fault code ontology">
                 <div class="space-y-2">
@@ -712,11 +776,6 @@ export const areas = [
                 </div>
               </section>
             } @else {
-              @if (group() === 'Vehicles' || group() === 'Drivers') {
-                <button hlmBtn variant="outline" class="w-fit" (click)="reloadFleet()">
-                  Back to {{ group().toLowerCase() }}
-                </button>
-              }
               @if (group() === 'Incidents') {
                 <button hlmBtn variant="outline" class="w-fit" (click)="reloadIncidents()">
                   Back to incidents
@@ -748,27 +807,6 @@ export const areas = [
                   <form (ngSubmit)="execute()" class="grid max-w-3xl gap-5">
                     <app-fields [schema]="parameterSchema()" [model]="parameters" prefix="params" />
                     @if (action.body) {
-                      @if (group() === 'Vehicles' && action.id === 'CreateIncident') {
-                        <p>
-                          Dispatch a fault event for <strong>{{ dispatchVehicle() }}</strong
-                          >. This submits an event; it does not confirm email delivery.
-                        </p>
-                        <div hlmField>
-                          <label hlmFieldLabel for="dispatch-driver">Driver *</label
-                          ><hlm-native-select
-                            selectId="dispatch-driver"
-                            [(ngModel)]="body.driverId"
-                            name="dispatchDriver"
-                          >
-                            <option value="">Select an associated driver</option>
-                            @for (driver of dispatchDrivers(); track driver.id) {
-                              <option [value]="driver.id">
-                                {{ driverName(driver) }}
-                              </option>
-                            }
-                          </hlm-native-select>
-                        </div>
-                      }
                       <app-fields [schema]="bodyFields(action)" [model]="body" prefix="body" />
                     }
                     @if (action.headers.includes('If-Match')) {
@@ -906,6 +944,8 @@ export class Workspace {
   private api = inject(Api);
   areas = areas;
   incidentReview = signal(false);
+  faultCodeRows = signal<any[]>([]);
+  faultCodeScope = signal('');
   ontologyRows = signal<any[]>([]);
   ontologyError = signal('');
   ontologyQuery = signal('');
@@ -924,6 +964,7 @@ export class Workspace {
     'lucideBell',
     'lucideUsers',
     'lucideNetwork',
+    'lucideWrench',
   ];
   incidentFilter = signal('');
   fleetFilter = signal('');
@@ -934,9 +975,9 @@ export class Workspace {
   notificationPage = signal(1);
   notificationTotal = signal(0);
   notificationDriver = signal('');
-  fleetEditing = signal(false);
-  dispatchDrivers = signal<any[]>([]);
-  dispatchVehicle = signal('');
+  selectedFaults = signal<Record<string, string>>({});
+  dispatching = signal<Record<string, boolean>>({});
+  private dispatchKeys = new Map<string, { code: string; key: string }>();
   fleetRows = signal<any[]>([]);
   fleetPage = signal(1);
   fleetTotal = signal(0);
@@ -949,10 +990,14 @@ export class Workspace {
   group = computed(() => areas.find((a) => a[1] === this.routeArea())?.[0] ?? 'Incidents');
   actions = computed(() =>
     this.group() === 'Vehicles'
-      ? ops.filter((o) => o.id === 'CreateIncident')
+      ? ops.filter((o) => o.id === 'DispatchVehicleFault')
       : this.group() === 'Drivers'
         ? []
-        : ops.filter((o) => o.group === this.group() && o.id !== 'CreateIncident'),
+        : ops.filter(
+            (o) =>
+              o.group === this.group() &&
+              !['CreateIncident', 'DispatchVehicleFault'].includes(o.id),
+          ),
   );
   op = signal<Operation | undefined>(undefined);
   permissions = signal<string[]>([]);
@@ -984,9 +1029,9 @@ export class Workspace {
       this.reset();
       this.ontologyQuery.set('');
       this.incidentReview.set(false);
-      this.fleetEditing.set(false);
+
       this.fleetRows.set([]);
-      const a = this.group() === 'Ontology' ? [] : this.actions();
+      const a = ['Ontology', 'Fault codes'].includes(this.group()) ? [] : this.actions();
       this.choose(
         a.find((o) => o.method === 'GET' && !o.parameters.some((p) => p.where === 'path')) ?? a[0],
       );
@@ -1010,6 +1055,12 @@ export class Workspace {
           !this.permissionsLoading()
         )
           void this.reloadOntology();
+        if (
+          this.group() === 'Fault codes' &&
+          this.auth.state() === 'signed-in' &&
+          !this.permissionsLoading()
+        )
+          void this.reloadFaultCodes();
         if (
           this.group() === 'Notifications' &&
           this.auth.state() === 'signed-in' &&
@@ -1037,12 +1088,13 @@ export class Workspace {
     return (
       {
         Incidents:
-          'Investigate vehicle-reported fault codes that were not found in the approved fault catalog.',
+          'Review vehicle fault incidents and their investigation and notification status.',
         Vehicles: 'View vehicles, their drivers and dispatch fault codes.',
         Drivers: 'View drivers and their email addresses.',
         Engineering: 'Track escalations, evidence and approved resolutions.',
         Notifications: 'Review recorded notification history and delivery status.',
         Documents: 'Manage approved technical documents and search grounded evidence.',
+        'Fault codes': 'Browse steering fault codes for the Silverado and Sierra test fleet.',
         Ontology: 'Browse the fault-code model and its connections to operational records.',
         'Fault definitions': 'Maintain fault knowledge and engineering publication.',
         'Agent activity': 'Inspect recorded advisory and investigation activity.',
@@ -1068,6 +1120,8 @@ export class Workspace {
         void this.reloadUsers();
       if (this.group() === 'Ontology' && this.auth.state() === 'signed-in')
         void this.reloadOntology();
+      if (this.group() === 'Fault codes' && this.auth.state() === 'signed-in')
+        void this.reloadFaultCodes();
       if (this.group() === 'Notifications' && this.auth.state() === 'signed-in')
         void this.reloadNotifications();
       if (['Vehicles', 'Drivers'].includes(this.group()) && this.auth.state() === 'signed-in')
@@ -1086,47 +1140,73 @@ export class Workspace {
       : vehicle.identifier;
   }
   bodyFields(action: Operation): Schema {
-    if (this.group() !== 'Vehicles' || action.id !== 'CreateIncident') return action.body!;
+    if (this.group() !== 'Vehicles' || action.id !== 'DispatchVehicleFault') return action.body!;
     return {
       ...action.body!,
       properties: Object.fromEntries(
-        Object.entries(action.body?.properties ?? {}).filter(
-          ([key]) => !['vehicleId', 'driverId'].includes(key),
-        ),
+        Object.entries(action.body?.properties ?? {}).filter(([key]) => key !== 'vehicleId'),
       ),
-      required: action.body?.required?.filter((key) => !['vehicleId', 'driverId'].includes(key)),
+      required: action.body?.required?.filter((key) => key !== 'vehicleId'),
     };
   }
   canDispatch() {
-    const operation = ops.find((o) => o.id === 'CreateIncident');
+    const operation = ops.find((o) => o.id === 'DispatchVehicleFault');
     return !!operation && this.allowed(operation);
   }
-  dispatchFault(vehicle: any) {
+  vehicleFaultCodes(vehicle: any) {
+    return this.faultCodeRows().filter(
+      (f) => f.system === vehicle.system && f.vehicles.includes(this.vehicleName(vehicle)),
+    );
+  }
+  selectVehicleFault(id: string, code: string) {
+    if (this.dispatching()[id]) return;
+    this.selectedFaults.update((values) => ({ ...values, [id]: code }));
+    if (this.dispatchKeys.get(id)?.code !== code) this.dispatchKeys.delete(id);
+  }
+  async dispatchFault(vehicle: any) {
+    const code = this.selectedFaults()[vehicle.id];
     if (
+      !code ||
+      this.dispatching()[vehicle.id] ||
       !vehicle.active ||
       !this.canDispatch() ||
       vehicle.associationError ||
-      !vehicle.drivers?.length
+      vehicle.drivers?.length !== 1 ||
+      !this.vehicleFaultCodes(vehicle).some((f) => f.code === code)
     )
       return;
-    this.reset();
-    this.fleetEditing.set(true);
-    this.choose(ops.find((o) => o.id === 'CreateIncident'));
-    this.dispatchDrivers.set(vehicle.drivers);
-    this.dispatchVehicle.set(this.vehicleName(vehicle));
-    this.body = {
-      ...this.body,
-      vehicleId: vehicle.id,
-      driverId: vehicle.drivers.length === 1 ? vehicle.drivers[0].id : '',
-      system: vehicle.system,
-      sourceEventId: crypto.randomUUID(),
-      occurredAt: new Date().toISOString(),
-    };
+    const operation = ops.find((o) => o.id === 'DispatchVehicleFault')!;
+    let replay = this.dispatchKeys.get(vehicle.id);
+    if (!replay || replay.code !== code) {
+      replay = { code, key: crypto.randomUUID() };
+      this.dispatchKeys.set(vehicle.id, replay);
+    }
+    this.dispatching.update((values) => ({ ...values, [vehicle.id]: true }));
+    try {
+      const result = await this.api.request(
+        operation.path,
+        'POST',
+        { vehicleId: vehicle.id, code },
+        { 'Idempotency-Key': replay.key },
+      );
+      if (!result.data.incidentId || !result.data.notificationId)
+        throw new Error('Missing dispatch receipt');
+      toast.success('Dispatched');
+      this.dispatchKeys.delete(vehicle.id);
+    } catch (error) {
+      const message =
+        error instanceof ApiError && error.status === 403
+          ? 'Dispatch access denied.'
+          : 'Dispatch was not confirmed. Retry to check the same request.';
+      toast.error(message);
+    } finally {
+      this.dispatching.update((values) => ({ ...values, [vehicle.id]: false }));
+    }
   }
   async reloadFleet(page = 1) {
     if (this.auth.state() !== 'signed-in' || this.permissionsLoading()) return;
     this.reset();
-    this.fleetEditing.set(false);
+
     this.fleetRows.set([]);
     const vehicles = this.fleetIsVehicles();
     const operation = ops.find((o) => o.id === (vehicles ? 'ListVehicles' : 'ListDrivers'))!;
@@ -1138,6 +1218,7 @@ export class Workspace {
     const epoch = ++this.epoch;
     this.busy.set(true);
     try {
+      if (vehicles) await this.reloadFaultCodes();
       const filter = this.fleetFilter();
       const result = filter
         ? {
@@ -1224,6 +1305,19 @@ export class Workspace {
       if (epoch === this.epoch) this.busy.set(false);
     }
   }
+  async reloadFaultCodes() {
+    const epoch = this.epoch;
+    this.faultCodeRows.set([]);
+    try {
+      const result = await this.api.request('/api/v1/fault-code-catalog');
+      if (epoch === this.epoch && this.auth.state() === 'signed-in') {
+        this.faultCodeRows.set(result.data.items ?? []);
+        this.faultCodeScope.set(result.data.scope ?? '');
+      }
+    } catch (error) {
+      if (epoch === this.epoch) this.fail(error);
+    }
+  }
   async reloadOntology() {
     const epoch = this.epoch;
     this.ontologyRows.set([]);
@@ -1268,7 +1362,7 @@ export class Workspace {
     this.incidentReview.set(false);
     this.reset();
     this.choose(ops.find((o) => o.id === 'ListIncidents'));
-    this.parameters = { page, pageSize: 20, unmatchedOnly: true };
+    this.parameters = { page, pageSize: 20 };
     if (this.incidentAllowed()) await this.execute();
   }
   async reviewIncident(record: any) {

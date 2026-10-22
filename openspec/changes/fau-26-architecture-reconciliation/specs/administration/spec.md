@@ -96,3 +96,26 @@ The signed-in header SHALL use Spartan Avatar and Dropdown Menu for the account 
 #### Scenario: Avatar sign out
 - **WHEN** a signed-in user opens their avatar menu
 - **THEN** their account name and Sign out appear, and selecting Sign out follows the real MSAL logout flow
+
+### Requirement: Read-only fleet fault-code catalog
+The workspace SHALL place Fault codes immediately below Ontology and expose a read-only API-backed table of the steering demonstration codes associated with the Silverado and Sierra test fleet. The catalog SHALL identify demonstration scope without claiming verified manufacturer diagnostic codes or approved vehicle compatibility.
+
+#### Scenario: Browse the fault-code catalog
+- **WHEN** an authenticated caller with knowledge.read opens Fault codes
+- **THEN** the API returns the persisted tenant definitions seeded from the demonstration manifest with code, system, meaning and test vehicle names
+- **AND** the workspace renders those records in a Spartan table without creation or editing controls
+
+### Requirement: Inline vehicle dispatch with durable fault seed
+The Vehicles table SHALL provide a fault-code select immediately after Status and a Dispatch button. Codes SHALL come from the tenant SQL catalog and match the row system. Dispatch SHALL remain disabled until a code is selected and SHALL call the two-field dispatch endpoint without a secondary form. Retries of an unconfirmed identical submission SHALL reuse the idempotency key.
+
+#### Scenario: Dispatch from the vehicle row
+- **WHEN** the user selects a catalog code and clicks Dispatch
+- **THEN** the client sends only vehicleId and code with an idempotency key
+- **AND** an accepted response identifies both incident and notification without claiming delivery
+- **AND** the row selection remains unchanged and a Spartan toast confirms dispatch
+
+#### Scenario: Seed fault definitions explicitly
+- **WHEN** the operator runs seed-demo-faults against the dedicated SQL database
+- **THEN** all nine demonstration definitions persist with audit records and no approved remedies
+- **AND** repeating the command preserves existing definitions without duplicates
+- **AND** the catalog API reads those persisted tenant records rather than a static fallback

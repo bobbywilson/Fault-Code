@@ -87,6 +87,7 @@ builder.Services.AddScoped<FaultCode.Application.Ontology.OntologyService>();
 builder.Services.AddScoped<FaultCode.Application.Knowledge.KnowledgeService>();
 builder.Services.AddSingleton<FaultCode.Application.Incidents.IIncidentStore, UnavailableIncidentStore>();
 builder.Services.AddScoped<FaultCode.Application.Incidents.IncidentService>();
+builder.Services.AddScoped<FaultCode.Application.Incidents.VehicleFaultDispatchService>();
 
 builder.Services.AddSingleton<FaultCode.Application.Retrieval.IDocumentStore, UnavailableDocumentStore>();
 builder.Services.AddScoped<FaultCode.Application.Retrieval.RetrievalService>();
@@ -159,6 +160,20 @@ builder.Services.AddHttpClient<QdrantReadinessCheck>()
     .RemoveAllLoggers();
 builder.Services.AddHealthChecks().AddCheck<QdrantReadinessCheck>("qdrant", tags: ["ready"]);
 
+// All canonical workflow adapters share the fleet transaction and SQL tenant lock.
+if (!string.IsNullOrWhiteSpace(fleetConnection))
+{
+    builder.Services.AddSingleton<SqlServerWorkflowStore>();
+    builder.Services.AddSingleton<FaultCode.Application.Fleet.IFleetStore>(s => s.GetRequiredService<SqlServerWorkflowStore>());
+    builder.Services.AddSingleton<FaultCode.Application.Incidents.IIncidentStore>(s => s.GetRequiredService<SqlServerWorkflowStore>());
+    builder.Services.AddSingleton<FaultCode.Application.Knowledge.IKnowledgeStore>(s => s.GetRequiredService<SqlServerWorkflowStore>());
+    builder.Services.AddSingleton<FaultCode.Application.Ontology.IOntologyStore>(s => s.GetRequiredService<SqlServerWorkflowStore>());
+    builder.Services.AddSingleton<FaultCode.Application.Retrieval.IDocumentStore>(s => s.GetRequiredService<SqlServerWorkflowStore>());
+    builder.Services.AddSingleton<FaultCode.Application.Investigations.IInvestigationStore>(s => s.GetRequiredService<SqlServerWorkflowStore>());
+    builder.Services.AddSingleton<FaultCode.Application.Escalations.IEscalationStore>(s => s.GetRequiredService<SqlServerWorkflowStore>());
+    builder.Services.AddSingleton<FaultCode.Application.Notifications.INotificationStore>(s => s.GetRequiredService<SqlServerWorkflowStore>());
+}
+
 var app = builder.Build();
 // Explicit local/operator command only. Never migrates or seeds automatically during serving startup.
 var databaseCommand = builder.Configuration["Database:Command"];
@@ -181,6 +196,15 @@ if (!string.IsNullOrWhiteSpace(databaseCommand))
                 Guid.NewGuid().ToString("D"), true, false, true, false);
             await new FaultCode.Application.Demo.DemoFleetSeeder(scope.ServiceProvider.GetRequiredService<FaultCode.Application.Fleet.FleetService>())
                 .SeedAsync(caller, default);
+        }
+        else if (databaseCommand == "seed-demo-faults")
+        {
+            using var scope = app.Services.CreateScope();
+            var caller = new FaultCode.Application.Knowledge.KnowledgeCaller(builder.Configuration["Entra:TenantId"] ?? "",
+                builder.Configuration["Database:SeedActorId"] ?? "", builder.Configuration["Database:SeedClientId"] ?? "", Guid.NewGuid().ToString("D"));
+            using var manifest = typeof(FaultCode.Api.Controllers.FaultCodeCatalogController).Assembly.GetManifestResourceStream("FaultCode.DemoFaultCatalog.json")!;
+            var count = await new FaultCode.Application.Demo.DemoFaultSeeder(scope.ServiceProvider.GetRequiredService<FaultCode.Application.Knowledge.IKnowledgeStore>(), TimeProvider.System).SeedAsync(caller, manifest, default);
+            Console.WriteLine($"Seeded {count} fault-code definitions; existing records preserved. Remedies remain unapproved.");
         }
         else throw new InvalidOperationException();
         Console.WriteLine("Explicit database command completed. No web server was started.");

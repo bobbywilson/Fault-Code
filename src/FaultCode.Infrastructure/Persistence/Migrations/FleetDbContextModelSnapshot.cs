@@ -213,6 +213,76 @@ namespace FaultCode.Infrastructure.Persistence.Migrations
                     b.ToTable("FleetReplays", (string)null);
                 });
 
+            modelBuilder.Entity("FaultCode.Infrastructure.Persistence.WorkflowRecord", b =>
+                {
+                    b.Property<string>("TenantId")
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("Kind")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("Key")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<Guid?>("DriverId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ParentKey")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("ParentKind")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SchemaVersion")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SourceClientId")
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("SourceEventId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid?>("VehicleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.HasKey("TenantId", "Kind", "Key");
+
+                    b.HasIndex("TenantId", "DriverId");
+
+                    b.HasIndex("TenantId", "VehicleId");
+
+                    b.HasIndex("TenantId", "Kind", "Position");
+
+                    b.HasIndex("TenantId", "ParentKind", "ParentKey");
+
+                    b.HasIndex("TenantId", "SourceClientId", "SourceEventId")
+                        .IsUnique()
+                        .HasFilter("[Kind] = 'incident' AND [SourceClientId] IS NOT NULL AND [SourceEventId] IS NOT NULL");
+
+                    b.ToTable("WorkflowRecords", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_WorkflowRecord_Json", "ISJSON([Payload]) = 1");
+                        });
+                });
+
             modelBuilder.Entity("FaultCode.Infrastructure.Persistence.FleetAssociationRow", b =>
                 {
                     b.HasOne("FaultCode.Domain.Driver", null)
@@ -226,6 +296,24 @@ namespace FaultCode.Infrastructure.Persistence.Migrations
                         .HasForeignKey("TenantId", "VehicleId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("FaultCode.Infrastructure.Persistence.WorkflowRecord", b =>
+                {
+                    b.HasOne("FaultCode.Domain.Driver", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "DriverId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("FaultCode.Domain.Vehicle", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "VehicleId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("FaultCode.Infrastructure.Persistence.WorkflowRecord", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "ParentKind", "ParentKey")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 #pragma warning restore 612, 618
         }

@@ -11,8 +11,22 @@ public sealed class FleetDbContext(DbContextOptions<FleetDbContext> options) : D
     public DbSet<FleetAssociationRow> Associations => Set<FleetAssociationRow>();
     public DbSet<FleetAuditRow> Audit => Set<FleetAuditRow>();
     public DbSet<FleetReplayRow> Replays => Set<FleetReplayRow>();
+    public DbSet<WorkflowRecord> WorkflowRecords => Set<WorkflowRecord>();
     protected override void OnModelCreating(ModelBuilder model)
     {
+        var workflow = model.Entity<WorkflowRecord>();
+        workflow.ToTable("WorkflowRecords", table => table.HasCheckConstraint("CK_WorkflowRecord_Json", "ISJSON([Payload]) = 1"));
+        workflow.HasKey(x => new { x.TenantId, x.Kind, x.Key });
+        workflow.Property(x => x.TenantId).HasMaxLength(36); workflow.Property(x => x.Kind).HasMaxLength(40);
+        workflow.Property(x => x.Key).HasMaxLength(64); workflow.Property(x => x.ParentKind).HasMaxLength(40);
+        workflow.Property(x => x.ParentKey).HasMaxLength(64); workflow.Property(x => x.SourceClientId).HasMaxLength(36);
+        workflow.Property(x => x.SourceEventId).HasMaxLength(100); workflow.Property(x => x.Version).IsConcurrencyToken();
+        workflow.HasIndex(x => new { x.TenantId, x.Kind, x.Position });
+        workflow.HasIndex(x => new { x.TenantId, x.SourceClientId, x.SourceEventId }).IsUnique()
+            .HasFilter("[Kind] = 'incident' AND [SourceClientId] IS NOT NULL AND [SourceEventId] IS NOT NULL");
+        workflow.HasOne<Vehicle>().WithMany().HasForeignKey(x => new { x.TenantId, x.VehicleId }).OnDelete(DeleteBehavior.Restrict);
+        workflow.HasOne<Driver>().WithMany().HasForeignKey(x => new { x.TenantId, x.DriverId }).OnDelete(DeleteBehavior.Restrict);
+        workflow.HasOne<WorkflowRecord>().WithMany().HasForeignKey(x => new { x.TenantId, x.ParentKind, x.ParentKey }).OnDelete(DeleteBehavior.Restrict);
         var drivers = model.Entity<Driver>(); drivers.ToTable("Drivers"); drivers.HasKey(x => new { x.TenantId, x.Id });
         drivers.Property(x => x.TenantId).HasMaxLength(36); drivers.Property(x => x.Identifier).HasMaxLength(40);
         drivers.Property(x => x.OwnerObjectId).HasMaxLength(36); drivers.Property(x => x.DisplayName).HasMaxLength(100);
@@ -72,4 +86,23 @@ public sealed class FleetDbContextFactory : IDesignTimeDbContextFactory<FleetDbC
     public FleetDbContext CreateDbContext(string[] args) => new(new DbContextOptionsBuilder<FleetDbContext>()
         .UseSqlServer(Environment.GetEnvironmentVariable("ConnectionStrings__FaultCode")
             ?? "Server=localhost;Database=FaultCode;Integrated Security=true;Encrypt=true").Options);
+}
+
+// One versioned typed aggregate or journal entry per row; immutable evidence/history remains in its JSON document.
+// Relational keys enforce tenant, source replay, fleet references and notification -> incident integrity.
+public sealed class WorkflowRecord
+{
+    public string TenantId { get; set; } = "";
+    public string Kind { get; set; } = "";
+    public string Key { get; set; } = "";
+    public int Position { get; set; }
+    public int SchemaVersion { get; set; } = 1;
+    public long Version { get; set; }
+    public string Payload { get; set; } = "";
+    public Guid? VehicleId { get; set; }
+    public Guid? DriverId { get; set; }
+    public string? ParentKind { get; set; }
+    public string? ParentKey { get; set; }
+    public string? SourceClientId { get; set; }
+    public string? SourceEventId { get; set; }
 }

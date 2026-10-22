@@ -9989,6 +9989,76 @@
         "security": [ ]
       }
     },
+    "/api/v1/fault-code-catalog": {
+      "get": {
+        "tags": [
+          "FaultCodeCatalog"
+        ],
+        "summary": "List Demo Fault Codes",
+        "description": " Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either.",
+        "operationId": "ListDemoFaultCodes",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoFaultCodeCatalog"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoFaultCodeCatalog"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoFaultCodeCatalog"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "EntraBearer": [ ]
+          }
+        ],
+        "x-faultcode-required-policies": [
+          "knowledge.read"
+        ],
+        "x-faultcode-permission": "knowledge.read",
+        "x-delegated-scopes": [
+          "knowledge.read"
+        ],
+        "x-human-roles": [
+          "Reader",
+          "Operator",
+          "Engineer",
+          "Administrator"
+        ],
+        "x-application-roles": [
+          "Knowledge.Read.All"
+        ],
+        "x-faultcode-policy-requirements": [
+          {
+            "policy": "knowledge.read",
+            "anyOf": [
+              {
+                "scope": "knowledge.read",
+                "humanRoles": [
+                  "Reader",
+                  "Operator",
+                  "Engineer",
+                  "Administrator"
+                ],
+                "applicationRole": "Knowledge.Read.All"
+              }
+            ]
+          }
+        ]
+      }
+    },
     "/api/v1/faults": {
       "get": {
         "tags": [
@@ -21819,6 +21889,223 @@
         ]
       }
     },
+    "/api/v1/vehicle-fault-dispatches": {
+      "post": {
+        "tags": [
+          "VehicleFaultDispatch"
+        ],
+        "summary": "Dispatch Vehicle Fault",
+        "description": " Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required.",
+        "operationId": "DispatchVehicleFault",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DispatchVehicleFaultRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DispatchVehicleFaultRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/DispatchVehicleFaultRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaultDispatchReceipt"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaultDispatchReceipt"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaultDispatchReceipt"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "EntraBearer": [ ]
+          }
+        ],
+        "x-faultcode-required-policies": [
+          "faults.write",
+          "vehicles.access.read",
+          "drivers.access.read"
+        ],
+        "x-faultcode-permission": "faults.write AND vehicles.access.read AND drivers.access.read",
+        "x-delegated-scopes": [
+          "faults.write",
+          "vehicles.read",
+          "drivers.read",
+          "vehicles.read.own",
+          "drivers.read.own"
+        ],
+        "x-human-roles": [
+          "Operator"
+        ],
+        "x-application-roles": [
+          "Faults.Write.All",
+          "Vehicles.Read.All",
+          "Drivers.Read.All"
+        ],
+        "x-faultcode-policy-requirements": [
+          {
+            "policy": "faults.write",
+            "anyOf": [
+              {
+                "scope": "faults.write",
+                "humanRoles": [
+                  "Operator"
+                ],
+                "applicationRole": "Faults.Write.All"
+              }
+            ]
+          },
+          {
+            "policy": "vehicles.access.read",
+            "anyOf": [
+              {
+                "scope": "vehicles.read",
+                "humanRoles": [
+                  "Reader",
+                  "Operator",
+                  "Engineer",
+                  "Administrator"
+                ],
+                "applicationRole": "Vehicles.Read.All"
+              },
+              {
+                "scope": "vehicles.read.own",
+                "humanRoles": [
+                  "Reader",
+                  "Driver"
+                ],
+                "applicationRole": null
+              }
+            ]
+          },
+          {
+            "policy": "drivers.access.read",
+            "anyOf": [
+              {
+                "scope": "drivers.read",
+                "humanRoles": [
+                  "Reader",
+                  "Operator",
+                  "Engineer",
+                  "Administrator"
+                ],
+                "applicationRole": "Drivers.Read.All"
+              },
+              {
+                "scope": "drivers.read.own",
+                "humanRoles": [
+                  "Reader",
+                  "Driver"
+                ],
+                "applicationRole": null
+              }
+            ]
+          }
+        ]
+      }
+    },
     "/api/v1/vehicles": {
       "get": {
         "tags": [
@@ -24641,6 +24928,67 @@
         },
         "additionalProperties": false
       },
+      "DemoFaultCodeCatalog": {
+        "required": [
+          "scope",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "scope": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DemoFaultCodeRow"
+            }
+          }
+        }
+      },
+      "DemoFaultCodeRow": {
+        "required": [
+          "code",
+          "system",
+          "description",
+          "vehicles"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "system": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "vehicles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "DispatchVehicleFaultRequest": {
+        "required": [
+          "vehicleId",
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "DocumentContentRequest": {
         "required": [
           "title",
@@ -25641,6 +25989,27 @@
           }
         },
         "additionalProperties": false
+      },
+      "FaultDispatchReceipt": {
+        "required": [
+          "incidentId",
+          "notificationId",
+          "state"
+        ],
+        "type": "object",
+        "properties": {
+          "incidentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "notificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "state": {
+            "type": "string"
+          }
+        }
       },
       "FaultResponse": {
         "required": [
@@ -27945,6 +28314,9 @@
       "name": "Examples"
     },
     {
+      "name": "FaultCodeCatalog"
+    },
+    {
       "name": "Faults"
     },
     {
@@ -27967,6 +28339,9 @@
     },
     {
       "name": "OperationalHealth"
+    },
+    {
+      "name": "VehicleFaultDispatch"
     },
     {
       "name": "Vehicles"

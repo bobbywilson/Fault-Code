@@ -140,3 +140,17 @@
 !src/FaultCode.Api/Configuration/NotificationOptions.cs
 
 !src/FaultCode.Application/Ontology/DomainOntology.cs
+
+!src/FaultCode.Application/Incidents/VehicleFaultDispatchService.cs
+!src/FaultCode.Api/Controllers/VehicleFaultDispatchController.cs
+
+!src/FaultCode.Infrastructure/Persistence/WorkflowCodec.cs
+!src/FaultCode.Infrastructure/Persistence/SqlServerWorkflowStore.cs
+!src/FaultCode.Infrastructure/Persistence/Migrations/20261022015435_PersistWorkflow.Designer.cs
+!src/FaultCode.Infrastructure/Persistence/Migrations/20261022015435_PersistWorkflow.cs
+!src/FaultCode.Api/Controllers/FaultCodeCatalogController.cs
+!data/
+!data/demo/
+!data/demo/steering-faults.json
+
+!src/FaultCode.Application/Demo/DemoFaultSeeder.cs

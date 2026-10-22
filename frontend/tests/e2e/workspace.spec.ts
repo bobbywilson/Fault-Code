@@ -256,7 +256,7 @@ test('ontology opens a read-only fault-code relationship table with search and p
   await expect(page.getByRole('heading', { name: 'Vehicles', exact: true })).toBeVisible();
 });
 
-test('Incidents automatically lists unmatched vehicle reports and preserves unavailable, empty and review states', async ({
+test('Incidents automatically lists vehicle reports and preserves unavailable, empty and review states', async ({
   page,
 }) => {
   await setup(page);
@@ -307,7 +307,7 @@ test('Incidents automatically lists unmatched vehicle reports and preserves unav
       path: process.env['FAULTCODE_QA_DIR'] + '/incidents-table-test-fixture.png',
       fullPage: true,
     });
-  expect(new URL(requested).searchParams.get('unmatchedOnly')).toBe('true');
+  expect(new URL(requested).searchParams.has('unmatchedOnly')).toBe(false);
   await expect(page.getByLabel('Action', { exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Create Incident', exact: true })).toHaveCount(0);
   {
@@ -372,6 +372,27 @@ test('vehicle and driver lists show associations and email and dispatch the sele
   await page.route('**/api/v1/drivers?**', (r) =>
     r.fulfill({ json: { items: [driver], page: 1, pageSize: 20, totalCount: 1 } }),
   );
+  await page.route('**/api/v1/fault-code-catalog', (r) =>
+    r.fulfill({
+      json: {
+        scope: 'Test catalog',
+        items: [
+          {
+            code: 'SYN-EPS:ASSIST-SIGNAL',
+            system: 'EPS',
+            vehicles: ['Chevrolet Silverado', 'GMC Sierra'],
+            description: 'Assist signal',
+          },
+          {
+            code: 'SYN-SBW:LINK-TIMING',
+            system: 'steer-by-wire',
+            vehicles: ['Chevrolet Silverado'],
+            description: 'Other system',
+          },
+        ],
+      },
+    }),
+  );
   await page.goto('/admin/vehicles');
   const table = page.getByRole('table', { name: 'Vehicles records' });
   await expect(table).toContainText('Chevrolet Silverado');
@@ -396,32 +417,40 @@ test('vehicle and driver lists show associations and email and dispatch the sele
         .getByRole('navigation', { name: 'Administration' })
         .getByRole('link', { name, exact: true }),
     ).toHaveCount(0);
-  await page.getByRole('button', { name: 'Dispatch fault code', exact: true }).click();
-  await expect(page.getByLabel('Driver *', { exact: true })).toHaveValue(driverId);
-  await page.locator('#body-code').fill('SYN-EPS-001');
-  await page.locator('#body-model').fill('SYN-SILVERADO');
-  await page.locator('#body-softwareVersion').fill('SYN-1');
+  const dispatch = table.getByRole('button', { name: 'Dispatch', exact: true });
+  const select = table.getByRole('combobox');
+  await expect(dispatch).toBeDisabled();
+  await expect(select.locator('option')).toHaveCount(2);
+  await select.selectOption('SYN-EPS:ASSIST-SIGNAL');
+  await expect(dispatch).toBeEnabled();
   const replayKeys: string[] = [];
-  await page.route('**/api/v1/incidents', (r) => {
+  await page.route('**/api/v1/vehicle-fault-dispatches', (r) => {
     replayKeys.push(r.request().headers()['idempotency-key']);
     return r.fulfill({ status: 503, json: { status: 503 } });
   });
-  await submit(page);
-  await expect(page.getByRole('alert')).toContainText('unavailable');
-  await submit(page);
+  await dispatch.click();
+  await expect(
+    page.getByText('Dispatch was not confirmed. Retry to check the same request.').first(),
+  ).toBeVisible();
+  await dispatch.click();
   await expect.poll(() => replayKeys.length).toBe(2);
   expect(replayKeys[0]).toBe(replayKeys[1]);
   let request: any;
-  await page.route('**/api/v1/incidents', (r) => {
+  await page.route('**/api/v1/vehicle-fault-dispatches', (r) => {
     request = { body: r.request().postDataJSON(), headers: r.request().headers() };
-    return r.fulfill({ status: 201, json: { id, version: 1 } });
+    return r.fulfill({
+      status: 202,
+      json: { incidentId: id, notificationId: driverId, state: 'Accepted' },
+    });
   });
-  await submit(page);
-  await expect(page.getByRole('status')).toContainText('request completed');
-  expect(request.body.vehicleId).toBe(id);
-  expect(request.body.driverId).toBe(driverId);
-  expect(request.body.code).toBe('SYN-EPS-001');
-  expect(request.headers['idempotency-key']).toBeTruthy();
+  await dispatch.click();
+  await expect(page.getByText('Dispatched', { exact: true })).toBeVisible();
+  expect(request.body).toEqual({ vehicleId: id, code: 'SYN-EPS:ASSIST-SIGNAL' });
+  expect(request.headers['idempotency-key']).toBe(replayKeys[0]);
+  await expect(select).toHaveValue('SYN-EPS:ASSIST-SIGNAL');
+  await expect(dispatch).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Back to vehicles' })).toHaveCount(0);
+  await expect(page.getByText('Workspace actions', { exact: true })).toHaveCount(0);
   await page.goto('/admin/drivers');
   await expect(page.getByRole('table', { name: 'Drivers records' })).toContainText(
     'demo@example.com',

@@ -72,3 +72,10 @@ This replaces earlier local-capacity-blocked status for fleet loading. The local
 
 ### Current seed revision
 The latest idempotent v3 seed upgrades names/emails and ends superseded demo assignments while retaining history: four vehicles, four drivers, four active links, seven retained association intervals and22 audit events. Earlier counts above describe the earlier verification snapshot, not the current seed.
+
+### Durable dispatch and catalog update (2026-10-21)
+The local database now has the PersistWorkflow migration and a shared SQL transaction adapter for fleet, incidents, knowledge, ontology, documents, investigations, engineering and notifications. Each workflow aggregate or journal entry is a schema-versioned typed JSON row; tenant keys, fleet references, source-event uniqueness, notification-to-incident foreign keys and the shared tenant SQL lock protect atomic writes. This is a small demo persistence layout, not a scale benchmark or a claim of fully normalized nested histories. Application access is table DML only, including WorkflowRecords; schema migrations remain separate.
+
+Run `Database:Command=seed-demo-faults` explicitly with `Entra:TenantId`, `Database:SeedActorId`, and `Database:SeedClientId`. The embedded manifest is validated then all nine definitions and their audit entries are committed together. Repeating the command adds zero records and preserves existing edits. The API catalog reads these SQL records. No approved patches, publication, Qdrant indexing, email delivery or external telemetry is fabricated by seeding.
+
+Verified locally: nine fault records and nine seed audits persisted; replay added zero. The real signed-in vehicle dispatch created one incident and one linked notification in SQL. Separate real SQL tests verify seed reconnection, tenant isolation, atomic dispatch replay and callback-failure rollback. Accepted notification state is AwaitingAgent: actual agent/MCP email processing remains unfinished.
