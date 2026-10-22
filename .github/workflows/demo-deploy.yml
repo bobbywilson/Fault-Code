@@ -84,7 +84,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           SOURCE: ${{ needs.gate.outputs.source }}
-        run: test "$(gh api repos/bobbywilson/Fault-Code/git/ref/heads/development --jq .object.sha)" = "$SOURCE"
+        run: |
+          set -euo pipefail
+          current=$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'Accept: application/vnd.github+json' \
+            https://api.github.com/repos/bobbywilson/Fault-Code/git/ref/heads/development | jq -er .object.sha)
+          test "$current" = "$SOURCE"
       - name: Deploy only through restricted receiver
         env:
           DEPLOY_KEY: ${{ secrets.DEMO_SSH_KEY }}
