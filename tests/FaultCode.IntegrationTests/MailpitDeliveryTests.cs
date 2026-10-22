@@ -20,6 +20,8 @@ public sealed class MailpitDeliveryTests
     {
         Assert.True(new NotificationOptions { Provider = "Mailpit" }.Valid);
         Assert.True(new NotificationOptions { Provider = "Mailpit", Endpoint = "http://mailpit:8025/" }.Valid);
+        Assert.True(new NotificationOptions { Provider = "Mailpit", Endpoint = "http://mailpit:8025/mailpit/" }.Valid);
+        Assert.False(new NotificationOptions { Provider = "Mailpit", Endpoint = "http://mailpit:8025/unrelated/" }.Valid);
         Assert.False(new NotificationOptions { Provider = "Mailpit", Endpoint = "http://example.com:8025/" }.Valid);
         Assert.False(new NotificationOptions { Provider = "Mailpit", Endpoint = "http://127.0.0.1:8025/?secret=x" }.Valid);
         Assert.True(MailpitNotificationDelivery.DemoEmail("alex.morgan@example.com"));

@@ -49,7 +49,8 @@ Delegate=yes
 Slice=user-$uid.slice
 LimitNOFILE=1048576
 TasksMax=4096
-ProtectHome=true
+ProtectHome=tmpfs
+BindPaths=/run/user/$uid
 InaccessiblePaths=-/opt -/srv -/var/www -/var/lib/docker -/run/docker.sock
 [Install]
 WantedBy=multi-user.target

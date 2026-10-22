@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Authorization;
 using FaultCode.Api.Authorization;
 using FaultCode.Api.Configuration;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace FaultCode.Api.Identity;
 
@@ -68,6 +69,9 @@ public static class DemoSession
     private const string BrowserRequest = "FaultCode.BrowserSession";
     public static IServiceCollection AddDemoSession(this IServiceCollection services, IConfiguration config, IHostEnvironment env)
     {
+        // Tickets already live only for this process. Keep their encryption keys
+        // in memory too so read-only containers never need a writable home directory.
+        services.AddDataProtection().UseEphemeralDataProtectionProvider();
         services.AddOptions<DemoAccountOptions>().Bind(config.GetSection("DemoAccount")).Validate(o => o.Valid && (!o.Enabled || o.TenantId == config["Entra:TenantId"]), "Invalid demo account configuration.").ValidateOnStart();
         services.AddSingleton<DemoTicketStore>(); services.AddSingleton<DemoLoginLimiter>();
         services.AddOptions<DemoApiTokenOptions>().Bind(config.GetSection("DemoApiToken"))

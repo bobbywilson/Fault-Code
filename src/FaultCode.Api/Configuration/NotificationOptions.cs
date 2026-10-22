@@ -7,5 +7,5 @@ public sealed class NotificationOptions
     public bool Valid => Provider == "Mailpit"
         && Uri.TryCreate(Endpoint, UriKind.Absolute, out var uri)
         && uri.Scheme == "http" && (uri.IsLoopback || uri.Host == "mailpit") && uri.Port == 8025
-        && uri.AbsolutePath == "/" && uri.UserInfo.Length == 0 && uri.Query.Length == 0 && uri.Fragment.Length == 0;
+        && uri.AbsolutePath is "/" or "/mailpit/" && uri.UserInfo.Length == 0 && uri.Query.Length == 0 && uri.Fragment.Length == 0;
 }

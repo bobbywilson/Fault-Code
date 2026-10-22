@@ -34,6 +34,16 @@ export FAULTCODE_SQL_CONNECTION="Server=sql;Database=FaultCode;User ID=sa;Passwo
 export FAULTCODE_AGENT_MODEL=gpt-4.1-mini-2025-04-14 FAULTCODE_EMBEDDING_MODEL=text-embedding-3-small
 export FAULTCODE_OPENAI_KEY=isolated-test-key FAULTCODE_DATADOG_INCIDENT_TOKEN=isolated-test-key
 export FAULTCODE_AGENTS_ENABLED=false FAULTCODE_EMBEDDINGS_ENABLED=false
+export FAULTCODE_DEMO_LOGIN_ENABLED=true FAULTCODE_DEMO_USERNAME=smoketest
+export FAULTCODE_DEMO_USER_ID=11111111-1111-4111-8111-111111111111
+export FAULTCODE_DEMO_CLIENT_ID=22222222-2222-4222-8222-222222222222
+FAULTCODE_DEMO_PASSWORD_HASH=$(python3 - <<'PY'
+import base64,hashlib,secrets,struct
+salt=secrets.token_bytes(16)
+print(base64.b64encode(b'\x01'+struct.pack('>III',2,100000,16)+salt+hashlib.pbkdf2_hmac('sha512',b'isolated-smoke-password',salt,100000,32)).decode())
+PY
+)
+export FAULTCODE_DEMO_PASSWORD_HASH
 docker compose -p "$project" -f "$temp/compose.yaml" config --format json > "$temp/compose.json"
 python3 - "$temp/compose.json" <<'PY'
 import json,sys
@@ -62,6 +72,17 @@ if curl "${curl_flags[@]}" --fail --silent -H 'Host: unrelated.invalid' "https:/
 fi
 curl "${curl_flags[@]}" --fail --silent --show-error "https://faultcodeai.com:$port/docs/" >/dev/null
 curl "${curl_flags[@]}" --fail --silent --show-error "https://faultcodeai.com:$port/swagger/index.html" >/dev/null
+curl "${curl_flags[@]}" --fail --silent --show-error -c "$temp/cookies" "https://faultcodeai.com:$port/session" > "$temp/session.json"
+csrf=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["csrfToken"])' "$temp/session.json")
+curl "${curl_flags[@]}" --fail --silent --show-error -b "$temp/cookies" -c "$temp/cookies" \
+  -H 'Content-Type: application/json' -H "X-FaultCode-CSRF: $csrf" \
+  --data '{"username":"smoketest","password":"isolated-smoke-password"}' "https://faultcodeai.com:$port/session/login" >/dev/null
+curl "${curl_flags[@]}" --fail --silent --show-error -b "$temp/cookies" "https://faultcodeai.com:$port/session" > "$temp/authenticated.json"
+python3 - "$temp/authenticated.json" <<'PY'
+import json,sys
+session=json.load(open(sys.argv[1])); assert session['user']['displayName']=='John Henry'
+PY
+curl "${curl_flags[@]}" --fail --silent --show-error -b "$temp/cookies" "https://faultcodeai.com:$port/mailpit/" >/dev/null
 for service in api administration qdrant documentation; do
   container=$(docker compose -p "$project" -f "$temp/compose.json" ps -q "$service")
   test "$(docker inspect "$container" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$source_sha"

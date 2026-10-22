@@ -24,6 +24,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ApiTesting__Enabled: "true"
+      ReverseProxy__Enabled: "true"
       AllowedHosts: "faultcodeai.com;localhost;127.0.0.1;[::1]"
       FaultCode__ApplicationName: Fault Code
       Notifications__Provider: Mailpit

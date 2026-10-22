@@ -210,6 +210,19 @@ if (!string.IsNullOrWhiteSpace(fleetConnection))
 }
 
 var app = builder.Build();
+if (builder.Configuration.GetValue<bool>("ReverseProxy:Enabled"))
+{
+    // The API has no published port. Its isolated ingress proxy overwrites the
+    // protocol header; no forwarded address or identity is accepted here.
+    var forwarded = new Microsoft.AspNetCore.Builder.ForwardedHeadersOptions
+    {
+        ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto,
+        ForwardLimit = 1
+    };
+    forwarded.KnownIPNetworks.Clear();
+    forwarded.KnownProxies.Clear();
+    app.UseForwardedHeaders(forwarded);
+}
 // Explicit local/operator command only. Never migrates or seeds automatically during serving startup.
 var databaseCommand = builder.Configuration["Database:Command"];
 if (!string.IsNullOrWhiteSpace(databaseCommand))
