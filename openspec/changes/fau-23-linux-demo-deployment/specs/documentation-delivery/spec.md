@@ -35,3 +35,7 @@ The Linux deployment SHALL serve Angular, REST/MCP, public static Mintlify docs,
 #### Scenario: Capture-only email
 - **WHEN** dispatch or resolution sends a driver notification
 - **THEN** Mailpit retains the message and the domain viewer requires authentication; no relay or external driver delivery is enabled
+
+#### Scenario: Anonymous documentation navigation behind the HTTPS proxy
+- **WHEN** a signed-out visitor opens API documentation or follows the slashless documentation URL
+- **THEN** public documentation loads without authentication and redirects preserve the browser-facing origin rather than exposing the proxy's internal port

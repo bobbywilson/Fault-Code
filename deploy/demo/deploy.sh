@@ -47,6 +47,9 @@ for image in "ghcr.io/bobbywilson/fault-code-api@$api" "ghcr.io/bobbywilson/faul
   [[ $(docker image inspect "$image" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}') == "$source_sha" ]] || { echo 'Image source mismatch' >&2; exit 65; }
 done
 verify() {
+  [[ $(sha256sum nginx.conf | awk '{print $1}') == $(docker exec faultcode-demo-proxy-1 sha256sum /etc/nginx/conf.d/default.conf | awk '{print $1}') ]] || {
+    echo 'Running Fault Code proxy has stale configuration' >&2; return 1;
+  }
   curl --connect-timeout 5 --max-time 15 --fail --silent --show-error --resolve faultcodeai.com:443:127.0.0.1 https://faultcodeai.com/ >/dev/null
   curl --connect-timeout 5 --max-time 15 --fail --silent --show-error --resolve faultcodeai.com:443:127.0.0.1 https://faultcodeai.com/health/ready >/dev/null
   [[ $(curl --connect-timeout 5 --max-time 15 --silent --output /dev/null --write-out '%{http_code}' --resolve faultcodeai.com:443:127.0.0.1 https://faultcodeai.com/api/v1/vehicles) == 401 ]]
@@ -79,7 +82,12 @@ config_container=$(docker create "ghcr.io/bobbywilson/fault-code-api@$api")
 configuration_dir=$(mktemp -d "$root/releases/configuration.XXXXXX")
 docker cp "$config_container:/deployment/." "$configuration_dir/"
 docker rm "$config_container" >/dev/null
-for file in compose.yaml nginx.conf browser-config.json; do install -m 644 "$configuration_dir/$file" "$root/$file"; done
+# Preserve existing bind-mount inodes so nginx reload and browser config reads
+# see this release's contents. install replaces the inode behind a running mount.
+for file in compose.yaml nginx.conf browser-config.json; do
+  cat "$configuration_dir/$file" > "$root/$file"
+  chmod 644 "$root/$file"
+done
 compose "$candidate" config --quiet
 compose "$candidate" pull --quiet
 compose "$candidate" up -d --wait --wait-timeout 240 sql qdrant mailpit documentation
