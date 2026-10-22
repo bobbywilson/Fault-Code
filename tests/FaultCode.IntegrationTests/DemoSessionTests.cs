@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -66,11 +67,18 @@ public sealed class DemoSessionTests
         using (var after = await c.GetAsync("/workspace/api/v1/vehicles")) Assert.Equal(HttpStatusCode.Unauthorized, after.StatusCode);
         Assert.Null((await Session(c))["user"]);
     }
-    [Fact]
-    public async Task Disabled_demo_cannot_sign_in_or_change_the_bearer_API()
+    [Theory]
+    [InlineData("Development")]
+    [InlineData("Production")]
+    public async Task Disabled_demo_cannot_sign_in_or_change_the_bearer_API(string environment)
     {
-        using var keys = new Discovery(); await using var f = CreateFactory(keys); using var c = f.CreateClient();
-        Assert.False((await Session(c))["demoAvailable"]!.GetValue<bool>());
+        using var keys = new Discovery(); await using var f = CreateFactory(keys).WithWebHostBuilder(b => b.UseEnvironment(environment)); using var c = f.CreateClient();
+        using var sessionResponse = await c.GetAsync("/session");
+        Assert.Equal(HttpStatusCode.OK, sessionResponse.StatusCode);
+        Assert.False(sessionResponse.Headers.Contains("Set-Cookie"));
+        var session = (await sessionResponse.Content.ReadFromJsonAsync<JsonObject>())!;
+        Assert.False(session["demoAvailable"]!.GetValue<bool>());
+        Assert.Null(session["csrfToken"]); Assert.Null(session["user"]);
         using var r = await Post(c, "/session/login", null, new { username = "demo", password = Password }); Assert.Equal(HttpStatusCode.NotFound, r.StatusCode);
         using var api = await c.GetAsync("/api/v1/vehicles"); Assert.Equal(HttpStatusCode.Unauthorized, api.StatusCode);
     }

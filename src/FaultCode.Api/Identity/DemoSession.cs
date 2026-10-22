@@ -145,12 +145,13 @@ public static class DemoSession
     private static object State(HttpContext c, DemoAccountOptions account)
     {
         c.Response.Headers.CacheControl = "no-store";
-        var csrf = c.RequestServices.GetRequiredService<IAntiforgery>().GetAndStoreTokens(c).RequestToken;
+        var csrf = account.Enabled
+            ? c.RequestServices.GetRequiredService<IAntiforgery>().GetAndStoreTokens(c).RequestToken : null;
         return new
         {
             demoAvailable = account.Enabled,
             csrfToken = csrf,
-            user = c.User.Identity?.IsAuthenticated == true ? new
+            user = account.Enabled && c.User.Identity?.IsAuthenticated == true ? new
             {
                 id = account.UserId,
                 displayName = account.DisplayName,
