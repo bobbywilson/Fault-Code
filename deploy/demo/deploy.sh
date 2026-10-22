@@ -47,6 +47,9 @@ for image in "ghcr.io/bobbywilson/fault-code-api@$api" "ghcr.io/bobbywilson/faul
   [[ $(docker image inspect "$image" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}') == "$source_sha" ]] || { echo 'Image source mismatch' >&2; exit 65; }
 done
 verify() {
+  [[ $(sha256sum nginx.conf | awk '{print $1}') == $(docker exec faultcode-demo-proxy-1 sha256sum /etc/nginx/conf.d/default.conf | awk '{print $1}') ]] || {
+    echo 'Running Fault Code proxy has stale configuration' >&2; return 1;
+  }
   curl --connect-timeout 5 --max-time 15 --fail --silent --show-error --resolve faultcodeai.com:443:127.0.0.1 https://faultcodeai.com/ >/dev/null
   curl --connect-timeout 5 --max-time 15 --fail --silent --show-error --resolve faultcodeai.com:443:127.0.0.1 https://faultcodeai.com/health/ready >/dev/null
   [[ $(curl --connect-timeout 5 --max-time 15 --silent --output /dev/null --write-out '%{http_code}' --resolve faultcodeai.com:443:127.0.0.1 https://faultcodeai.com/api/v1/vehicles) == 401 ]]
