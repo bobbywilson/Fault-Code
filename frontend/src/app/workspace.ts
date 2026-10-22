@@ -830,7 +830,7 @@ export const areas = [
                 <h2 hlmCardTitle>
                   {{ group() === 'Incidents' ? 'Review incident' : 'Workspace actions' }}
                 </h2>
-                <div hlmField>
+                <div hlmField class="w-full" [class.md:w-1/2]="group() === 'Incidents'">
                   <label hlmFieldLabel for="action">Action</label
                   ><hlm-native-select
                     selectId="action"
@@ -849,7 +849,11 @@ export const areas = [
                     Access denied. This action requires additional permissions.
                   </div>
                 } @else if (op(); as action) {
-                  <form (ngSubmit)="execute()" class="grid max-w-3xl gap-5">
+                  <form
+                    (ngSubmit)="execute()"
+                    class="grid w-full max-w-3xl gap-5"
+                    [class.md:w-1/2]="group() === 'Incidents'"
+                  >
                     <app-fields [schema]="parameterSchema()" [model]="parameters" prefix="params" />
                     @if (action.body) {
                       <app-fields [schema]="bodyFields(action)" [model]="body" prefix="body" />

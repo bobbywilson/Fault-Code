@@ -127,3 +127,11 @@ The Vehicles table SHALL end with an Incidents column containing a Spartan butto
 - **WHEN** a vehicle has incidents visible to the caller and the user selects View incidents
 - **THEN** the Incidents page requests only that vehicle's incidents using vehicleId
 - **AND** pagination retains the vehicle filter and ordinary Incidents navigation returns to the unfiltered list
+
+### Requirement: Compact incident review controls
+Incident review SHALL display the Action selector and parameter fields at half the card's content width on desktop and full width on small screens.
+
+#### Scenario: Responsive incident review
+- **WHEN** a user reviews an incident on a desktop viewport
+- **THEN** the Action selector and ID field align at 50 percent of the card's content width
+- **AND** small viewports use the available full width without horizontal form overflow
