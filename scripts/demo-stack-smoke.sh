@@ -73,6 +73,20 @@ if curl "${curl_flags[@]}" --fail --silent -H 'Host: unrelated.invalid' "https:/
   echo 'Unrelated hostname unexpectedly accepted' >&2; exit 1
 fi
 curl "${curl_flags[@]}" --fail --silent --show-error "https://faultcodeai.com:$port/docs/" >/dev/null
+for path in docs mailpit; do
+  curl "${curl_flags[@]}" --fail --silent --show-error --dump-header "$temp/redirect-headers" \
+    --output /dev/null "https://faultcodeai.com:$port/$path"
+  python3 - "$temp/redirect-headers" "$path" <<'PY'
+import sys
+from pathlib import Path
+lines = Path(sys.argv[1]).read_text().splitlines()
+assert lines[0].split()[1] == '308', lines[0]
+location = next(line.split(':', 1)[1].strip() for line in lines if line.lower().startswith('location:'))
+assert location == '/' + sys.argv[2] + '/', location
+PY
+done
+# Following the public documentation link must stay on the mapped external port.
+curl "${curl_flags[@]}" --location --fail --silent --show-error "https://faultcodeai.com:$port/docs" >/dev/null
 curl "${curl_flags[@]}" --fail --silent --show-error "https://faultcodeai.com:$port/swagger/index.html" >/dev/null
 curl "${curl_flags[@]}" --fail --silent --show-error -c "$temp/cookies" "https://faultcodeai.com:$port/session" > "$temp/session.json"
 csrf=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["csrfToken"])' "$temp/session.json")

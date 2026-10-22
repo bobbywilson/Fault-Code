@@ -26,6 +26,17 @@ try {
     path: 'frontend/test-results/production-linux-setup.png',
     fullPage: true,
   });
+  // Exercise the deployed-host URL branch using only this disposable image.
+  await page.route('http://faultcodeai.localhost/**', async (route) => {
+    const url = new URL(route.request().url());
+    await route.continue({ url: base + url.pathname + url.search });
+  });
+  await page.goto('http://faultcodeai.localhost/admin/incidents');
+  await page.getByRole('heading', { name: 'Sign in to continue' }).waitFor();
+  assert.equal(
+    await page.getByRole('link', { name: 'API documentation', exact: true }).getAttribute('href'),
+    '/docs/',
+  );
   await page.emulateMedia({ colorScheme: 'dark' });
   await page.goto(base + '/swagger/index.html');
   await page.getByRole('heading', { name: /^Fault Code API/ }).waitFor();
