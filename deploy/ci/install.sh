@@ -9,7 +9,7 @@ id faultcode-ci >/dev/null 2>&1 || useradd --create-home --home-dir /var/lib/fau
 base=/var/lib/faultcode-ci
 uid=$(id -u faultcode-ci)
 chmod 700 "$base"
-install -d -m 700 -o faultcode-ci -g faultcode-ci "$base/bin" "$base/build" "$base/ci" "$base/gate" "$base/.config/systemd/user/docker.service.d"
+install -d -m 700 -o faultcode-ci -g faultcode-ci "$base/bin" "$base/build" "$base/ci" "$base/ci-secondary" "$base/gate" "$base/.config/systemd/user/docker.service.d"
 chown -R faultcode-ci:faultcode-ci "$base/.config"
 curl -fsSL --retry 3 https://download.docker.com/linux/static/stable/x86_64/docker-rootless-extras-29.1.3.tgz -o "$base/rootless.tgz"
 tar xzf "$base/rootless.tgz" --strip-components=1 -C "$base/bin"
