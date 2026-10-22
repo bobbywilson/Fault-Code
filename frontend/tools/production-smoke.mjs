@@ -29,7 +29,8 @@ try {
   // Exercise the deployed-host URL branch using only this disposable image.
   await page.route('http://faultcodeai.localhost/**', async (route) => {
     const url = new URL(route.request().url());
-    await route.continue({ url: base + url.pathname + url.search });
+    const response = await route.fetch({ url: base + url.pathname + url.search });
+    await route.fulfill({ response });
   });
   await page.goto('http://faultcodeai.localhost/admin/incidents');
   await page.getByRole('heading', { name: 'Sign in to continue' }).waitFor();
