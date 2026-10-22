@@ -3,6 +3,7 @@ on:
   push:
     branches: [main, development]
   pull_request:
+    branches: [development]
 permissions:
   contents: read
 concurrency:
