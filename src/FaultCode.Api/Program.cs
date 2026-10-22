@@ -88,12 +88,17 @@ builder.Services.AddTransient<FaultCode.Application.Notifications.IIncidentResol
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 var fleetConnection = builder.Configuration.GetConnectionString("FaultCode");
 if (string.IsNullOrWhiteSpace(fleetConnection))
+{
     builder.Services.AddSingleton<FaultCode.Application.Fleet.IFleetStore, UnavailableFleetStore>();
+    if (builder.Environment.IsDevelopment()) builder.Services.AddSingleton<IApiRequestQuotaStore, DevelopmentApiRequestQuotaStore>();
+    else builder.Services.AddSingleton<IApiRequestQuotaStore, UnavailableApiRequestQuotaStore>();
+}
 else
 {
     var fleetOptions = new DbContextOptionsBuilder<FleetDbContext>().UseSqlServer(fleetConnection).Options;
     builder.Services.AddSingleton(fleetOptions);
     builder.Services.AddSingleton<FaultCode.Application.Fleet.IFleetStore, SqlServerFleetStore>();
+    builder.Services.AddSingleton<IApiRequestQuotaStore, SqlServerApiRequestQuotaStore>();
 }
 builder.Services.AddScoped<FaultCode.Application.Fleet.FleetService>();
 builder.Services.AddSingleton<FaultCode.Application.Knowledge.IKnowledgeStore, UnavailableKnowledgeStore>();
@@ -346,6 +351,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseDemoAntiforgery();
 app.UseAuthorization();
+app.UseMiddleware<DailyApiQuotaMiddleware>();
 // MCP tools are invoked by the bound server-side agent workflow; no public MCP route.
 app.MapOpenApi().AllowAnonymous();
 if (app.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("ApiTesting:Enabled"))

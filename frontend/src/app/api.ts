@@ -4,6 +4,7 @@ export class ApiError extends Error {
   constructor(
     public status: number,
     public correlationId = '',
+    public dailyQuota = false,
   ) {
     super('Request failed');
   }
@@ -45,7 +46,11 @@ export class Api {
     });
     if (!response.ok) {
       if (response.status === 401) this.auth.expire();
-      throw new ApiError(response.status, response.headers.get('X-Correlation-ID') ?? '');
+      throw new ApiError(
+        response.status,
+        response.headers.get('X-Correlation-ID') ?? '',
+        response.status === 429 && response.headers.get('X-RateLimit-Remaining') === '0',
+      );
     }
     return {
       data: response.status === 204 ? undefined : await response.json(),

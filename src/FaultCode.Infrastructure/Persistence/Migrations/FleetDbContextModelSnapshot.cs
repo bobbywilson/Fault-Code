@@ -105,6 +105,27 @@ namespace FaultCode.Infrastructure.Persistence.Migrations
                     b.ToTable("Vehicles", (string)null);
                 });
 
+            modelBuilder.Entity("FaultCode.Infrastructure.Persistence.ApiRequestQuotaRow", b =>
+                {
+                    b.Property<string>("TenantId")
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("IdentityHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateOnly>("Day")
+                        .HasColumnType("date");
+
+                    b.Property<int>("Used")
+                        .HasColumnType("int");
+
+                    b.HasKey("TenantId", "IdentityHash", "Day");
+
+                    b.ToTable("ApiRequestQuotas", (string)null);
+                });
+
             modelBuilder.Entity("FaultCode.Infrastructure.Persistence.FleetAssociationRow", b =>
                 {
                     b.Property<string>("TenantId")

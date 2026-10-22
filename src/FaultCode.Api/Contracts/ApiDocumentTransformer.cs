@@ -13,7 +13,7 @@ public sealed class ApiDocumentTransformer : IOpenApiDocumentTransformer
         document.Servers = [new OpenApiServer { Url = "https://faultcodeai.com" }];
         document.Info.Title = "Fault Code API";
         document.Info.Version = "v1";
-        document.Info.Description = "Fault Code REST API: list, get, create, update and delete incidents, vehicles, drivers, notifications, fault codes and ontology. Send a dedicated Fault Code Entra access token in the Authorization: Bearer header. The API validates signature, issuer, audience, expiry, scopes and roles.";
+        document.Info.Description = "Fault Code REST API: list, get, create, update and delete incidents, vehicles, drivers, notifications, fault codes and ontology. Send a dedicated Fault Code Entra access token in the Authorization: Bearer header. The API validates signature, issuer, audience, expiry, scopes and roles. Limit: 200 authorized API requests per identity per UTC day, shared across endpoints. Resets at midnight UTC. Refreshing a token does not reset usage; excess requests return 429 with Retry-After.";
         document.Components!.SecuritySchemes = new Dictionary<string, IOpenApiSecurityScheme>
         {
             ["EntraBearer"] = new OpenApiSecurityScheme
@@ -77,6 +77,22 @@ public sealed class ApiDocumentTransformer : IOpenApiDocumentTransformer
                     operation.Extensions["x-delegated-scopes"] = new JsonNodeExtension(new JsonArray(grants.Select(p => p.Scope).Concat(policies.Contains("vehicles.access.read") ? new[] { "vehicles.read.own" } : []).Concat(policies.Contains("drivers.access.read") ? new[] { "drivers.read.own" } : []).Select(p => (JsonNode?)JsonValue.Create(p)).ToArray()));
                     operation.Extensions["x-application-roles"] = new JsonNodeExtension(new JsonArray(grants.Select(p => (JsonNode?)JsonValue.Create(p.ApplicationRole)).ToArray()));
                 }
+                operation.Description += " Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers.";
+                operation.Responses!["429"] = new OpenApiResponse
+                {
+                    Description = "Daily API quota exhausted. Retry after midnight UTC.",
+                    Headers = new Dictionary<string, IOpenApiHeader>
+                    {
+                        ["Retry-After"] = new OpenApiHeader { Description = "Seconds until midnight UTC.", Schema = new OpenApiSchema { Type = JsonSchemaType.Integer } },
+                        ["X-RateLimit-Limit"] = new OpenApiHeader { Description = "Daily request allowance: 200.", Schema = new OpenApiSchema { Type = JsonSchemaType.Integer } },
+                        ["X-RateLimit-Remaining"] = new OpenApiHeader { Description = "Remaining requests: 0 when rejected.", Schema = new OpenApiSchema { Type = JsonSchemaType.Integer } },
+                        ["X-RateLimit-Reset"] = new OpenApiHeader { Description = "Next reset as a Unix timestamp in seconds.", Schema = new OpenApiSchema { Type = JsonSchemaType.Integer, Format = "int64" } }
+                    },
+                    Content = new Dictionary<string, OpenApiMediaType>
+                    {
+                        ["application/problem+json"] = new OpenApiMediaType { Schema = new OpenApiSchemaReference("ProblemDetails", document) }
+                    }
+                };
                 if (path.StartsWith("/api/v1/drivers", StringComparison.Ordinal) || path.StartsWith("/api/v1/vehicles", StringComparison.Ordinal)) FleetDocumentExamples.Decorate(operation, path);
                 if (path.StartsWith("/api/v1/incidents", StringComparison.Ordinal)) IncidentDocumentExamples.Decorate(operation, path);
                 if (path.StartsWith("/api/v1/fault-codes", StringComparison.Ordinal)) KnowledgeDocumentExamples.Decorate(operation, path);

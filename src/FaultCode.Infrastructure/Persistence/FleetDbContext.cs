@@ -12,8 +12,14 @@ public sealed class FleetDbContext(DbContextOptions<FleetDbContext> options) : D
     public DbSet<FleetAuditRow> Audit => Set<FleetAuditRow>();
     public DbSet<FleetReplayRow> Replays => Set<FleetReplayRow>();
     public DbSet<WorkflowRecord> WorkflowRecords => Set<WorkflowRecord>();
+    public DbSet<ApiRequestQuotaRow> ApiRequestQuotas => Set<ApiRequestQuotaRow>();
     protected override void OnModelCreating(ModelBuilder model)
     {
+        var quota = model.Entity<ApiRequestQuotaRow>();
+        quota.ToTable("ApiRequestQuotas");
+        quota.HasKey(x => new { x.TenantId, x.IdentityHash, x.Day });
+        quota.Property(x => x.TenantId).HasMaxLength(36);
+        quota.Property(x => x.IdentityHash).HasMaxLength(64);
         var workflow = model.Entity<WorkflowRecord>();
         workflow.ToTable("WorkflowRecords", table => table.HasCheckConstraint("CK_WorkflowRecord_Json", "ISJSON([Payload]) = 1"));
         workflow.HasKey(x => new { x.TenantId, x.Kind, x.Key });
@@ -50,6 +56,13 @@ public sealed class FleetDbContext(DbContextOptions<FleetDbContext> options) : D
         replays.Property(x => x.TenantId).HasMaxLength(36); replays.Property(x => x.KeyHash).HasMaxLength(64);
         replays.Property(x => x.PayloadHash).HasMaxLength(64);
     }
+}
+public sealed class ApiRequestQuotaRow
+{
+    public string TenantId { get; set; } = "";
+    public string IdentityHash { get; set; } = "";
+    public DateOnly Day { get; set; }
+    public int Used { get; set; }
 }
 public sealed class FleetAssociationRow
 {

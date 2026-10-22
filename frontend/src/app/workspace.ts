@@ -1032,6 +1032,10 @@ export const areas = [
                       : 'Your Entra access token for the Fault Code API.'
                   }}
                 </p>
+                <p class="text-sm text-muted-foreground">
+                  200 API requests per day per identity. Resets at midnight UTC. Refreshing the
+                  token does not reset usage.
+                </p>
                 @if (tokenBusy()) {
                   <p role="status">Loading token…</p>
                 }
@@ -2276,7 +2280,9 @@ export class Workspace {
         404: 'The record is unavailable or no longer accessible.',
         409: 'The record changed or this retry conflicts. Reload the current record before retrying.',
         422: 'The request cannot be completed with the current evidence.',
-        429: 'Too many requests. Wait before trying again.',
+        429: e.dailyQuota
+          ? 'Daily API limit reached (200 requests). Try again after midnight UTC.'
+          : 'Too many requests. Wait before trying again.',
         503: 'This service is unavailable. Review recorded history before retrying.',
         504: 'The request timed out. Review recorded history before retrying.',
       };

@@ -39,3 +39,16 @@ The Linux deployment SHALL serve Angular, REST/MCP, public static Mintlify docs,
 #### Scenario: Anonymous documentation navigation behind the HTTPS proxy
 - **WHEN** a signed-out visitor opens API documentation or follows the slashless documentation URL
 - **THEN** public documentation loads without authentication and redirects preserve the browser-facing origin rather than exposing the proxy's internal port
+
+### Requirement: Daily authenticated API quota
+The API SHALL admit at most 200 authorized resource requests per identity per UTC calendar day across all resource endpoints, with durable atomic counters. Application identity is tenant/application; delegated identity is tenant/user. Token refresh SHALL NOT reset the allowance. John Henry's browser API calls and dedicated Entra application token SHALL share the same allowance. Unauthenticated, forbidden, public documentation, health and preflight requests SHALL NOT consume it.
+
+#### Scenario: Exhausted or unavailable quota
+- **WHEN** an authorized identity has already used 200 requests that UTC day
+- **THEN** further requests return 429 before endpoint execution, with Retry-After until midnight UTC and limit/remaining/reset headers
+- **AND** a new UTC day restores the allowance while a restart, deployment or refreshed token does not
+- **AND** unavailable quota persistence returns 503 without executing the endpoint
+
+#### Scenario: Public quota documentation
+- **WHEN** a reviewer opens Mintlify authentication guidance or an endpoint in Swagger
+- **THEN** the 200-request limit, identity scope, midnight UTC reset and 429 behavior are documented without requiring sign-in

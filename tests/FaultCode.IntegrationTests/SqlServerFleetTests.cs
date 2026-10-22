@@ -22,6 +22,27 @@ public sealed class SqlServerFactAttribute : FactAttribute
 public sealed class SqlServerFleetTests
 {
     [SqlServerFact]
+    public async Task Daily_API_quota_is_atomic_durable_and_partitioned_by_identity_and_UTC_day()
+    {
+        var connection = Environment.GetEnvironmentVariable("FAULTCODE_SQL_TEST_CONNECTION")!;
+        Assert.StartsWith("FaultCode_Test_", new SqlConnectionStringBuilder(connection).InitialCatalog);
+        var options = new DbContextOptionsBuilder<FleetDbContext>().UseSqlServer(connection).Options;
+        await using (var db = new FleetDbContext(options)) await db.Database.MigrateAsync();
+        var tenant = Guid.NewGuid().ToString("D"); var day = new DateOnly(2026, 10, 22);
+        var store = new SqlServerApiRequestQuotaStore(options); var identity = new string('A', 64);
+        var first = new List<int?>();
+        foreach (var batch in Enumerable.Range(0, 205).Chunk(20))
+            first.AddRange(await Task.WhenAll(batch.Select(_ => store.Consume(tenant, identity, day, 200, default))));
+        Assert.Equal(200, first.Count(x => x is not null)); Assert.Equal(5, first.Count(x => x is null));
+        var reconnected = new SqlServerApiRequestQuotaStore(options);
+        Assert.Null(await reconnected.Consume(tenant, identity, day, 200, default));
+        Assert.Equal(1, await reconnected.Consume(tenant, new string('B', 64), day, 200, default));
+        Assert.Equal(1, await reconnected.Consume(tenant, identity, day.AddDays(1), 200, default));
+        await using var persisted = new FleetDbContext(options);
+        Assert.Equal(200, (await persisted.ApiRequestQuotas.FindAsync(tenant, identity, day))!.Used);
+    }
+
+    [SqlServerFact]
     public async Task Real_sql_fault_seed_is_idempotent_and_catalog_survives_reconnect()
     {
         var options = new DbContextOptionsBuilder<FleetDbContext>().UseSqlServer(Environment.GetEnvironmentVariable("FAULTCODE_SQL_TEST_CONNECTION")).Options;

@@ -29,3 +29,8 @@
 - [x] Prepare seven-service configuration, immutable docs image, required SQL CI gate, explicit migration/seed/index sequence and private server configuration without LALAI service operations.
 - [ ] Push and self-review all scoped code, record actual PR approval constraints and merge only after successful checks.
 - [ ] Verify automatic development deployment, authenticated app/API/token/tickets, known/unknown/resolution email capture, TLS/docs/Mailpit and retained persistence on the public domain.
+
+## October22 daily API quota follow-up
+- [ ] Implement durable atomic 200-request UTC daily quota per identity, preserving it through token refresh and sharing John Henry's browser/API allowance.
+- [ ] Verify signed JWT admission/rejection, concurrent exhaustion, UTC reset, SQL reconnect and fail-closed storage behavior.
+- [ ] Publish quota guidance in public Mintlify and Swagger and verify the deployed documentation link and quota response headers.

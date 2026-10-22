@@ -7,6 +7,29 @@ afterEach(() => {
   TestBed.resetTestingModule();
 });
 describe('exclusive protected API client', () => {
+  it('identifies exhausted daily quota without expiring the authenticated session', async () => {
+    const expire = vi.fn();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: Auth, useValue: { apiHeaders: async () => ({}), kind: () => 'demo', expire } },
+      ],
+    });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response('{}', {
+          status: 429,
+          headers: { 'X-RateLimit-Remaining': '0', 'X-Correlation-ID': 'quota-reference' },
+        }),
+      ),
+    );
+    await expect(TestBed.inject(Api).request('/api/v1/vehicles')).rejects.toMatchObject({
+      status: 429,
+      dailyQuota: true,
+      correlationId: 'quota-reference',
+    });
+    expect(expire).not.toHaveBeenCalled();
+  });
   it('validates isolated public configuration and rejects alternate resource scopes', () => {
     const c = {
       tenantId: '11111111-1111-4111-8111-111111111111',

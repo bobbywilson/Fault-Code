@@ -17,12 +17,22 @@ Each endpoint declares its required permissions. Delegated tokens require the de
 
 The endpoint reference lists `x-faultcode-required-policies` with the applicable scope and role requirements. For example, fault-code reads require `knowledge.read`; ontology writes require `knowledge.publish` with an allowed Engineer role or its corresponding application role.
 
-## Authentication responses
+## Daily API limit
+
+Each authenticated identity has **200 API requests per day**, shared across all resource endpoints. The allowance resets at **00:00 UTC**. Application tokens share their application's allowance; delegated tokens share their user's allowance. Refreshing or replacing a token does not reset usage. John Henry's browser API calls and dedicated application token share one allowance.
+
+Authorized requests count when admitted, including requests whose endpoint later returns an error. Missing/invalid tokens, permission denials, preflight requests, documentation, and health checks do not consume the allowance. Counters survive application restarts and deployments.
+
+API responses include `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `X-RateLimit-Reset` (the next midnight UTC as a Unix timestamp in seconds). Once the allowance is exhausted, the API returns **429 Too Many Requests** with `Retry-After` in seconds. Wait until that time before retrying. If quota storage cannot be checked, requests fail with 503 rather than bypassing the limit.
+
+## Authentication and quota responses
 
 | Result | Meaning |
 | --- | --- |
 | 401 | Missing, invalid, expired, wrong issuer or wrong audience token |
 | 403 | Valid token lacks the required permissions |
 | 404 | Resource absent or hidden by access filtering |
+| 429 | The identity has used its 200 API requests for the UTC day |
+| 503 | Service or quota storage temporarily unavailable |
 
 Documentation is public and requires no login. The separate [Swagger UI](https://faultcodeai.com/swagger/index.html) accepts a bearer token through **Authorize** when testing protected requests. Authorization is not persisted across reloads.

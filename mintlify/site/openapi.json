@@ -2,7 +2,7 @@
   "openapi": "3.1.1",
   "info": {
     "title": "Fault Code API",
-    "description": "Fault Code REST API: list, get, create, update and delete incidents, vehicles, drivers, notifications, fault codes and ontology. Send a dedicated Fault Code Entra access token in the Authorization: Bearer header. The API validates signature, issuer, audience, expiry, scopes and roles.",
+    "description": "Fault Code REST API: list, get, create, update and delete incidents, vehicles, drivers, notifications, fault codes and ontology. Send a dedicated Fault Code Entra access token in the Authorization: Bearer header. The API validates signature, issuer, audience, expiry, scopes and roles. Limit: 200 authorized API requests per identity per UTC day, shared across endpoints. Resets at midnight UTC. Refreshing a token does not reset usage; excess requests return 429 with Retry-After.",
     "version": "v1"
   },
   "servers": [
@@ -17,7 +17,7 @@
           "Drivers"
         ],
         "summary": "List Drivers",
-        "description": " Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.",
+        "description": " Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.",
         "operationId": "ListDrivers",
         "parameters": [
           {
@@ -257,6 +257,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/drivers",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -312,7 +361,7 @@
           "Drivers"
         ],
         "summary": "Create Driver",
-        "description": " Requires drivers.write. Delegated: exact scope drivers.write AND one of roles Operator. Application: exact role Drivers.Write.All. Caller kind: Either. Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.",
+        "description": " Requires drivers.write. Delegated: exact scope drivers.write AND one of roles Operator. Application: exact role Drivers.Write.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.",
         "operationId": "CreateDriver",
         "parameters": [
           {
@@ -567,6 +616,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/drivers",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -609,7 +707,7 @@
           "Drivers"
         ],
         "summary": "Get Driver",
-        "description": " Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.",
+        "description": " Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.",
         "operationId": "GetDriver",
         "parameters": [
           {
@@ -822,6 +920,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/drivers/{id}",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -877,7 +1024,7 @@
           "Drivers"
         ],
         "summary": "Update Driver",
-        "description": " Requires drivers.write. Delegated: exact scope drivers.write AND one of roles Operator. Application: exact role Drivers.Write.All. Caller kind: Either. Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.",
+        "description": " Requires drivers.write. Delegated: exact scope drivers.write AND one of roles Operator. Application: exact role Drivers.Write.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.",
         "operationId": "UpdateDriver",
         "parameters": [
           {
@@ -1129,6 +1276,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/drivers/{id}",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1169,7 +1365,7 @@
           "Drivers"
         ],
         "summary": "Delete Driver",
-        "description": " Requires drivers.write. Delegated: exact scope drivers.write AND one of roles Operator. Application: exact role Drivers.Write.All. Caller kind: Either. Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.",
+        "description": " Requires drivers.write. Delegated: exact scope drivers.write AND one of roles Operator. Application: exact role Drivers.Write.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.",
         "operationId": "DeleteDriver",
         "parameters": [
           {
@@ -1386,6 +1582,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/drivers/{id}",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1428,7 +1673,7 @@
           "FaultCodes"
         ],
         "summary": "List Fault Codes",
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Tenant-scoped fault-code definitions. Creates and updates validate fault content and ontology references. DELETE retires the definition while preserving evidence history. Publication and indexing are backend workflow operations, not additional public endpoints. Conditional writes require If-Match.",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Tenant-scoped fault-code definitions. Creates and updates validate fault content and ontology references. DELETE retires the definition while preserving evidence history. Publication and indexing are backend workflow operations, not additional public endpoints. Conditional writes require If-Match.",
         "operationId": "ListFaultCodes",
         "parameters": [
           {
@@ -1709,6 +1954,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/fault-codes",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1755,7 +2049,7 @@
           "FaultCodes"
         ],
         "summary": "Create Fault Code",
-        "description": " Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Tenant-scoped fault-code definitions. Creates and updates validate fault content and ontology references. DELETE retires the definition while preserving evidence history. Publication and indexing are backend workflow operations, not additional public endpoints. Conditional writes require If-Match.",
+        "description": " Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Tenant-scoped fault-code definitions. Creates and updates validate fault content and ontology references. DELETE retires the definition while preserving evidence history. Publication and indexing are backend workflow operations, not additional public endpoints. Conditional writes require If-Match.",
         "operationId": "CreateFaultCode",
         "parameters": [
           {
@@ -2083,6 +2377,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/fault-codes",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2125,7 +2468,7 @@
           "FaultCodes"
         ],
         "summary": "Get Fault Code",
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Tenant-scoped fault-code definitions. Creates and updates validate fault content and ontology references. DELETE retires the definition while preserving evidence history. Publication and indexing are backend workflow operations, not additional public endpoints. Conditional writes require If-Match.",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Tenant-scoped fault-code definitions. Creates and updates validate fault content and ontology references. DELETE retires the definition while preserving evidence history. Publication and indexing are backend workflow operations, not additional public endpoints. Conditional writes require If-Match.",
         "operationId": "GetFaultCode",
         "parameters": [
           {
@@ -2363,6 +2706,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/fault-codes/{id}",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2409,7 +2801,7 @@
           "FaultCodes"
         ],
         "summary": "Update Fault Code",
-        "description": " Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Tenant-scoped fault-code definitions. Creates and updates validate fault content and ontology references. DELETE retires the definition while preserving evidence history. Publication and indexing are backend workflow operations, not additional public endpoints. Conditional writes require If-Match.",
+        "description": " Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Tenant-scoped fault-code definitions. Creates and updates validate fault content and ontology references. DELETE retires the definition while preserving evidence history. Publication and indexing are backend workflow operations, not additional public endpoints. Conditional writes require If-Match.",
         "operationId": "UpdateFaultCode",
         "parameters": [
           {
@@ -2729,6 +3121,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/fault-codes/{id}",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2769,7 +3210,7 @@
           "FaultCodes"
         ],
         "summary": "Delete Fault Code",
-        "description": " Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Tenant-scoped fault-code definitions. Creates and updates validate fault content and ontology references. DELETE retires the definition while preserving evidence history. Publication and indexing are backend workflow operations, not additional public endpoints. Conditional writes require If-Match.",
+        "description": " Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Tenant-scoped fault-code definitions. Creates and updates validate fault content and ontology references. DELETE retires the definition while preserving evidence history. Publication and indexing are backend workflow operations, not additional public endpoints. Conditional writes require If-Match.",
         "operationId": "DeleteFaultCode",
         "parameters": [
           {
@@ -2985,6 +3426,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/fault-codes/{id}",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3027,7 +3517,7 @@
           "Incidents"
         ],
         "summary": "List Incidents",
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Vehicle-originated incidents. POST accepts vehicleId and code, creates an incident and linked notification, then attempts agent/MCP processing. Creation does not prove email delivery. PUT updates investigation status; resolving requires resolution notes (maximum 2000 characters), records them with author/time/version, indexes case evidence in Qdrant and queues an agent/MCP follow-up notification. An unknown fault can be resolved with recorded findings; this does not publish an approved fault definition or confirm vehicle repair. DELETE removes the record from normal reads while retaining audit and delivery history. Conditional mutations require If-Match and Idempotency-Key.",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Vehicle-originated incidents. POST accepts vehicleId and code, creates an incident and linked notification, then attempts agent/MCP processing. Creation does not prove email delivery. PUT updates investigation status; resolving requires resolution notes (maximum 2000 characters), records them with author/time/version, indexes case evidence in Qdrant and queues an agent/MCP follow-up notification. An unknown fault can be resolved with recorded findings; this does not publish an approved fault definition or confirm vehicle repair. DELETE removes the record from normal reads while retaining audit and delivery history. Conditional mutations require If-Match and Idempotency-Key.",
         "operationId": "ListIncidents",
         "parameters": [
           {
@@ -3308,6 +3798,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/incidents",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3426,7 +3965,7 @@
           "Incidents"
         ],
         "summary": "Create Incident",
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Vehicle-originated incidents. POST accepts vehicleId and code, creates an incident and linked notification, then attempts agent/MCP processing. Creation does not prove email delivery. PUT updates investigation status; resolving requires resolution notes (maximum 2000 characters), records them with author/time/version, indexes case evidence in Qdrant and queues an agent/MCP follow-up notification. An unknown fault can be resolved with recorded findings; this does not publish an approved fault definition or confirm vehicle repair. DELETE removes the record from normal reads while retaining audit and delivery history. Conditional mutations require If-Match and Idempotency-Key.",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Vehicle-originated incidents. POST accepts vehicleId and code, creates an incident and linked notification, then attempts agent/MCP processing. Creation does not prove email delivery. PUT updates investigation status; resolving requires resolution notes (maximum 2000 characters), records them with author/time/version, indexes case evidence in Qdrant and queues an agent/MCP follow-up notification. An unknown fault can be resolved with recorded findings; this does not publish an approved fault definition or confirm vehicle repair. DELETE removes the record from normal reads while retaining audit and delivery history. Conditional mutations require If-Match and Idempotency-Key.",
         "operationId": "CreateIncident",
         "parameters": [
           {
@@ -3671,6 +4210,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/incidents",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3803,7 +4391,7 @@
           "Incidents"
         ],
         "summary": "Get Incident",
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Vehicle-originated incidents. POST accepts vehicleId and code, creates an incident and linked notification, then attempts agent/MCP processing. Creation does not prove email delivery. PUT updates investigation status; resolving requires resolution notes (maximum 2000 characters), records them with author/time/version, indexes case evidence in Qdrant and queues an agent/MCP follow-up notification. An unknown fault can be resolved with recorded findings; this does not publish an approved fault definition or confirm vehicle repair. DELETE removes the record from normal reads while retaining audit and delivery history. Conditional mutations require If-Match and Idempotency-Key.",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Vehicle-originated incidents. POST accepts vehicleId and code, creates an incident and linked notification, then attempts agent/MCP processing. Creation does not prove email delivery. PUT updates investigation status; resolving requires resolution notes (maximum 2000 characters), records them with author/time/version, indexes case evidence in Qdrant and queues an agent/MCP follow-up notification. An unknown fault can be resolved with recorded findings; this does not publish an approved fault definition or confirm vehicle repair. DELETE removes the record from normal reads while retaining audit and delivery history. Conditional mutations require If-Match and Idempotency-Key.",
         "operationId": "GetIncident",
         "parameters": [
           {
@@ -4041,6 +4629,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/incidents/{id}",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -4159,7 +4796,7 @@
           "Incidents"
         ],
         "summary": "Update Incident",
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Vehicle-originated incidents. POST accepts vehicleId and code, creates an incident and linked notification, then attempts agent/MCP processing. Creation does not prove email delivery. PUT updates investigation status; resolving requires resolution notes (maximum 2000 characters), records them with author/time/version, indexes case evidence in Qdrant and queues an agent/MCP follow-up notification. An unknown fault can be resolved with recorded findings; this does not publish an approved fault definition or confirm vehicle repair. DELETE removes the record from normal reads while retaining audit and delivery history. Conditional mutations require If-Match and Idempotency-Key.",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Vehicle-originated incidents. POST accepts vehicleId and code, creates an incident and linked notification, then attempts agent/MCP processing. Creation does not prove email delivery. PUT updates investigation status; resolving requires resolution notes (maximum 2000 characters), records them with author/time/version, indexes case evidence in Qdrant and queues an agent/MCP follow-up notification. An unknown fault can be resolved with recorded findings; this does not publish an approved fault definition or confirm vehicle repair. DELETE removes the record from normal reads while retaining audit and delivery history. Conditional mutations require If-Match and Idempotency-Key.",
         "operationId": "UpdateIncident",
         "parameters": [
           {
@@ -4416,6 +5053,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/incidents/{id}",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -4546,7 +5232,7 @@
           "Incidents"
         ],
         "summary": "Delete Incident",
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Vehicle-originated incidents. POST accepts vehicleId and code, creates an incident and linked notification, then attempts agent/MCP processing. Creation does not prove email delivery. PUT updates investigation status; resolving requires resolution notes (maximum 2000 characters), records them with author/time/version, indexes case evidence in Qdrant and queues an agent/MCP follow-up notification. An unknown fault can be resolved with recorded findings; this does not publish an approved fault definition or confirm vehicle repair. DELETE removes the record from normal reads while retaining audit and delivery history. Conditional mutations require If-Match and Idempotency-Key.",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Vehicle-originated incidents. POST accepts vehicleId and code, creates an incident and linked notification, then attempts agent/MCP processing. Creation does not prove email delivery. PUT updates investigation status; resolving requires resolution notes (maximum 2000 characters), records them with author/time/version, indexes case evidence in Qdrant and queues an agent/MCP follow-up notification. An unknown fault can be resolved with recorded findings; this does not publish an approved fault definition or confirm vehicle repair. DELETE removes the record from normal reads while retaining audit and delivery history. Conditional mutations require If-Match and Idempotency-Key.",
         "operationId": "DeleteIncident",
         "parameters": [
           {
@@ -4771,6 +5457,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/incidents/{id}",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -4903,7 +5638,7 @@
           "Notifications"
         ],
         "summary": "List Driver Notifications",
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Driver notifications linked to a vehicle incident. POST accepts incidentId and derives the recipient from that incident. PUT accepts state AwaitingAgent to retry eligible work or Cancelled to cancel unsent work; sent content and receipts cannot be overwritten. Attempts count actual sends and Sent requires a Mailpit acknowledgement. DELETE hides a notification while retaining history. If-Match and Idempotency-Key protect updates and deletes; uncertain delivery is not blindly retried.",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Driver notifications linked to a vehicle incident. POST accepts incidentId and derives the recipient from that incident. PUT accepts state AwaitingAgent to retry eligible work or Cancelled to cancel unsent work; sent content and receipts cannot be overwritten. Attempts count actual sends and Sent requires a Mailpit acknowledgement. DELETE hides a notification while retaining history. If-Match and Idempotency-Key protect updates and deletes; uncertain delivery is not blindly retried.",
         "operationId": "ListDriverNotifications",
         "parameters": [
           {
@@ -5156,6 +5891,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/notifications",
+                  "correlationId": "demo-correlation"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -5274,7 +6058,7 @@
           "Notifications"
         ],
         "summary": "Create Notification",
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Driver notifications linked to a vehicle incident. POST accepts incidentId and derives the recipient from that incident. PUT accepts state AwaitingAgent to retry eligible work or Cancelled to cancel unsent work; sent content and receipts cannot be overwritten. Attempts count actual sends and Sent requires a Mailpit acknowledgement. DELETE hides a notification while retaining history. If-Match and Idempotency-Key protect updates and deletes; uncertain delivery is not blindly retried.",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Driver notifications linked to a vehicle incident. POST accepts incidentId and derives the recipient from that incident. PUT accepts state AwaitingAgent to retry eligible work or Cancelled to cancel unsent work; sent content and receipts cannot be overwritten. Attempts count actual sends and Sent requires a Mailpit acknowledgement. DELETE hides a notification while retaining history. If-Match and Idempotency-Key protect updates and deletes; uncertain delivery is not blindly retried.",
         "operationId": "CreateNotification",
         "parameters": [
           {
@@ -5514,6 +6298,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/notifications",
+                  "correlationId": "demo-correlation"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -5646,7 +6479,7 @@
           "Notifications"
         ],
         "summary": "Get Notification",
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Driver notifications linked to a vehicle incident. POST accepts incidentId and derives the recipient from that incident. PUT accepts state AwaitingAgent to retry eligible work or Cancelled to cancel unsent work; sent content and receipts cannot be overwritten. Attempts count actual sends and Sent requires a Mailpit acknowledgement. DELETE hides a notification while retaining history. If-Match and Idempotency-Key protect updates and deletes; uncertain delivery is not blindly retried.",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Driver notifications linked to a vehicle incident. POST accepts incidentId and derives the recipient from that incident. PUT accepts state AwaitingAgent to retry eligible work or Cancelled to cancel unsent work; sent content and receipts cannot be overwritten. Attempts count actual sends and Sent requires a Mailpit acknowledgement. DELETE hides a notification while retaining history. If-Match and Idempotency-Key protect updates and deletes; uncertain delivery is not blindly retried.",
         "operationId": "GetNotification",
         "parameters": [
           {
@@ -5870,6 +6703,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/notifications/{id}",
+                  "correlationId": "demo-correlation"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -5988,7 +6870,7 @@
           "Notifications"
         ],
         "summary": "Update Notification",
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Driver notifications linked to a vehicle incident. POST accepts incidentId and derives the recipient from that incident. PUT accepts state AwaitingAgent to retry eligible work or Cancelled to cancel unsent work; sent content and receipts cannot be overwritten. Attempts count actual sends and Sent requires a Mailpit acknowledgement. DELETE hides a notification while retaining history. If-Match and Idempotency-Key protect updates and deletes; uncertain delivery is not blindly retried.",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Driver notifications linked to a vehicle incident. POST accepts incidentId and derives the recipient from that incident. PUT accepts state AwaitingAgent to retry eligible work or Cancelled to cancel unsent work; sent content and receipts cannot be overwritten. Attempts count actual sends and Sent requires a Mailpit acknowledgement. DELETE hides a notification while retaining history. If-Match and Idempotency-Key protect updates and deletes; uncertain delivery is not blindly retried.",
         "operationId": "UpdateNotification",
         "parameters": [
           {
@@ -6240,6 +7122,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/notifications/{id}",
+                  "correlationId": "demo-correlation"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -6370,7 +7301,7 @@
           "Notifications"
         ],
         "summary": "Delete Notification",
-        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Driver notifications linked to a vehicle incident. POST accepts incidentId and derives the recipient from that incident. PUT accepts state AwaitingAgent to retry eligible work or Cancelled to cancel unsent work; sent content and receipts cannot be overwritten. Attempts count actual sends and Sent requires a Mailpit acknowledgement. DELETE hides a notification while retaining history. If-Match and Idempotency-Key protect updates and deletes; uncertain delivery is not blindly retried.",
+        "description": " Requires faults.read. Delegated: exact scope faults.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Faults.Read.All. Caller kind: Either. Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires drivers.read. Delegated: exact scope drivers.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Drivers.Read.All. Caller kind: Either. Alternatively exact drivers.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Requires faults.write. Delegated: exact scope faults.write AND one of roles Operator. Application: exact role Faults.Write.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Driver notifications linked to a vehicle incident. POST accepts incidentId and derives the recipient from that incident. PUT accepts state AwaitingAgent to retry eligible work or Cancelled to cancel unsent work; sent content and receipts cannot be overwritten. Attempts count actual sends and Sent requires a Mailpit acknowledgement. DELETE hides a notification while retaining history. If-Match and Idempotency-Key protect updates and deletes; uncertain delivery is not blindly retried.",
         "operationId": "DeleteNotification",
         "parameters": [
           {
@@ -6593,6 +7524,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/notifications/{id}",
+                  "correlationId": "demo-correlation"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -6725,7 +7705,7 @@
           "Ontology"
         ],
         "summary": "List Ontology",
-        "description": " Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Tenant-local ontology catalog of concepts, relationships and rules. Relationships must reference valid concepts. There is one current catalog per tenant. DELETE retires an unpublished catalog and retains history; published catalogs return 409 to protect pinned fault knowledge. The dashboard table remains read-only.",
+        "description": " Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Tenant-local ontology catalog of concepts, relationships and rules. Relationships must reference valid concepts. There is one current catalog per tenant. DELETE retires an unpublished catalog and retains history; published catalogs return 409 to protect pinned fault knowledge. The dashboard table remains read-only.",
         "operationId": "ListOntology",
         "parameters": [
           {
@@ -6910,6 +7890,50 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/ontology",
+                  "correlationId": "demo-correlation"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -6956,7 +7980,7 @@
           "Ontology"
         ],
         "summary": "Create Ontology",
-        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish.Application. Caller kind: Either. Tenant-local ontology catalog of concepts, relationships and rules. Relationships must reference valid concepts. There is one current catalog per tenant. DELETE retires an unpublished catalog and retains history; published catalogs return 409 to protect pinned fault knowledge. The dashboard table remains read-only.",
+        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish.Application. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Tenant-local ontology catalog of concepts, relationships and rules. Relationships must reference valid concepts. There is one current catalog per tenant. DELETE retires an unpublished catalog and retains history; published catalogs return 409 to protect pinned fault knowledge. The dashboard table remains read-only.",
         "operationId": "CreateOntology",
         "parameters": [
           {
@@ -7160,6 +8184,50 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/ontology",
+                  "correlationId": "demo-correlation"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -7202,7 +8270,7 @@
           "Ontology"
         ],
         "summary": "Get Ontology",
-        "description": " Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Tenant-local ontology catalog of concepts, relationships and rules. Relationships must reference valid concepts. There is one current catalog per tenant. DELETE retires an unpublished catalog and retains history; published catalogs return 409 to protect pinned fault knowledge. The dashboard table remains read-only.",
+        "description": " Requires knowledge.read. Delegated: exact scope knowledge.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Knowledge.Read.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Tenant-local ontology catalog of concepts, relationships and rules. Relationships must reference valid concepts. There is one current catalog per tenant. DELETE retires an unpublished catalog and retains history; published catalogs return 409 to protect pinned fault knowledge. The dashboard table remains read-only.",
         "operationId": "GetOntology",
         "parameters": [
           {
@@ -7361,6 +8429,50 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/ontology/{id}",
+                  "correlationId": "demo-correlation"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -7407,7 +8519,7 @@
           "Ontology"
         ],
         "summary": "Update Ontology",
-        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish.Application. Caller kind: Either. Tenant-local ontology catalog of concepts, relationships and rules. Relationships must reference valid concepts. There is one current catalog per tenant. DELETE retires an unpublished catalog and retains history; published catalogs return 409 to protect pinned fault knowledge. The dashboard table remains read-only.",
+        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish.Application. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Tenant-local ontology catalog of concepts, relationships and rules. Relationships must reference valid concepts. There is one current catalog per tenant. DELETE retires an unpublished catalog and retains history; published catalogs return 409 to protect pinned fault knowledge. The dashboard table remains read-only.",
         "operationId": "UpdateOntology",
         "parameters": [
           {
@@ -7620,6 +8732,50 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/ontology/{id}",
+                  "correlationId": "demo-correlation"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -7660,7 +8816,7 @@
           "Ontology"
         ],
         "summary": "Delete Ontology",
-        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish.Application. Caller kind: Either. Tenant-local ontology catalog of concepts, relationships and rules. Relationships must reference valid concepts. There is one current catalog per tenant. DELETE retires an unpublished catalog and retains history; published catalogs return 409 to protect pinned fault knowledge. The dashboard table remains read-only.",
+        "description": " Requires knowledge.publish. Delegated: exact scope knowledge.publish AND one of roles Engineer. Application: exact role Knowledge.Publish.Application. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Tenant-local ontology catalog of concepts, relationships and rules. Relationships must reference valid concepts. There is one current catalog per tenant. DELETE retires an unpublished catalog and retains history; published catalogs return 409 to protect pinned fault knowledge. The dashboard table remains read-only.",
         "operationId": "DeleteOntology",
         "parameters": [
           {
@@ -7822,6 +8978,50 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/ontology/{id}",
+                  "correlationId": "demo-correlation"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -7864,7 +9064,7 @@
           "Vehicles"
         ],
         "summary": "List Vehicles",
-        "description": " Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.",
+        "description": " Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.",
         "operationId": "ListVehicles",
         "parameters": [
           {
@@ -8102,6 +9302,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/vehicles",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -8157,7 +9406,7 @@
           "Vehicles"
         ],
         "summary": "Create Vehicle",
-        "description": " Requires vehicles.write. Delegated: exact scope vehicles.write AND one of roles Operator. Application: exact role Vehicles.Write.All. Caller kind: Either. Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.",
+        "description": " Requires vehicles.write. Delegated: exact scope vehicles.write AND one of roles Operator. Application: exact role Vehicles.Write.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.",
         "operationId": "CreateVehicle",
         "parameters": [
           {
@@ -8403,6 +9652,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/vehicles",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -8445,7 +9743,7 @@
           "Vehicles"
         ],
         "summary": "Get Vehicle",
-        "description": " Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.",
+        "description": " Requires vehicles.read. Delegated: exact scope vehicles.read AND one of roles Reader, Operator, Engineer, Administrator. Application: exact role Vehicles.Read.All. Caller kind: Either. Alternatively exact vehicles.read.own scope AND Reader role; application own-read is unavailable. Trusted record authorization remains required. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.",
         "operationId": "GetVehicle",
         "parameters": [
           {
@@ -8656,6 +9954,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/vehicles/{id}",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -8711,7 +10058,7 @@
           "Vehicles"
         ],
         "summary": "Update Vehicle",
-        "description": " Requires vehicles.write. Delegated: exact scope vehicles.write AND one of roles Operator. Application: exact role Vehicles.Write.All. Caller kind: Either. Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.",
+        "description": " Requires vehicles.write. Delegated: exact scope vehicles.write AND one of roles Operator. Application: exact role Vehicles.Write.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.",
         "operationId": "UpdateVehicle",
         "parameters": [
           {
@@ -8960,6 +10307,55 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/vehicles/{id}",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -9000,7 +10396,7 @@
           "Vehicles"
         ],
         "summary": "Delete Vehicle",
-        "description": " Requires vehicles.write. Delegated: exact scope vehicles.write AND one of roles Operator. Application: exact role Vehicles.Write.All. Caller kind: Either. Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.",
+        "description": " Requires vehicles.write. Delegated: exact scope vehicles.write AND one of roles Operator. Application: exact role Vehicles.Write.All. Caller kind: Either. Daily quota: 200 authorized API requests per identity across all endpoints; resets at midnight UTC. Token refresh does not reset usage. Quota exhaustion returns 429 with Retry-After and X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers. Authorized tenant-filtered fleet records. Lists are paginated after ownership filtering. Vehicles include associated drivers visible to the caller and fault codes when knowledge.read is granted. Creates use Idempotency-Key; updates and deletes require a strong If-Match version. DELETE deactivates the record and retains historical relationships.",
         "operationId": "DeleteVehicle",
         "parameters": [
           {
@@ -9214,6 +10610,55 @@
                 "example": {
                   "id": "66666666-6666-4666-8666-666666666666",
                   "version": 1
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Daily API quota exhausted. Retry after midnight UTC.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until midnight UTC.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request allowance: 200.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Remaining requests: 0 when rejected.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "Next reset as a Unix timestamp in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "X-Correlation-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "about:blank",
+                  "title": "Request failed",
+                  "status": 429,
+                  "instance": "/api/v1/vehicles/{id}",
+                  "correlationId": "5ce0d2ac05434c56980a058cfd2e8fa7"
                 }
               }
             }
