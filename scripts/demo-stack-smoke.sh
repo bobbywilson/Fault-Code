@@ -3,7 +3,9 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 project="faultcode-demo-ci-${GITHUB_RUN_ID:-$$}-${RANDOM}"
-temp=$(mktemp -d)
+# The workspace is mounted at the same path in the rootless Docker runner and
+# daemon. Its temporary bind mounts must also use that shared path.
+temp=$(mktemp -d "$PWD/.faultcode-stack.XXXXXX")
 cleanup() {
   if [[ -s "$temp/compose.json" ]]; then
     docker compose -p "$project" -f "$temp/compose.json" down --volumes --remove-orphans >/dev/null 2>&1 || true
