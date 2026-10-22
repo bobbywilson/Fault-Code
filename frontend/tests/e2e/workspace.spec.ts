@@ -691,3 +691,21 @@ test('demo login uses password input and hides private user-token administration
     page.getByRole('button', { name: 'Sign in with Microsoft', exact: true }),
   ).toBeVisible();
 });
+
+test('direct token URL loads the token after restoring a delayed session', async ({ page }) => {
+  await setup(page);
+  await page.route('**/__test/session', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    await route.fulfill({
+      json: { state: 'signed-in', kind: 'demo', demoAvailable: true, permissions: all },
+    });
+  });
+  await page.goto('/admin/token');
+  await expect(page.getByLabel('Entra API access token', { exact: true })).toHaveValue(
+    'test-application-token',
+  );
+  await expect(page.getByText('Identity: Fault Code Demo API', { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Copy Entra API access token', exact: true }),
+  ).toBeVisible();
+});
